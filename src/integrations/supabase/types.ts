@@ -14,16 +14,344 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      administration_rates: {
+        Row: {
+          active: boolean
+          created_at: string
+          group_id: string
+          id: string
+          rate: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          group_id: string
+          id?: string
+          rate: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          group_id?: string
+          id?: string
+          rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administration_rates_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_ranges: {
+        Row: {
+          active: boolean
+          created_at: string
+          credit_value: number
+          group_id: string
+          id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          credit_value: number
+          group_id: string
+          id?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          credit_value?: number
+          group_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_ranges_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          initial_term: number
+          name: string
+          remaining_term: number
+          reserve_fund: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          initial_term: number
+          name: string
+          remaining_term: number
+          reserve_fund?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          initial_term?: number
+          name?: string
+          remaining_term?: number
+          reserve_fund?: number
+        }
+        Relationships: []
+      }
+      installment_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          group_id: string
+          id: string
+          multiplier: number
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          group_id: string
+          id?: string
+          multiplier: number
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          group_id?: string
+          id?: string
+          multiplier?: number
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installment_types_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insurance_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          group_id: string
+          id: string
+          name: string
+          rate: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          group_id: string
+          id?: string
+          name?: string
+          rate: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          group_id?: string
+          id?: string
+          name?: string
+          rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_rules_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          id: string
+          name?: string
+          phone?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      simulations: {
+        Row: {
+          administration_rate: number
+          administration_rate_id: string | null
+          base_amount: number
+          client_name: string | null
+          created_at: string
+          credit_range_id: string | null
+          credit_value: number
+          final_amount: number
+          group_code: string
+          group_id: string | null
+          id: string
+          initial_term: number
+          installment_amount: number
+          installment_multiplier: number
+          installment_type_id: string | null
+          installment_type_name: string
+          insurance_amount: number
+          insurance_included: boolean
+          insurance_rate: number
+          remaining_term: number
+          reserve_fund: number
+          seller_id: string
+        }
+        Insert: {
+          administration_rate: number
+          administration_rate_id?: string | null
+          base_amount: number
+          client_name?: string | null
+          created_at?: string
+          credit_range_id?: string | null
+          credit_value: number
+          final_amount: number
+          group_code: string
+          group_id?: string | null
+          id?: string
+          initial_term: number
+          installment_amount: number
+          installment_multiplier: number
+          installment_type_id?: string | null
+          installment_type_name: string
+          insurance_amount?: number
+          insurance_included?: boolean
+          insurance_rate?: number
+          remaining_term: number
+          reserve_fund: number
+          seller_id: string
+        }
+        Update: {
+          administration_rate?: number
+          administration_rate_id?: string | null
+          base_amount?: number
+          client_name?: string | null
+          created_at?: string
+          credit_range_id?: string | null
+          credit_value?: number
+          final_amount?: number
+          group_code?: string
+          group_id?: string | null
+          id?: string
+          initial_term?: number
+          installment_amount?: number
+          installment_multiplier?: number
+          installment_type_id?: string | null
+          installment_type_name?: string
+          insurance_amount?: number
+          insurance_included?: boolean
+          insurance_rate?: number
+          remaining_term?: number
+          reserve_fund?: number
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulations_administration_rate_id_fkey"
+            columns: ["administration_rate_id"]
+            isOneToOne: false
+            referencedRelation: "administration_rates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulations_credit_range_id_fkey"
+            columns: ["credit_range_id"]
+            isOneToOne: false
+            referencedRelation: "credit_ranges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulations_installment_type_id_fkey"
+            columns: ["installment_type_id"]
+            isOneToOne: false
+            referencedRelation: "installment_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      ensure_profile: { Args: { _name?: string }; Returns: undefined }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "seller"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +478,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "seller"],
+    },
   },
 } as const
