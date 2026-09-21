@@ -102,6 +102,8 @@
 
   --shadow-card: 0 1px 2px oklch(0.21 0.03 255 / 6%), 0 8px 24px oklch(0.21 0.03 255 / 6%);
   --shadow-float: 0 12px 40px oklch(0.21 0.03 255 / 12%);
+  --proposal-shade: linear-gradient(180deg, oklch(0.18 0.06 258 / 8%) 0%, oklch(0.18 0.06 258 / 92%) 100%);
+  --proposal-highlight: oklch(0.31 0.11 258);
 }
 
 @theme inline {
@@ -143,9 +145,36 @@
   font-variant-numeric: tabular-nums;
 }
 
+@utility proposal-cover-shade {
+  background: var(--proposal-shade);
+}
+
+@utility proposal-highlight {
+  background-color: var(--proposal-highlight);
+}
+
 @media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    background: white;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
   .no-print {
     display: none !important;
+  }
+
+  .proposal-sheet {
+    width: 210mm;
+    min-height: 297mm;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 }
 
