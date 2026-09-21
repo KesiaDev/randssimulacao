@@ -28,10 +28,11 @@ function Dashboard() {
     queryKey: ["my-simulations", user?.id],
     enabled: !!user,
     queryFn: async () => {
+      if (!user) return [];
       const { data, error } = await supabase
         .from("simulations")
         .select("*")
-        .eq("seller_id", user!.id)
+        .eq("seller_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
