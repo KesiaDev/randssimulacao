@@ -10,6 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { formatBRL, formatPercent } from "@/lib/format";
+import type { Database } from "@/integrations/supabase/types";
+
+type GroupUpdate = Database["public"]["Tables"]["groups"]["Update"];
+type InsuranceUpdate = Database["public"]["Tables"]["insurance_rules"]["Update"];
 
 export const Route = createFileRoute("/_authenticated/admin/grupos")({
   head: () => ({
@@ -270,7 +274,7 @@ function GroupForm({
     reserve_fund: number;
     active: boolean;
   };
-  onSave: (values: Record<string, unknown>) => void;
+  onSave: (values: GroupUpdate) => void;
 }) {
   const [form, setForm] = useState({
     name: group.name,
@@ -333,7 +337,7 @@ function InsuranceForm({
   onSave,
 }: {
   rule: { name: string; rate: number; active: boolean };
-  onSave: (values: Record<string, unknown>) => void;
+  onSave: (values: InsuranceUpdate) => void;
 }) {
   const [name, setName] = useState(rule.name);
   const [rate, setRate] = useState(String(rule.rate * 100));
@@ -389,7 +393,10 @@ function AddValue({ label, onAdd }: { label: string; onAdd: (value: number) => v
         variant="outline"
         onClick={() => {
           const n = Number(value.replace(/\./g, "").replace(",", "."));
-          if (!Number.isFinite(n) || n <= 0) return toast.error("Informe um valor válido.");
+          if (!Number.isFinite(n) || n <= 0) {
+            toast.error("Informe um valor válido.");
+            return;
+          }
           onAdd(n);
           setValue("");
         }}
@@ -422,8 +429,10 @@ function NewTypeForm({ onAdd }: { onAdd: (name: string, multiplier: number) => v
         variant="outline"
         onClick={() => {
           const n = Number(mult.replace(",", "."));
-          if (!name || !Number.isFinite(n) || n <= 0)
-            return toast.error("Informe nome e multiplicador.");
+          if (!name || !Number.isFinite(n) || n <= 0) {
+            toast.error("Informe nome e multiplicador.");
+            return;
+          }
           onAdd(name, n);
           setName("");
           setMult("");
@@ -453,7 +462,10 @@ function NewGroupDialog({ onDone }: { onDone: () => void }) {
       remaining_term: Number(form.remaining_term),
       reserve_fund: Number(form.reserve_fund.replace(",", ".")) / 100,
     });
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Grupo criado.");
     setOpen(false);
     onDone();

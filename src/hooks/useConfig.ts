@@ -39,13 +39,6 @@ export interface InsuranceRule {
   active: boolean;
 }
 
-const num = <T extends Record<string, unknown>>(rows: T[], keys: string[]) =>
-  rows.map((r) => {
-    const out: Record<string, unknown> = { ...r };
-    for (const k of keys) out[k] = Number(r[k]);
-    return out;
-  });
-
 export function useGroups(onlyActive = true) {
   return useQuery({
     queryKey: ["groups", onlyActive],
@@ -54,7 +47,12 @@ export function useGroups(onlyActive = true) {
       if (onlyActive) q = q.eq("active", true);
       const { data, error } = await q;
       if (error) throw error;
-      return num(data ?? [], ["initial_term", "remaining_term", "reserve_fund"]) as Group[];
+      return (data ?? []).map((row) => ({
+        ...row,
+        initial_term: Number(row.initial_term),
+        remaining_term: Number(row.remaining_term),
+        reserve_fund: Number(row.reserve_fund),
+      })) satisfies Group[];
     },
   });
 }
@@ -64,22 +62,21 @@ export function useGroupConfig(groupId: string | null, onlyActive = true) {
     enabled: !!groupId,
     queryKey: ["group-config", groupId, onlyActive],
     queryFn: async () => {
-      const filter = <T>(q: T) => q as T;
+      if (!groupId) throw new Error("Selecione um grupo.");
       const [ranges, rates, types, insurance] = await Promise.all([
         supabase
           .from("credit_ranges")
           .select("*")
-          .eq("group_id", groupId!)
+          .eq("group_id", groupId)
           .order("credit_value", { ascending: false }),
-        supabase.from("administration_rates").select("*").eq("group_id", groupId!).order("rate"),
+        supabase.from("administration_rates").select("*").eq("group_id", groupId).order("rate"),
         supabase
           .from("installment_types")
           .select("*")
-          .eq("group_id", groupId!)
+          .eq("group_id", groupId)
           .order("multiplier", { ascending: false }),
-        supabase.from("insurance_rules").select("*").eq("group_id", groupId!),
+        supabase.from("insurance_rules").select("*").eq("group_id", groupId),
       ]);
-      filter(null);
       const keep = <T extends { active: boolean }>(rows: T[]) =>
         onlyActive ? rows.filter((r) => r.active) : rows;
 
@@ -88,10 +85,28 @@ export function useGroupConfig(groupId: string | null, onlyActive = true) {
       }
 
       return {
-        ranges: keep(num(ranges.data ?? [], ["credit_value"]) as CreditRange[]),
-        rates: keep(num(rates.data ?? [], ["rate"]) as AdminRate[]),
-        types: keep(num(types.data ?? [], ["multiplier"]) as InstallmentType[]),
-        insurance: keep(num(insurance.data ?? [], ["rate"]) as InsuranceRule[])[0] ?? null,
+        ranges: keep(
+          (ranges.data ?? []).map((row) => ({
+            ...row,
+            credit_value: Number(row.credit_value),
+          })) satisfies CreditRange[],
+        ),
+        rates: keep(
+          (rates.data ?? []).map((row) => ({ ...row, rate: Number(row.rate) })) satisfies AdminRate[],
+        ),
+        types: keep(
+          (types.data ?? []).map((row) => ({
+            ...row,
+            multiplier: Number(row.multiplier),
+          })) satisfies InstallmentType[],
+        ),
+        insurance:
+          keep(
+            (insurance.data ?? []).map((row) => ({
+              ...row,
+              rate: Number(row.rate),
+            })) satisfies InsuranceRule[],
+          )[0] ?? null,
       };
     },
   });
