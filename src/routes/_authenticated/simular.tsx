@@ -450,7 +450,7 @@ function CompareDialog({
           <Layers className="mr-1 h-4 w-4" /> Comparar opções
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90dvh] w-[calc(100%-1rem)] max-w-3xl overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="responsive-dialog max-w-3xl overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="pr-6 text-base sm:text-lg">Comparar opções · {formatBRL(credit)}</DialogTitle>
         </DialogHeader>

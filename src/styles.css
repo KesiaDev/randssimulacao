@@ -135,6 +135,15 @@
 }
 
 @media (max-width: 639px) {
+  .responsive-dialog {
+    inset: 0.5rem !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 1rem) !important;
+    transform: none !important;
+    border-radius: var(--radius-lg);
+  }
+
   .mobile-card-table {
     display: block;
     background: transparent;
