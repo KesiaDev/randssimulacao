@@ -65,21 +65,21 @@ function AdminEquipe() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold">Minha equipe</h1>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold sm:text-3xl">Minha equipe</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Vendedores com acesso ao simulador. Somente administradores alteram regras.
           </p>
         </div>
-        <Button onClick={() => setOpen(!open)}>
+        <Button className="w-full sm:w-auto" onClick={() => setOpen(!open)}>
           <Plus className="mr-1 h-4 w-4" /> Adicionar vendedor
         </Button>
       </div>
 
       {open && (
-        <form onSubmit={submit} className="surface grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-4">
+        <form onSubmit={submit} className="surface grid gap-4 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
           <div className="space-y-2">
             <Label>Nome</Label>
             <Input
@@ -115,15 +115,15 @@ function AdminEquipe() {
             />
           </div>
           <div className="sm:col-span-2 lg:col-span-4">
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" className="w-full sm:w-auto" disabled={busy}>
               {busy ? "Criando…" : "Criar vendedor"}
             </Button>
           </div>
         </form>
       )}
 
-      <div className="surface overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="sm:surface sm:overflow-x-auto">
+        <table className="mobile-card-table w-full text-sm">
           <thead className="bg-secondary/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th className="px-5 py-3">Nome</th>
@@ -138,12 +138,12 @@ function AdminEquipe() {
           <tbody>
             {(team ?? []).map((p) => (
               <tr key={p.id} className="border-t border-border/70">
-                <td className="px-5 py-3">{p.name}</td>
-                <td className="px-5 py-3 text-muted-foreground">{p.email}</td>
-                <td className="px-5 py-3">{p.phone || "—"}</td>
-                <td className="px-5 py-3">{p.role === "admin" ? "Administrador" : "Vendedor"}</td>
-                <td className="px-5 py-3 text-muted-foreground">{formatDate(p.created_at)}</td>
-                <td className="px-5 py-3">
+                <td data-label="Nome" className="px-5 py-3">{p.name}</td>
+                <td data-label="E-mail" className="px-5 py-3 text-muted-foreground">{p.email}</td>
+                <td data-label="Telefone" className="px-5 py-3">{p.phone || "—"}</td>
+                <td data-label="Perfil" className="px-5 py-3">{p.role === "admin" ? "Administrador" : "Vendedor"}</td>
+                <td data-label="Desde" className="px-5 py-3 text-muted-foreground">{formatDate(p.created_at)}</td>
+                <td data-label="Ativo" className="px-5 py-3">
                   <Switch
                     checked={p.active}
                     disabled={p.role === "admin"}
@@ -157,7 +157,7 @@ function AdminEquipe() {
                     }}
                   />
                 </td>
-                <td className="px-5 py-3 text-right">
+                <td data-label="Ação" className="px-5 py-3 text-right">
                   <Button
                     variant="ghost"
                     size="sm"

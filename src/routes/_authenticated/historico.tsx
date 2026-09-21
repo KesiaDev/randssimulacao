@@ -70,13 +70,13 @@ function Historico() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold">Histórico de simulações</h1>
+        <h1 className="text-2xl font-semibold sm:text-3xl">Histórico de simulações</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isAdmin ? "Todas as simulações da equipe." : "Suas simulações."}
         </p>
       </div>
 
-      <div className="surface grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="surface grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
         <div className="space-y-2">
           <Label>Grupo</Label>
           <select
@@ -110,8 +110,8 @@ function Historico() {
         </div>
       </div>
 
-      <div className="surface overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="sm:surface sm:overflow-x-auto">
+        <table className="mobile-card-table w-full text-sm">
           <thead className="bg-secondary/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th className="px-5 py-3">Data</th>
@@ -129,22 +129,22 @@ function Historico() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} className="border-t border-border/70">
-                <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
+                <td data-label="Data" className="px-5 py-3 whitespace-nowrap text-muted-foreground">
                   {formatDateTime(r.created_at)}
                 </td>
-                <td className="px-5 py-3">{nameById[r.seller_id] ?? "—"}</td>
-                <td className="px-5 py-3">{r.client_name || "—"}</td>
-                <td className="px-5 py-3">{r.group_code}</td>
-                <td className="px-5 py-3 tabular">{formatBRL(Number(r.credit_value))}</td>
-                <td className="px-5 py-3 tabular">
+                <td data-label="Vendedor" className="px-5 py-3">{nameById[r.seller_id] ?? "—"}</td>
+                <td data-label="Cliente" className="px-5 py-3">{r.client_name || "—"}</td>
+                <td data-label="Grupo" className="px-5 py-3">{r.group_code}</td>
+                <td data-label="Crédito" className="px-5 py-3 tabular">{formatBRL(Number(r.credit_value))}</td>
+                <td data-label="Taxa" className="px-5 py-3 tabular">
                   {formatPercent(Number(r.administration_rate))}
                 </td>
-                <td className="px-5 py-3">{r.installment_type_name}</td>
-                <td className="px-5 py-3">{r.insurance_included ? "Incluído" : "Não"}</td>
-                <td className="px-5 py-3 font-medium tabular">
+                <td data-label="Modalidade" className="px-5 py-3">{r.installment_type_name}</td>
+                <td data-label="Seguro" className="px-5 py-3">{r.insurance_included ? "Incluído" : "Não"}</td>
+                <td data-label="Parcela final" className="px-5 py-3 font-medium tabular">
                   {formatBRL(Number(r.final_amount))}
                 </td>
-                <td className="px-5 py-3 text-right whitespace-nowrap">
+                <td data-label="Ação" className="px-5 py-3 text-right whitespace-nowrap">
                   <Link
                     to="/proposta/$id"
                     params={{ id: r.id }}
@@ -157,7 +157,7 @@ function Historico() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-5 py-10 text-center text-sm text-muted-foreground">
+                <td colSpan={10} className="mobile-empty px-5 py-10 text-center text-sm text-muted-foreground">
                   Nenhuma simulação encontrada com os filtros atuais.
                 </td>
               </tr>

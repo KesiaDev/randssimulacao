@@ -67,15 +67,15 @@ function AdminHome() {
   ).map(([name, total]) => ({ name, total }));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold">Administração</h1>
+        <h1 className="text-2xl font-semibold sm:text-3xl">Administração</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Visão geral da operação comercial · Randon Consórcios
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <Stat label="Vendedores" value={profiles.length} />
         <Stat label="Vendedores ativos" value={profiles.filter((p) => p.active).length} />
         <Stat
@@ -94,12 +94,12 @@ function AdminHome() {
         <Chart title="Simulações por faixa de crédito" data={byCredit} />
       </div>
 
-      <section className="surface overflow-hidden">
+      <section className="sm:surface overflow-hidden">
         <header className="border-b border-border px-5 py-4">
           <h2 className="text-sm font-semibold">Últimas simulações</h2>
         </header>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="sm:overflow-x-auto">
+          <table className="mobile-card-table w-full text-sm">
             <thead className="bg-secondary/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="px-5 py-3">Data</th>
@@ -112,18 +112,18 @@ function AdminHome() {
             <tbody>
               {sims.slice(0, 10).map((s) => (
                 <tr key={s.id} className="border-t border-border/70">
-                  <td className="px-5 py-3 text-muted-foreground">{formatDateTime(s.created_at)}</td>
-                  <td className="px-5 py-3">{nameById[s.seller_id] ?? "—"}</td>
-                  <td className="px-5 py-3">{s.group_code}</td>
-                  <td className="px-5 py-3 tabular">{formatBRL(Number(s.credit_value))}</td>
-                  <td className="px-5 py-3 font-medium tabular">
+                  <td data-label="Data" className="px-5 py-3 text-muted-foreground">{formatDateTime(s.created_at)}</td>
+                  <td data-label="Vendedor" className="px-5 py-3">{nameById[s.seller_id] ?? "—"}</td>
+                  <td data-label="Grupo" className="px-5 py-3">{s.group_code}</td>
+                  <td data-label="Crédito" className="px-5 py-3 tabular">{formatBRL(Number(s.credit_value))}</td>
+                  <td data-label="Parcela final" className="px-5 py-3 font-medium tabular">
                     {formatBRL(Number(s.final_amount))}
                   </td>
                 </tr>
               ))}
               {sims.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-10 text-center text-muted-foreground">
+                  <td colSpan={5} className="mobile-empty px-5 py-10 text-center text-muted-foreground">
                     Nenhuma simulação registrada.
                   </td>
                 </tr>
@@ -138,7 +138,7 @@ function AdminHome() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="surface p-5">
+    <div className="surface min-w-0 p-4 sm:p-5">
       <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
       <div className="mt-2 text-2xl font-semibold tabular">{value}</div>
     </div>
@@ -147,16 +147,16 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 function Chart({ title, data }: { title: string; data: Array<{ name: string; total: number }> }) {
   return (
-    <div className="surface p-5">
+    <div className="surface min-w-0 overflow-hidden p-4 sm:p-5">
       <h3 className="text-sm font-semibold">{title}</h3>
-      <div className="mt-4 h-64">
+      <div className="mt-4 h-64 min-w-0">
         {data.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sem dados ainda.</p>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ left: -20 }}>
+            <BarChart data={data} margin={{ left: -24, right: 4, bottom: 12 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-12} dy={8} />
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} interval="preserveStartEnd" angle={-12} dy={8} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip />
               <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
