@@ -27,8 +27,6 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -41,23 +39,9 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        await navigate({ to: "/dashboard", replace: true });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-          },
-        });
-        if (error) throw error;
-        toast.success("Conta criada. Você já pode acessar.");
-        await navigate({ to: "/dashboard", replace: true });
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await navigate({ to: "/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível entrar.");
     } finally {
@@ -89,27 +73,13 @@ function AuthPage() {
             <Brand />
           </div>
           <h2 className="text-2xl font-semibold">
-            {mode === "signin" ? "Acessar plataforma" : "Criar acesso"}
+            Acessar plataforma
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "signin"
-              ? "Use o e-mail corporativo cadastrado."
-              : "Disponível para a equipe comercial autorizada."}
+            Use o e-mail corporativo cadastrado.
           </p>
 
           <form onSubmit={submit} className="mt-8 space-y-4">
-            {mode === "signup" && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  autoComplete="name"
-                />
-              </div>
-            )}
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <Input
@@ -130,21 +100,17 @@ function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                autoComplete="current-password"
               />
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? "Aguarde…" : mode === "signin" ? "Entrar" : "Criar acesso"}
+              {busy ? "Aguarde…" : "Entrar"}
             </Button>
           </form>
 
-          <button
-            type="button"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            className="mt-6 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {mode === "signin" ? "Primeiro acesso? Criar conta" : "Já tenho acesso"}
-          </button>
+          <p className="mt-6 text-sm text-muted-foreground">
+            O acesso é criado pelo administrador da equipe.
+          </p>
 
           <p className="mt-10 text-xs text-muted-foreground">
             Ferramenta interna de simulação · Randon Consórcios / Rands
