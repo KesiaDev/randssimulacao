@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar transition-transform lg:static lg:translate-x-0 ${
+        className={`no-print fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar transition-transform lg:static lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -90,16 +90,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-border bg-card px-4 py-3 lg:hidden">
+        <header className="no-print flex items-center gap-3 border-b border-border bg-card px-4 py-3 lg:hidden">
           <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Abrir menu">
             <Menu className="h-5 w-5" />
           </Button>
           <Brand />
         </header>
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+        <main className="flex-1 px-4 py-6 print:p-0 sm:px-6 lg:px-10 lg:py-10">
           <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
-        <footer className="border-t border-border px-4 py-5 text-center text-xs text-muted-foreground sm:px-6 lg:px-10">
+        <footer className="no-print border-t border-border px-4 py-5 text-center text-xs text-muted-foreground sm:px-6 lg:px-10">
           Ferramenta interna de simulação · Valores sujeitos às condições e regras vigentes do grupo.
         </footer>
       </div>
