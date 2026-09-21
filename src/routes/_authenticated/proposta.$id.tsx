@@ -90,42 +90,42 @@ function Proposta() {
 
   return (
     <div className="space-y-6">
-      <div className="no-print flex flex-wrap items-center justify-between gap-3">
+      <div className="no-print grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 sm:flex sm:justify-between">
         <Button variant="ghost" size="sm" asChild>
           <Link to="/dashboard">
             <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
           </Link>
         </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => void share()}>
+        <div className="grid min-w-0 grid-cols-2 gap-2 sm:flex">
+          <Button variant="outline" className="min-w-0 px-2 sm:px-4" onClick={() => void share()}>
             <Share2 className="mr-1 h-4 w-4" /> Compartilhar
           </Button>
-          <Button onClick={() => window.print()}>
+          <Button className="min-w-0 px-2 sm:px-4" onClick={() => window.print()}>
             <Download className="mr-1 h-4 w-4" /> Baixar PDF
           </Button>
         </div>
       </div>
 
       <article className="proposal-sheet surface mx-auto max-w-4xl overflow-hidden">
-        <div className="relative min-h-72 overflow-hidden">
+        <div className="relative min-h-64 overflow-hidden sm:min-h-72">
           <img
             src={proposalImage.url}
             alt="Implemento rodoviário Randon"
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="proposal-cover-shade absolute inset-0" />
-          <header className="relative flex min-h-72 flex-col justify-between p-8 text-primary-foreground sm:p-10">
+          <header className="relative flex min-h-64 flex-col justify-between p-5 text-primary-foreground sm:min-h-72 sm:p-10">
             <Brand variant="dark" />
-            <div className="flex flex-wrap items-end justify-between gap-5">
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground/75">
                   Simulação de consórcio
                 </p>
-                <h1 className="mt-2 max-w-xl text-3xl font-semibold sm:text-4xl">
+                <h1 className="mt-2 max-w-xl text-2xl font-semibold sm:text-4xl">
                   O próximo passo para movimentar o seu negócio.
                 </h1>
               </div>
-              <div className="text-right text-xs text-primary-foreground/80">
+              <div className="text-left text-xs text-primary-foreground/80 sm:text-right">
                 Proposta personalizada
                 <div>{formatDate(sim.created_at)}</div>
               </div>
@@ -133,8 +133,8 @@ function Proposta() {
           </header>
         </div>
 
-        <div className="px-8 py-8 sm:px-10">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-5 border-b border-border pb-7">
+        <div className="px-4 py-6 sm:px-10 sm:py-8">
+          <div className="mb-7 grid gap-5 border-b border-border pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:pb-7">
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Preparada para
@@ -143,7 +143,7 @@ function Proposta() {
                 {sim.client_name || "Cliente Randon"}
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Crédito contratado
               </div>
@@ -153,7 +153,7 @@ function Proposta() {
             </div>
           </div>
 
-          <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-3">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 sm:gap-x-8">
             <Item label="Grupo" value={sim.group_code} />
             <Item
               label="Prazo"
@@ -168,11 +168,11 @@ function Proposta() {
             <Item label="Seguro" value={sim.insurance_included ? "Incluído" : "Não incluído"} />
           </dl>
 
-          <div className="proposal-highlight mt-8 rounded-lg p-7 text-primary-foreground">
+          <div className="proposal-highlight mt-7 rounded-lg p-5 text-primary-foreground sm:mt-8 sm:p-7">
             <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/70">
               Investimento mensal
             </div>
-            <div className="mt-2 text-5xl font-semibold tabular">
+            <div className="mt-2 break-words text-3xl font-semibold tabular sm:text-5xl">
               {formatBRL(Number(sim.final_amount))}
             </div>
             <div className="mt-4 flex flex-wrap gap-x-8 gap-y-1 text-sm text-primary-foreground/75">
@@ -186,7 +186,7 @@ function Proposta() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-end justify-between gap-4 border-t border-border pt-6 text-sm">
+          <div className="mt-8 grid gap-4 border-t border-border pt-6 text-sm sm:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] sm:items-end">
             <div>
               <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                 Consultor
@@ -194,7 +194,7 @@ function Proposta() {
               <div className="font-medium">{seller?.name || seller?.email || "—"}</div>
               {seller?.phone && <div className="text-muted-foreground">{seller.phone}</div>}
             </div>
-            <p className="max-w-sm text-right text-xs leading-relaxed text-muted-foreground">
+            <p className="text-left text-xs leading-relaxed text-muted-foreground sm:text-right">
               Esta simulação é informativa. Valores sujeitos às condições, disponibilidade e regras
               vigentes do grupo.
             </p>

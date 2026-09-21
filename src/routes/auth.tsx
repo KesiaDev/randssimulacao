@@ -50,7 +50,7 @@ function AuthPage() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="grid min-h-dvh lg:grid-cols-2">
       <div className="hidden flex-col justify-between bg-sidebar p-12 lg:flex">
         <Brand variant="dark" />
         <div>
@@ -63,19 +63,19 @@ function AuthPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center p-6">
+      <div className="flex items-center justify-center px-4 py-8 sm:p-8 lg:p-12">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
             <Brand />
           </div>
-          <h2 className="text-2xl font-semibold">
+          <h1 className="text-2xl font-semibold sm:text-3xl">
             Acessar plataforma
-          </h2>
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Use o e-mail corporativo cadastrado.
           </p>
 
-          <form onSubmit={submit} className="mt-8 space-y-4">
+          <form onSubmit={submit} className="mt-7 space-y-4 sm:mt-8">
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <Input
