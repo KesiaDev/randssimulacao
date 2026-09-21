@@ -8,11 +8,11 @@ export function Brand({
   compact?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3" aria-label="Consórcio Nacional Randon">
+    <div className="flex min-w-0 items-center gap-3" aria-label="Consórcio Nacional Randon">
       <img
         src={randonLogo.url}
         alt="Consórcio Nacional Randon"
-        className={`h-auto w-44 object-contain ${variant === "dark" ? "brightness-0 invert" : ""}`}
+        className={`h-auto w-36 max-w-full shrink-0 object-contain sm:w-44 ${variant === "dark" ? "brightness-0 invert" : ""}`}
       />
       {!compact && (
         <span className="sr-only">Simulador de consórcios</span>

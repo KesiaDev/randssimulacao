@@ -57,10 +57,10 @@ function AdminGrupos() {
   });
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold">Grupos e regras</h1>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold sm:text-3xl">Grupos e regras</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Tudo que o motor de cálculo usa fica aqui — nada é fixo no sistema.
           </p>
@@ -68,12 +68,12 @@ function AdminGrupos() {
         <NewGroupDialog onDone={invalidate} />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {(groups ?? []).map((g) => (
           <button
             key={g.id}
             onClick={() => setSelected(g.id)}
-            className={`rounded-lg border px-4 py-2 text-sm transition-colors ${
+            className={`shrink-0 rounded-lg border px-4 py-2 text-sm transition-colors ${
               g.id === groupId ? "border-primary bg-primary/5 text-primary" : "border-border bg-card"
             }`}
           >
@@ -85,7 +85,7 @@ function AdminGrupos() {
 
       {group && (
         <>
-          <section className="surface space-y-4 p-6">
+          <section className="surface space-y-4 p-4 sm:p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Dados do grupo
             </h2>
@@ -98,15 +98,15 @@ function AdminGrupos() {
             />
           </section>
 
-          <section className="surface space-y-4 p-6">
+          <section className="surface space-y-4 p-4 sm:p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Faixas de crédito
             </h2>
             <ul className="divide-y divide-border">
               {(config?.ranges ?? []).map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-4 py-3">
-                  <span className="tabular">{formatBRL(r.credit_value)}</span>
-                  <div className="flex items-center gap-3">
+                <li key={r.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3">
+                  <span className="min-w-0 break-words tabular">{formatBRL(r.credit_value)}</span>
+                  <div className="flex shrink-0 items-center gap-2">
                     <Switch
                       checked={r.active}
                       onCheckedChange={(v) =>
@@ -140,15 +140,15 @@ function AdminGrupos() {
             />
           </section>
 
-          <section className="surface space-y-4 p-6">
+          <section className="surface space-y-4 p-4 sm:p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Taxas de administração
             </h2>
             <ul className="divide-y divide-border">
               {(config?.rates ?? []).map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-4 py-3">
+                <li key={r.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3">
                   <span className="tabular">{formatPercent(r.rate)}</span>
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-2">
                     <Switch
                       checked={r.active}
                       onCheckedChange={(v) =>
@@ -184,17 +184,17 @@ function AdminGrupos() {
             />
           </section>
 
-          <section className="surface space-y-4 p-6">
+          <section className="surface space-y-4 p-4 sm:p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Modalidades de parcela
             </h2>
             <ul className="divide-y divide-border">
               {(config?.types ?? []).map((t) => (
-                <li key={t.id} className="flex items-center justify-between gap-4 py-3">
-                  <span>
+                <li key={t.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3">
+                  <span className="min-w-0 break-words">
                     {t.name} · multiplicador {t.multiplier.toString().replace(".", ",")}
                   </span>
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-2">
                     <Switch
                       checked={t.active}
                       onCheckedChange={(v) =>
@@ -229,7 +229,7 @@ function AdminGrupos() {
             />
           </section>
 
-          <section className="surface space-y-4 p-6">
+          <section className="surface space-y-4 p-4 sm:p-6">
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Seguro
             </h2>
@@ -313,7 +313,7 @@ function GroupForm({
         <Label htmlFor="ativo">Grupo ativo</Label>
       </div>
       <div className="sm:col-span-2 lg:col-span-3">
-        <Button
+        <Button className="w-full sm:w-auto"
           onClick={() =>
             onSave({
               name: form.name,
@@ -384,12 +384,12 @@ function Field({
 function AddValue({ label, onAdd }: { label: string; onAdd: (value: number) => void }) {
   const [value, setValue] = useState("");
   return (
-    <div className="flex flex-wrap items-end gap-3">
-      <div className="space-y-2">
+    <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-end">
+      <div className="min-w-0 space-y-2">
         <Label>{label}</Label>
-        <Input value={value} onChange={(e) => setValue(e.target.value)} className="w-52" />
+        <Input value={value} onChange={(e) => setValue(e.target.value)} className="w-full sm:w-52" />
       </div>
-      <Button
+      <Button className="w-full sm:w-auto"
         variant="outline"
         onClick={() => {
           const n = Number(value.replace(/\./g, "").replace(",", "."));
@@ -411,21 +411,21 @@ function NewTypeForm({ onAdd }: { onAdd: (name: string, multiplier: number) => v
   const [name, setName] = useState("");
   const [mult, setMult] = useState("");
   return (
-    <div className="flex flex-wrap items-end gap-3">
-      <div className="space-y-2">
+    <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-end">
+      <div className="min-w-0 space-y-2">
         <Label>Nome</Label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} className="w-52" />
+        <Input value={name} onChange={(e) => setName(e.target.value)} className="w-full sm:w-52" />
       </div>
-      <div className="space-y-2">
+      <div className="min-w-0 space-y-2">
         <Label>Multiplicador</Label>
         <Input
           value={mult}
           onChange={(e) => setMult(e.target.value)}
-          className="w-36"
+          className="w-full sm:w-36"
           placeholder="0,40"
         />
       </div>
-      <Button
+      <Button className="w-full sm:w-auto"
         variant="outline"
         onClick={() => {
           const n = Number(mult.replace(",", "."));
@@ -473,7 +473,7 @@ function NewGroupDialog({ onDone }: { onDone: () => void }) {
 
   if (!open) {
     return (
-      <Button onClick={() => setOpen(true)}>
+      <Button className="w-full sm:w-auto" onClick={() => setOpen(true)}>
         <Plus className="mr-1 h-4 w-4" /> Novo grupo
       </Button>
     );
@@ -500,7 +500,7 @@ function NewGroupDialog({ onDone }: { onDone: () => void }) {
           onChange={(v) => setForm({ ...form, reserve_fund: v })}
         />
       </div>
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex">
         <Button onClick={() => void save()}>Criar grupo</Button>
         <Button variant="ghost" onClick={() => setOpen(false)}>
           Cancelar

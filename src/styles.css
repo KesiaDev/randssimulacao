@@ -130,7 +130,70 @@
   h1,
   h2,
   h3 {
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .mobile-card-table {
+    display: block;
+    background: transparent;
+  }
+
+  .mobile-card-table thead {
+    display: none;
+  }
+
+  .mobile-card-table tbody,
+  .mobile-card-table tr,
+  .mobile-card-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .mobile-card-table tbody {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .mobile-card-table tr {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .mobile-card-table td {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 0.8fr) minmax(0, 1.2fr);
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-card-table td::before {
+    content: attr(data-label);
+    color: var(--color-muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .mobile-card-table td:last-child {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .mobile-card-table .mobile-empty {
+    display: block;
+    padding: 2rem 1rem;
+    text-align: center;
+  }
+
+  .mobile-card-table .mobile-empty::before {
+    content: none;
   }
 }
 

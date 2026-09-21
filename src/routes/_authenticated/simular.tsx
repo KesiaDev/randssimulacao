@@ -109,20 +109,20 @@ function Simular() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold">Simulador de Consórcios</h1>
+        <h1 className="text-2xl font-semibold sm:text-3xl">Simulador de Consórcios</h1>
         <p className="mt-1 text-sm text-muted-foreground">Monte sua simulação em poucos passos.</p>
       </div>
 
-      <ol className="flex flex-wrap gap-2">
+      <ol className="grid grid-cols-3 gap-2 sm:grid-cols-6">
         {STEPS.map((label, i) => (
-          <li key={label} className="flex-1 min-w-[120px]">
+          <li key={label} className="min-w-0">
             <button
               type="button"
               disabled={i > step}
               onClick={() => setStep(i)}
-              className={`w-full rounded-lg border px-3 py-2 text-left text-xs transition-colors ${
+              className={`min-h-14 w-full rounded-lg border px-2 py-2 text-left text-xs transition-colors sm:px-3 ${
                 i === step
                   ? "border-primary bg-primary/5 text-primary"
                   : i < step
@@ -133,7 +133,7 @@ function Simular() {
               <span className="block text-[10px] uppercase tracking-[0.14em] opacity-70">
                 Passo {i + 1}
               </span>
-              <span className="font-medium">{label}</span>
+              <span className="block truncate font-medium">{label}</span>
             </button>
           </li>
         ))}
@@ -293,13 +293,13 @@ function Simular() {
       {step === 5 && result && group && range && rate && type && (
         <div className="space-y-6">
           <div className="surface overflow-hidden">
-            <div className="border-b border-border px-6 py-5">
+            <div className="border-b border-border px-4 py-5 sm:px-6">
               <h2 className="text-xl font-semibold">Simulação pronta</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Valores calculados a partir das regras vigentes do grupo.
               </p>
             </div>
-            <dl className="grid gap-x-8 gap-y-5 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-5 px-4 py-6 sm:gap-x-8 sm:px-6 lg:grid-cols-4">
               <Field label="Grupo" value={group.code} />
               <Field label="Crédito" value={formatBRL(range.credit_value)} />
               <Field label="Taxa de administração" value={formatPercent(rate.rate)} />
@@ -309,11 +309,11 @@ function Simular() {
               <Field label="Prazo restante" value={`${group.remaining_term} meses`} />
               <Field label="Seguro" value={insurance ? "Incluído" : "Não incluído"} />
             </dl>
-            <div className="border-t border-border bg-secondary/40 px-6 py-8">
+            <div className="border-t border-border bg-secondary/40 px-4 py-7 sm:px-6 sm:py-8">
               <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                 Valor da parcela
               </div>
-              <div className="mt-2 text-5xl font-semibold tabular text-primary">
+              <div className="mt-2 break-words text-3xl font-semibold tabular text-primary sm:text-5xl">
                 {formatBRL(result.finalAmount)}
               </div>
               <div className="mt-4 space-y-1 text-sm text-muted-foreground">
@@ -328,7 +328,7 @@ function Simular() {
             </div>
           </div>
 
-          <div className="surface space-y-4 p-6">
+          <div className="surface space-y-4 p-4 sm:p-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="cliente">Nome do cliente (opcional)</Label>
@@ -340,8 +340,8 @@ function Simular() {
                 />
               </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Button size="lg" onClick={() => void saveAndOpenProposal()} disabled={saving}>
+            <div className="grid gap-3 sm:flex sm:flex-wrap">
+              <Button size="lg" className="w-full sm:w-auto" onClick={() => void saveAndOpenProposal()} disabled={saving}>
                 <FileText className="mr-1 h-4 w-4" />
                 {saving ? "Gerando…" : "Gerar proposta"}
               </Button>
@@ -385,7 +385,7 @@ function Card({
     <button
       type="button"
       onClick={onClick}
-      className={`surface relative w-full p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-float)] ${
+      className={`surface relative min-h-28 w-full p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-float)] sm:p-5 ${
         selected ? "ring-2 ring-primary" : ""
       }`}
     >
@@ -446,13 +446,13 @@ function CompareDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="lg">
+        <Button variant="outline" size="lg" className="w-full sm:w-auto">
           <Layers className="mr-1 h-4 w-4" /> Comparar opções
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Comparar opções · {formatBRL(credit)}</DialogTitle>
+          <DialogTitle className="pr-6 text-base sm:text-lg">Comparar opções · {formatBRL(credit)}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           {options.map((o, i) => (

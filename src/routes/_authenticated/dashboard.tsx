@@ -28,10 +28,11 @@ function Dashboard() {
     queryKey: ["my-simulations", user?.id],
     enabled: !!user,
     queryFn: async () => {
+      if (!user) return [];
       const { data, error } = await supabase
         .from("simulations")
         .select("*")
-        .eq("seller_id", user!.id)
+        .eq("seller_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -47,22 +48,22 @@ function Dashboard() {
   const last = rows[0];
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold">Olá, {profile?.name || "vendedor"}</h1>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="min-w-0">
+          <h1 className="break-words text-2xl font-semibold sm:text-3xl">Olá, {profile?.name || "vendedor"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {isAdmin ? "Acesso administrativo" : "Equipe comercial"} · Randon Consórcios
           </p>
         </div>
-        <Button asChild size="lg">
+        <Button asChild size="lg" className="w-full sm:w-auto">
           <Link to="/simular">
             <Plus className="mr-1 h-4 w-4" /> Nova simulação
           </Link>
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
         <StatCard label="Simulações hoje" value={String(todayCount)} icon={CalendarDays} />
         <StatCard label="Simulações este mês" value={String(monthCount)} icon={TrendingUp} />
         <StatCard
@@ -73,7 +74,7 @@ function Dashboard() {
         />
       </div>
 
-      <section className="surface overflow-hidden">
+      <section className="sm:surface overflow-hidden">
         <header className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="text-sm font-semibold">Simulações recentes</h2>
           <Link to="/historico" className="text-xs text-primary hover:underline">
@@ -85,8 +86,8 @@ function Dashboard() {
             Você ainda não possui simulações. Crie a primeira em poucos cliques.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="sm:overflow-x-auto">
+            <table className="mobile-card-table w-full text-sm">
               <thead className="bg-secondary/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-5 py-3">Data</th>
@@ -102,20 +103,20 @@ function Dashboard() {
               <tbody>
                 {rows.slice(0, 8).map((r) => (
                   <tr key={r.id} className="border-t border-border/70">
-                    <td className="px-5 py-3 text-muted-foreground">
+                    <td data-label="Data" className="px-5 py-3 text-muted-foreground">
                       {formatDateTime(r.created_at)}
                     </td>
-                    <td className="px-5 py-3">{r.client_name || "—"}</td>
-                    <td className="px-5 py-3">{r.group_code}</td>
-                    <td className="px-5 py-3 tabular">{formatBRL(Number(r.credit_value))}</td>
-                    <td className="px-5 py-3 tabular">
+                    <td data-label="Cliente" className="px-5 py-3">{r.client_name || "—"}</td>
+                    <td data-label="Grupo" className="px-5 py-3">{r.group_code}</td>
+                    <td data-label="Crédito" className="px-5 py-3 tabular">{formatBRL(Number(r.credit_value))}</td>
+                    <td data-label="Taxa" className="px-5 py-3 tabular">
                       {formatPercent(Number(r.administration_rate))}
                     </td>
-                    <td className="px-5 py-3 font-medium tabular">
+                    <td data-label="Parcela" className="px-5 py-3 font-medium tabular">
                       {formatBRL(Number(r.final_amount))}
                     </td>
-                    <td className="px-5 py-3">{r.insurance_included ? "Incluído" : "Não"}</td>
-                    <td className="px-5 py-3 text-right">
+                    <td data-label="Seguro" className="px-5 py-3">{r.insurance_included ? "Incluído" : "Não"}</td>
+                    <td data-label="Ação" className="px-5 py-3 text-right">
                       <Link
                         to="/proposta/$id"
                         params={{ id: r.id }}
