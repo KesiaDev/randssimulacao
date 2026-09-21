@@ -55,7 +55,7 @@ function Proposta() {
 
   const { sim, seller } = data;
   const imageIndex = [...sim.id].reduce((total, char) => total + char.charCodeAt(0), 0) % proposalImages.length;
-  const proposalImage = proposalImages[imageIndex];
+  const proposalImage = proposalImages[imageIndex] ?? graneleiro;
 
   const text = [
     "Randon Consórcios / Rands — Simulação",
