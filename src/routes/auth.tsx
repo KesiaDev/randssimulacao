@@ -55,12 +55,8 @@ function AuthPage() {
         <Brand variant="dark" />
         <div>
           <h1 className="max-w-md text-4xl font-semibold leading-tight text-sidebar-foreground">
-            Simulação de consórcios com precisão de planilha e experiência de software.
+            Simulação de consórcios Randon
           </h1>
-          <p className="mt-4 max-w-md text-sm text-sidebar-foreground/60">
-            Grupos, faixas de crédito, taxas e seguro configurados centralmente. A equipe comercial
-            monta a proposta em poucos cliques.
-          </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-sidebar-foreground/50">
           <ShieldCheck className="h-4 w-4" /> Ferramenta interna de simulação
