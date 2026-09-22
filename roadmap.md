@@ -7,4 +7,4 @@
 - [x] Consolidar totais de cotas, crédito e parcela
 - [x] Atualizar proposta visual, compartilhamento e PDF
 - [x] Manter compatibilidade com simulações e histórico existentes
-- [ ] Adicionar testes de composição e validar fluxo responsivo
+- [x] Adicionar testes de composição e validar fluxo responsivo
