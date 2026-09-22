@@ -89,6 +89,7 @@ export type Database = {
           name: string
           remaining_term: number
           reserve_fund: number
+          term_reference_date: string
         }
         Insert: {
           active?: boolean
@@ -100,6 +101,7 @@ export type Database = {
           name: string
           remaining_term: number
           reserve_fund?: number
+          term_reference_date?: string
         }
         Update: {
           active?: boolean
@@ -111,6 +113,7 @@ export type Database = {
           name?: string
           remaining_term?: number
           reserve_fund?: number
+          term_reference_date?: string
         }
         Relationships: []
       }
