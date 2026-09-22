@@ -197,7 +197,7 @@ function Historico() {
                   {formatBRL(Number(r.final_amount))}
                 </td>
                 <td data-label="Ação" className="px-5 py-3 text-right whitespace-nowrap">
-                  <div className="flex justify-end gap-1"><Button variant="ghost" size="icon" asChild><Link to="/proposta/$id" params={{ id: r.id }} aria-label="Abrir simulação"><Eye/></Link></Button><DeleteConfirm iconOnly title="Excluir esta simulação?" description="Esta simulação antiga será removida definitivamente." onConfirm={() => void deleteLegacySimulation(r.id)}/></div>
+                  <div className="flex justify-end gap-1"><Button variant="ghost" size="icon" asChild><Link to="/proposta/$id" params={{ id: r.id }} aria-label="Abrir simulação"><Eye/></Link></Button><Button variant="ghost" size="icon" asChild><Link to="/simular" search={{ edit: undefined, legacy: r.id }} aria-label="Editar simulação"><Pencil/></Link></Button><DeleteConfirm iconOnly title="Excluir esta simulação?" description="Esta simulação antiga será removida definitivamente." onConfirm={() => void deleteLegacySimulation(r.id)}/></div>
                 </td>
               </tr>
             ))}
