@@ -106,10 +106,10 @@ function Historico() {
       const { data, error } = await supabase.rpc("get_history_page", {
         _page: search.page,
         _page_size: PAGE_SIZE,
-        _group: search.group || undefined,
-        _seller: search.seller || undefined,
-        _date: search.date || undefined,
-        _credit: search.credit || undefined,
+        ...(search.group ? { _group: search.group } : {}),
+        ...(search.seller ? { _seller: search.seller } : {}),
+        ...(search.date ? { _date: search.date } : {}),
+        ...(search.credit ? { _credit: search.credit } : {}),
       });
       if (error) throw error;
       return data as unknown as HistoryPage;
