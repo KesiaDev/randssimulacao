@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { effectiveRemainingTerm } from "@/lib/group-term";
 
 export interface Group {
   id: string;
@@ -8,6 +9,7 @@ export interface Group {
   description: string | null;
   initial_term: number;
   remaining_term: number;
+  term_reference_date: string;
   reserve_fund: number;
   active: boolean;
 }
@@ -50,7 +52,7 @@ export function useGroups(onlyActive = true) {
       return (data ?? []).map((row) => ({
         ...row,
         initial_term: Number(row.initial_term),
-        remaining_term: Number(row.remaining_term),
+        remaining_term: effectiveRemainingTerm(Number(row.remaining_term), row.term_reference_date),
         reserve_fund: Number(row.reserve_fund),
       })) satisfies Group[];
     },
