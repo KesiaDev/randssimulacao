@@ -7,6 +7,7 @@ import { useGroups } from "@/hooks/useConfig";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, formatDateTime, formatPercent } from "@/lib/format";
+import { ShoppingCart } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/historico")({
   head: () => ({
@@ -37,6 +38,19 @@ function Historico() {
       const { data, error } = await supabase
         .from("simulations")
         .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: proposals } = useQuery({
+    queryKey: ["proposals-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("proposals")
+        .select("id, seller_id, client_name, created_at, proposal_items(quantity, credit_value, final_amount)")
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -75,6 +89,24 @@ function Historico() {
           {isAdmin ? "Todas as simulações da equipe." : "Suas simulações."}
         </p>
       </div>
+
+      {(proposals ?? []).length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2"><ShoppingCart className="h-4 w-4 text-primary"/><h2 className="text-sm font-semibold">Propostas compostas</h2></div>
+          <div className="grid gap-3 lg:grid-cols-2">
+            {(proposals ?? []).filter((proposal) => {
+              if (seller && !(nameById[proposal.seller_id] ?? "").toLowerCase().includes(seller.toLowerCase())) return false;
+              if (date && !proposal.created_at.startsWith(date)) return false;
+              return true;
+            }).map((proposal) => {
+              const quantity = proposal.proposal_items.reduce((sum, item) => sum + item.quantity, 0);
+              const creditTotal = proposal.proposal_items.reduce((sum, item) => sum + Number(item.credit_value) * item.quantity, 0);
+              const monthlyTotal = proposal.proposal_items.reduce((sum, item) => sum + Number(item.final_amount) * item.quantity, 0);
+              return <Link key={proposal.id} to="/proposta/$id" params={{ id: proposal.id }} className="surface block p-4 transition-colors hover:border-primary/40 sm:p-5"><div className="flex justify-between gap-3"><div className="min-w-0"><div className="truncate font-semibold">{proposal.client_name || "Cliente Randon"}</div><div className="mt-1 text-xs text-muted-foreground">{formatDateTime(proposal.created_at)} · {nameById[proposal.seller_id] ?? "—"}</div></div><div className="shrink-0 text-sm font-semibold text-primary">{quantity} {quantity === 1 ? "cota" : "cotas"}</div></div><div className="mt-4 grid grid-cols-2 gap-4 text-sm"><div><div className="text-xs text-muted-foreground">Crédito total</div><div className="font-medium tabular">{formatBRL(creditTotal)}</div></div><div><div className="text-xs text-muted-foreground">Parcela total/mês</div><div className="font-medium tabular">{formatBRL(monthlyTotal)}</div></div></div></Link>;
+            })}
+          </div>
+        </section>
+      )}
 
       <div className="surface grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
         <div className="space-y-2">

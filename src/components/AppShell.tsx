@@ -3,7 +3,6 @@ import { useState, type ReactNode } from "react";
 import {
   Calculator,
   ClipboardList,
-  History,
   LayoutDashboard,
   LogOut,
   Menu,
