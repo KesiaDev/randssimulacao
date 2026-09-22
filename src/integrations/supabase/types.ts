@@ -504,6 +504,17 @@ export type Database = {
         Returns: undefined
       }
       ensure_profile: { Args: { _name?: string }; Returns: undefined }
+      get_history_page: {
+        Args: {
+          _credit?: string
+          _date?: string
+          _group?: string
+          _page?: number
+          _page_size?: number
+          _seller?: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
