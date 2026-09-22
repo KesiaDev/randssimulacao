@@ -77,13 +77,12 @@ function Proposta() {
     try {
       const { blob, filename } = await makePdf();
       const file = new File([blob], filename, { type: "application/pdf" });
-      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
-        await navigator.share({ title: "Proposta Randon Consórcios", text: "Segue a proposta comercial personalizada.", files: [file] });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: "Proposta Randon Consórcios", files: [file] });
         return;
       }
       const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
-      await navigator.clipboard.writeText(text);
-      toast.success("PDF baixado e resumo copiado para compartilhar.");
+      toast.success("PDF baixado. Anexe o arquivo no WhatsApp ou e-mail.");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       toast.error("Não foi possível compartilhar o PDF.");
