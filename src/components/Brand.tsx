@@ -12,7 +12,7 @@ export function Brand({
       <img
         src={randonLogo.url}
         alt="Consórcio Nacional Randon"
-        className={`h-auto w-36 max-w-full shrink-0 object-contain sm:w-44 ${variant === "dark" ? "brightness-0 invert" : ""}`}
+        className={`h-auto w-36 max-w-full shrink-0 object-contain sm:w-44 ${variant === "dark" ? "brightness-0 invert" : "dark:brightness-0 dark:invert"}`}
       />
       {!compact && (
         <span className="sr-only">Simulador de consórcios</span>
