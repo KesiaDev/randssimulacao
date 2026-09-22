@@ -36,6 +36,13 @@
       "when": 1790074782193,
       "tag": "0004_update_legacy_simulation",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790077844586,
+      "tag": "0005_paginate_history",
+      "breakpoints": true
     }
   ]
 }
