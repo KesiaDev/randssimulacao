@@ -211,6 +211,157 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_items: {
+        Row: {
+          administration_rate: number
+          administration_rate_id: string | null
+          base_amount: number
+          created_at: string
+          credit_range_id: string | null
+          credit_value: number
+          final_amount: number
+          group_code: string
+          group_id: string | null
+          id: string
+          initial_term: number
+          installment_amount: number
+          installment_multiplier: number
+          installment_type_id: string | null
+          installment_type_name: string
+          insurance_amount: number
+          insurance_included: boolean
+          insurance_rate: number
+          proposal_id: string
+          quantity: number
+          remaining_term: number
+          reserve_fund: number
+          simulation_id: string | null
+          sort_order: number
+        }
+        Insert: {
+          administration_rate: number
+          administration_rate_id?: string | null
+          base_amount: number
+          created_at?: string
+          credit_range_id?: string | null
+          credit_value: number
+          final_amount: number
+          group_code: string
+          group_id?: string | null
+          id?: string
+          initial_term: number
+          installment_amount: number
+          installment_multiplier: number
+          installment_type_id?: string | null
+          installment_type_name: string
+          insurance_amount?: number
+          insurance_included?: boolean
+          insurance_rate?: number
+          proposal_id: string
+          quantity?: number
+          remaining_term: number
+          reserve_fund: number
+          simulation_id?: string | null
+          sort_order?: number
+        }
+        Update: {
+          administration_rate?: number
+          administration_rate_id?: string | null
+          base_amount?: number
+          created_at?: string
+          credit_range_id?: string | null
+          credit_value?: number
+          final_amount?: number
+          group_code?: string
+          group_id?: string | null
+          id?: string
+          initial_term?: number
+          installment_amount?: number
+          installment_multiplier?: number
+          installment_type_id?: string | null
+          installment_type_name?: string
+          insurance_amount?: number
+          insurance_included?: boolean
+          insurance_rate?: number
+          proposal_id?: string
+          quantity?: number
+          remaining_term?: number
+          reserve_fund?: number
+          simulation_id?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_items_administration_rate_id_fkey"
+            columns: ["administration_rate_id"]
+            isOneToOne: false
+            referencedRelation: "administration_rates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_items_credit_range_id_fkey"
+            columns: ["credit_range_id"]
+            isOneToOne: false
+            referencedRelation: "credit_ranges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_items_installment_type_id_fkey"
+            columns: ["installment_type_id"]
+            isOneToOne: false
+            referencedRelation: "installment_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_items_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_items_simulation_id_fkey"
+            columns: ["simulation_id"]
+            isOneToOne: false
+            referencedRelation: "simulations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          client_name: string | null
+          created_at: string
+          id: string
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       simulations: {
         Row: {
           administration_rate: number
