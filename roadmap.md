@@ -12,3 +12,4 @@
 - [ ] Salvar edições na proposta existente
 - [ ] Excluir propostas e simulações com confirmação
 - [ ] Validar edição e exclusão em celular e computador
+- [ ] Atualizar automaticamente o prazo restante dos grupos a cada mês
