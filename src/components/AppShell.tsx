@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
   Calculator,
+  ClipboardList,
   History,
   LayoutDashboard,
   LogOut,
@@ -16,8 +17,8 @@ import { Button } from "@/components/ui/button";
 
 const sellerNav = [
   { to: "/dashboard", label: "Início", icon: LayoutDashboard },
-  { to: "/simular", label: "Nova simulação", icon: Calculator },
-  { to: "/historico", label: "Histórico", icon: History },
+  { to: "/simular", label: "Nova proposta", icon: Calculator },
+  { to: "/historico", label: "Propostas e histórico", icon: ClipboardList },
 ] as const;
 
 const adminNav = [
