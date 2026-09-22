@@ -8,8 +8,8 @@
 - [x] Atualizar proposta visual, compartilhamento e PDF
 - [x] Manter compatibilidade com simulações e histórico existentes
 - [x] Adicionar testes de composição e validar fluxo responsivo
-- [ ] Reabrir propostas salvas no montador
-- [ ] Salvar edições na proposta existente
-- [ ] Excluir propostas e simulações com confirmação
-- [ ] Validar edição e exclusão em celular e computador
-- [ ] Atualizar automaticamente o prazo restante dos grupos a cada mês
+- [x] Reabrir propostas salvas no montador
+- [x] Salvar edições na proposta existente
+- [x] Excluir propostas e simulações com confirmação
+- [x] Validar edição e exclusão em celular e computador
+- [x] Atualizar automaticamente o prazo restante dos grupos a cada mês
