@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroups } from "@/hooks/useConfig";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, formatDateTime, formatPercent } from "@/lib/format";
-import { ShoppingCart } from "lucide-react";
+import { Eye, Pencil, ShoppingCart, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/historico")({
   head: () => ({
@@ -25,6 +28,7 @@ export const Route = createFileRoute("/_authenticated/historico")({
 });
 
 function Historico() {
+  const queryClient = useQueryClient();
   const { isAdmin } = useAuth();
   const { data: groups } = useGroups(false);
   const [group, setGroup] = useState("");
@@ -50,7 +54,7 @@ function Historico() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("proposals")
-        .select("id, seller_id, client_name, created_at, proposal_items(quantity, credit_value, final_amount)")
+        .select("id, seller_id, client_name, created_at, proposal_items(quantity, credit_value, final_amount, simulation_id)")
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -72,7 +76,9 @@ function Historico() {
     [profiles],
   );
 
+  const linkedSimulationIds = useMemo(() => new Set((proposals ?? []).flatMap((proposal) => proposal.proposal_items.flatMap((item) => item.simulation_id ? [item.simulation_id] : []))), [proposals]);
   const rows = (sims ?? []).filter((r) => {
+    if (linkedSimulationIds.has(r.id)) return false;
     if (group && r.group_code !== group) return false;
     if (seller && !(nameById[r.seller_id] ?? "").toLowerCase().includes(seller.toLowerCase()))
       return false;
@@ -80,6 +86,20 @@ function Historico() {
     if (credit && !String(Number(r.credit_value)).includes(credit.replace(/\D/g, ""))) return false;
     return true;
   });
+
+  async function deleteProposal(id: string) {
+    const { error } = await supabase.rpc("delete_saved_proposal", { _proposal_id: id });
+    if (error) { toast.error("Não foi possível excluir a proposta."); return; }
+    await Promise.all([queryClient.invalidateQueries({ queryKey: ["proposals-all"] }), queryClient.invalidateQueries({ queryKey: ["simulations-all"] }), queryClient.invalidateQueries({ queryKey: ["my-proposals"] }), queryClient.invalidateQueries({ queryKey: ["my-simulations"] })]);
+    toast.success("Proposta excluída.");
+  }
+
+  async function deleteLegacySimulation(id: string) {
+    const { error } = await supabase.rpc("delete_legacy_simulation", { _simulation_id: id });
+    if (error) { toast.error("Não foi possível excluir a simulação."); return; }
+    await Promise.all([queryClient.invalidateQueries({ queryKey: ["simulations-all"] }), queryClient.invalidateQueries({ queryKey: ["my-simulations"] })]);
+    toast.success("Simulação excluída.");
+  }
 
   return (
     <div className="space-y-6">
@@ -102,7 +122,7 @@ function Historico() {
               const quantity = proposal.proposal_items.reduce((sum, item) => sum + item.quantity, 0);
               const creditTotal = proposal.proposal_items.reduce((sum, item) => sum + Number(item.credit_value) * item.quantity, 0);
               const monthlyTotal = proposal.proposal_items.reduce((sum, item) => sum + Number(item.final_amount) * item.quantity, 0);
-              return <Link key={proposal.id} to="/proposta/$id" params={{ id: proposal.id }} className="surface block p-4 transition-colors hover:border-primary/40 sm:p-5"><div className="flex justify-between gap-3"><div className="min-w-0"><div className="truncate font-semibold">{proposal.client_name || "Cliente Randon"}</div><div className="mt-1 text-xs text-muted-foreground">{formatDateTime(proposal.created_at)} · {nameById[proposal.seller_id] ?? "—"}</div></div><div className="shrink-0 text-sm font-semibold text-primary">{quantity} {quantity === 1 ? "cota" : "cotas"}</div></div><div className="mt-4 grid grid-cols-2 gap-4 text-sm"><div><div className="text-xs text-muted-foreground">Crédito total</div><div className="font-medium tabular">{formatBRL(creditTotal)}</div></div><div><div className="text-xs text-muted-foreground">Parcela total/mês</div><div className="font-medium tabular">{formatBRL(monthlyTotal)}</div></div></div></Link>;
+              return <article key={proposal.id} className="surface p-4 transition-colors hover:border-primary/40 sm:p-5"><div className="flex justify-between gap-3"><div className="min-w-0"><div className="truncate font-semibold">{proposal.client_name || "Cliente Randon"}</div><div className="mt-1 text-xs text-muted-foreground">{formatDateTime(proposal.created_at)} · {nameById[proposal.seller_id] ?? "—"}</div></div><div className="shrink-0 text-sm font-semibold text-primary">{quantity} {quantity === 1 ? "cota" : "cotas"}</div></div><div className="mt-4 grid grid-cols-2 gap-4 text-sm"><div><div className="text-xs text-muted-foreground">Crédito total</div><div className="font-medium tabular">{formatBRL(creditTotal)}</div></div><div><div className="text-xs text-muted-foreground">Parcela total/mês</div><div className="font-medium tabular">{formatBRL(monthlyTotal)}</div></div></div><div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3"><Button variant="outline" size="sm" asChild><Link to="/proposta/$id" params={{ id: proposal.id }}><Eye/> Abrir</Link></Button><Button variant="outline" size="sm" asChild><Link to="/simular" search={{ edit: proposal.id }}><Pencil/> Editar</Link></Button><DeleteConfirm title="Excluir esta proposta?" description="A proposta, seus itens e as simulações vinculadas serão removidos definitivamente." onConfirm={() => void deleteProposal(proposal.id)}/></div></article>;
             })}
           </div>
         </section>
@@ -177,13 +197,7 @@ function Historico() {
                   {formatBRL(Number(r.final_amount))}
                 </td>
                 <td data-label="Ação" className="px-5 py-3 text-right whitespace-nowrap">
-                  <Link
-                    to="/proposta/$id"
-                    params={{ id: r.id }}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Proposta
-                  </Link>
+                  <div className="flex justify-end gap-1"><Button variant="ghost" size="icon" asChild><Link to="/proposta/$id" params={{ id: r.id }} aria-label="Abrir simulação"><Eye/></Link></Button><DeleteConfirm iconOnly title="Excluir esta simulação?" description="Esta simulação antiga será removida definitivamente." onConfirm={() => void deleteLegacySimulation(r.id)}/></div>
                 </td>
               </tr>
             ))}
@@ -199,4 +213,8 @@ function Historico() {
       </div>
     </div>
   );
+}
+
+function DeleteConfirm({ title, description, onConfirm, iconOnly = false }: { title: string; description: string; onConfirm: () => void; iconOnly?: boolean }) {
+  return <AlertDialog><AlertDialogTrigger asChild><Button variant="outline" size={iconOnly ? "icon" : "sm"} aria-label="Excluir"><Trash2/>{!iconOnly && " Excluir"}</Button></AlertDialogTrigger><AlertDialogContent className="w-[calc(100%-2rem)] rounded-lg"><AlertDialogHeader><AlertDialogTitle>{title}</AlertDialogTitle><AlertDialogDescription>{description}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={onConfirm}>Excluir definitivamente</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>;
 }
