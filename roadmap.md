@@ -18,3 +18,4 @@
 - [x] Adicionar modo noturno institucional com preferência salva
 - [x] Garantir que WhatsApp e e-mail recebam o arquivo PDF anexado, nunca somente texto
 - [x] Paginar o histórico e carregar somente 10 resultados por vez
+- [x] Registrar o crédito de desenvolvimento da NandiDev no rodapé da plataforma
