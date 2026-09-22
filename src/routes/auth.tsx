@@ -108,9 +108,12 @@ function AuthPage() {
             O acesso é criado pelo administrador da equipe.
           </p>
 
-          <p className="mt-10 text-xs text-muted-foreground">
-            Ferramenta interna de simulação · Randon Consórcios / Rands
-          </p>
+          <div className="mt-10 space-y-1.5 text-xs text-muted-foreground">
+            <p>Ferramenta interna de simulação · Randon Consórcios / Rands</p>
+            <p className="text-muted-foreground/70">
+              Desenvolvido por <span className="font-semibold text-muted-foreground">NandiDev</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

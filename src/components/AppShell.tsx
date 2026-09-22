@@ -116,7 +116,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
         <footer className="no-print border-t border-border px-4 py-5 text-center text-xs text-muted-foreground sm:px-6 lg:px-10">
-          Ferramenta interna de simulação · Valores sujeitos às condições e regras vigentes do grupo.
+          <p>Ferramenta interna de simulação · Valores sujeitos às condições e regras vigentes do grupo.</p>
+          <p className="mt-1.5 text-muted-foreground/70">
+            Desenvolvido por <span className="font-semibold text-muted-foreground">NandiDev</span>
+          </p>
         </footer>
       </div>
     </div>
