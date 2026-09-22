@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Check, FileText, Layers, Minus, Pencil, Plus, ShieldCheck, ShoppingCart, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/simular")({
+  validateSearch: (search: Record<string, unknown>) => ({ edit: typeof search.edit === "string" ? search.edit : undefined }),
   head: () => ({ meta: [
     { title: "Nova proposta — Randon Consórcios" },
     { name: "description", content: "Monte uma proposta com várias cotas e grupos." },
@@ -40,9 +41,10 @@ type ProposalItem = {
 };
 
 function Simular() {
+  const { edit: editProposalId } = Route.useSearch();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: groups, isLoading: loadingGroups } = useGroups();
+  const { data: groups, isLoading: loadingGroups } = useGroups(false);
   const [step, setStep] = useState(0);
   const [groupId, setGroupId] = useState<string | null>(null);
   const [rangeId, setRangeId] = useState<string | null>(null);
@@ -54,6 +56,8 @@ function Simular() {
   const [items, setItems] = useState<ProposalItem[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loadingSaved, setLoadingSaved] = useState(!!editProposalId);
+  const loadedProposal = useRef<string | null>(null);
   const { data: config } = useGroupConfig(groupId);
 
   const group = (groups ?? []).find((g) => g.id === groupId) ?? null;
@@ -67,6 +71,37 @@ function Simular() {
   }, [group, range, rate, type, insurance, insuranceRule]);
 
   const totals = useMemo(() => calculateProposalTotals(items.map((item) => ({ quantity: item.quantity, credit: item.range.credit_value, result: item.result }))), [items]);
+
+  useEffect(() => {
+    if (!editProposalId || loadedProposal.current === editProposalId) return;
+    loadedProposal.current = editProposalId;
+    void (async () => {
+      const proposalResponse = await supabase.from("proposals").select("client_name").eq("id", editProposalId).maybeSingle();
+      if (proposalResponse.error || !proposalResponse.data) { toast.error("Proposta não encontrada."); setLoadingSaved(false); return; }
+      const itemsResponse = await supabase.from("proposal_items").select("*").eq("proposal_id", editProposalId).order("sort_order");
+      if (itemsResponse.error) { toast.error("Não foi possível abrir a proposta."); setLoadingSaved(false); return; }
+      const savedItems = itemsResponse.data ?? [];
+      const [groupRows, rangeRows, rateRows, typeRows] = await Promise.all([
+        supabase.from("groups").select("*").in("id", savedItems.flatMap((item) => item.group_id ? [item.group_id] : [])),
+        supabase.from("credit_ranges").select("*").in("id", savedItems.flatMap((item) => item.credit_range_id ? [item.credit_range_id] : [])),
+        supabase.from("administration_rates").select("*").in("id", savedItems.flatMap((item) => item.administration_rate_id ? [item.administration_rate_id] : [])),
+        supabase.from("installment_types").select("*").in("id", savedItems.flatMap((item) => item.installment_type_id ? [item.installment_type_id] : [])),
+      ]);
+      if (groupRows.error || rangeRows.error || rateRows.error || typeRows.error) { toast.error("Não foi possível carregar as configurações da proposta."); setLoadingSaved(false); return; }
+      const restored = savedItems.flatMap((item): ProposalItem[] => {
+        const savedGroup = (groupRows.data ?? []).find((row) => row.id === item.group_id);
+        const savedRange = (rangeRows.data ?? []).find((row) => row.id === item.credit_range_id);
+        const savedRate = (rateRows.data ?? []).find((row) => row.id === item.administration_rate_id);
+        const savedType = (typeRows.data ?? []).find((row) => row.id === item.installment_type_id);
+        if (!savedGroup || !savedRange || !savedRate || !savedType) return [];
+        return [{ key: item.id, group: { ...savedGroup, initial_term: Number(savedGroup.initial_term), remaining_term: Number(savedGroup.remaining_term), reserve_fund: Number(savedGroup.reserve_fund) }, range: { id: savedRange.id, credit_value: Number(savedRange.credit_value) }, rate: { id: savedRate.id, rate: Number(savedRate.rate) }, type: { id: savedType.id, name: savedType.name, multiplier: Number(savedType.multiplier) }, insurance: item.insurance_included, insuranceRate: Number(item.insurance_rate), quantity: item.quantity, result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / item.initial_term, installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } }];
+      });
+      if (restored.length !== savedItems.length) toast.warning("Alguma configuração antiga não está mais disponível.");
+      setClientName(proposalResponse.data.client_name ?? "");
+      setItems(restored);
+      setLoadingSaved(false);
+    })();
+  }, [editProposalId]);
 
   function resetConfigurator() {
     setStep(0); setGroupId(null); setRangeId(null); setRateId(null); setTypeId(null); setInsurance(false); setQuantity(1); setEditingKey(null);
