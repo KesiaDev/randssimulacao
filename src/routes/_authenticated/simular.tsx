@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/simular")({
-  validateSearch: (search: Record<string, unknown>) => ({ edit: typeof search["edit"] === "string" ? search["edit"] : undefined }),
+  validateSearch: (search: Record<string, unknown>) => ({ edit: typeof search["edit"] === "string" ? search["edit"] : undefined, legacy: typeof search["legacy"] === "string" ? search["legacy"] : undefined }),
   head: () => ({ meta: [
     { title: "Nova proposta — Randon Consórcios" },
     { name: "description", content: "Monte uma proposta com várias cotas e grupos." },
@@ -41,7 +41,7 @@ type ProposalItem = {
 };
 
 function Simular() {
-  const { edit: editProposalId } = Route.useSearch();
+  const { edit: editProposalId, legacy: legacySimulationId } = Route.useSearch();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: groups, isLoading: loadingGroups } = useGroups(false);
@@ -56,7 +56,7 @@ function Simular() {
   const [items, setItems] = useState<ProposalItem[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [loadingSaved, setLoadingSaved] = useState(!!editProposalId);
+  const [loadingSaved, setLoadingSaved] = useState(!!editProposalId || !!legacySimulationId);
   const loadedProposal = useRef<string | null>(null);
   const { data: config } = useGroupConfig(groupId);
 
@@ -102,6 +102,26 @@ function Simular() {
       setLoadingSaved(false);
     })();
   }, [editProposalId]);
+
+  useEffect(() => {
+    if (!legacySimulationId || loadedProposal.current === legacySimulationId) return;
+    loadedProposal.current = legacySimulationId;
+    void (async () => {
+      const response = await supabase.from("simulations").select("*").eq("id", legacySimulationId).maybeSingle();
+      const saved = response.data;
+      if (response.error || !saved || !saved.group_id || !saved.credit_range_id || !saved.administration_rate_id || !saved.installment_type_id) { toast.error("Simulação não encontrada."); setLoadingSaved(false); return; }
+      const [groupResponse, rangeResponse, rateResponse, typeResponse] = await Promise.all([
+        supabase.from("groups").select("*").eq("id", saved.group_id).single(),
+        supabase.from("credit_ranges").select("*").eq("id", saved.credit_range_id).single(),
+        supabase.from("administration_rates").select("*").eq("id", saved.administration_rate_id).single(),
+        supabase.from("installment_types").select("*").eq("id", saved.installment_type_id).single(),
+      ]);
+      if (!groupResponse.data || !rangeResponse.data || !rateResponse.data || !typeResponse.data) { toast.error("A configuração desta simulação não está mais disponível."); setLoadingSaved(false); return; }
+      setClientName(saved.client_name ?? "");
+      setItems([{ key: saved.id, group: { ...groupResponse.data, initial_term: Number(groupResponse.data.initial_term), remaining_term: Number(groupResponse.data.remaining_term), reserve_fund: Number(groupResponse.data.reserve_fund) }, range: { id: rangeResponse.data.id, credit_value: Number(rangeResponse.data.credit_value) }, rate: { id: rateResponse.data.id, rate: Number(rateResponse.data.rate) }, type: { id: typeResponse.data.id, name: typeResponse.data.name, multiplier: Number(typeResponse.data.multiplier) }, insurance: saved.insurance_included, insuranceRate: Number(saved.insurance_rate), quantity: 1, result: { totalBase: Number(saved.base_amount), baseInstallment: Number(saved.base_amount) / saved.initial_term, installment: Number(saved.installment_amount), insurance: Number(saved.insurance_amount), finalAmount: Number(saved.final_amount) } }]);
+      setLoadingSaved(false);
+    })();
+  }, [legacySimulationId]);
 
   function resetConfigurator() {
     setStep(0); setGroupId(null); setRangeId(null); setRateId(null); setTypeId(null); setInsurance(false); setQuantity(1); setEditingKey(null);
@@ -157,7 +177,7 @@ function Simular() {
 
   return <div className="space-y-6 sm:space-y-8">
     <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-      <div><h1 className="text-2xl font-semibold sm:text-3xl">{editProposalId ? "Editar proposta" : "Compor proposta"}</h1><p className="mt-1 text-sm text-muted-foreground">Simule cada plano e reúna quantas cotas e grupos precisar.</p></div>
+      <div><h1 className="text-2xl font-semibold sm:text-3xl">{editProposalId ? "Editar proposta" : legacySimulationId ? "Refazer simulação" : "Compor proposta"}</h1><p className="mt-1 text-sm text-muted-foreground">Simule cada plano e reúna quantas cotas e grupos precisar.</p></div>
       {items.length > 0 && <div className="surface flex items-center gap-3 px-4 py-3"><ShoppingCart className="h-5 w-5 text-primary"/><div><div className="text-xs text-muted-foreground">Itens da proposta</div><div className="font-semibold">{items.length} {items.length === 1 ? "item" : "itens"} · {totals.quantity} {totals.quantity === 1 ? "cota" : "cotas"}</div></div></div>}
     </div>
 
