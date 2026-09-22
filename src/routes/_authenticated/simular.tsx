@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/simular")({
-  validateSearch: (search: Record<string, unknown>) => ({ edit: typeof search.edit === "string" ? search.edit : undefined }),
+  validateSearch: (search: Record<string, unknown>) => ({ edit: typeof search["edit"] === "string" ? search["edit"] : undefined }),
   head: () => ({ meta: [
     { title: "Nova proposta — Randon Consórcios" },
     { name: "description", content: "Monte uma proposta com várias cotas e grupos." },
