@@ -89,6 +89,7 @@ export type Database = {
           name: string
           remaining_term: number
           reserve_fund: number
+          term_reference_date: string
         }
         Insert: {
           active?: boolean
@@ -100,6 +101,7 @@ export type Database = {
           name: string
           remaining_term: number
           reserve_fund?: number
+          term_reference_date?: string
         }
         Update: {
           active?: boolean
@@ -111,6 +113,7 @@ export type Database = {
           name?: string
           remaining_term?: number
           reserve_fund?: number
+          term_reference_date?: string
         }
         Relationships: []
       }
@@ -492,6 +495,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_legacy_simulation: {
+        Args: { _simulation_id: string }
+        Returns: undefined
+      }
+      delete_saved_proposal: {
+        Args: { _proposal_id: string }
+        Returns: undefined
+      }
       ensure_profile: { Args: { _name?: string }; Returns: undefined }
       has_role: {
         Args: {
@@ -499,6 +510,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      replace_proposal_items: {
+        Args: { _client_name: string; _items: Json; _proposal_id: string }
+        Returns: undefined
       }
     }
     Enums: {

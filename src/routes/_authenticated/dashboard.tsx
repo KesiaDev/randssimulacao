@@ -72,7 +72,7 @@ function Dashboard() {
           </p>
         </div>
         <Button asChild size="lg" className="w-full sm:w-auto">
-          <Link to="/simular">
+          <Link to="/simular" search={{ edit: undefined, legacy: undefined }}>
             <Plus className="mr-1 h-4 w-4" /> Nova proposta
           </Link>
         </Button>

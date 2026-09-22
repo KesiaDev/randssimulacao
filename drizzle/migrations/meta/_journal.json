@@ -15,6 +15,20 @@
       "when": 1790073102544,
       "tag": "0001_create_composed_proposals",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790074071289,
+      "tag": "0002_manage_saved_proposals",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790074282744,
+      "tag": "0003_add_group_term_reference_date",
+      "breakpoints": true
     }
   ]
 }
