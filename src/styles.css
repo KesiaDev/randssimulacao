@@ -239,5 +239,10 @@
     border-radius: 0;
     box-shadow: none;
   }
+
+  .proposal-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
 

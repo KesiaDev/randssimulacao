@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, CalendarDays, Plus, TrendingUp } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Plus, ShoppingCart, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,21 @@ function Dashboard() {
   });
 
   const rows = data ?? [];
+  const { data: proposals } = useQuery({
+    queryKey: ["my-proposals", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("proposals")
+        .select("id, client_name, created_at, proposal_items(quantity, credit_value, final_amount)")
+        .eq("seller_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(8);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
   const today = new Date().toDateString();
   const month = new Date().getMonth();
   const todayCount = rows.filter((r) => new Date(r.created_at).toDateString() === today).length;
@@ -58,10 +73,39 @@ function Dashboard() {
         </div>
         <Button asChild size="lg" className="w-full sm:w-auto">
           <Link to="/simular">
-            <Plus className="mr-1 h-4 w-4" /> Nova simulação
+            <Plus className="mr-1 h-4 w-4" /> Nova proposta
           </Link>
         </Button>
       </div>
+
+      {(proposals ?? []).length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Propostas recentes</h2>
+            <Link to="/historico" className="text-xs text-primary hover:underline">Ver todas</Link>
+          </div>
+          <div className="grid gap-3 lg:grid-cols-2">
+            {(proposals ?? []).map((proposal) => {
+              const quantity = proposal.proposal_items.reduce((sum, item) => sum + item.quantity, 0);
+              const credit = proposal.proposal_items.reduce((sum, item) => sum + Number(item.credit_value) * item.quantity, 0);
+              const monthly = proposal.proposal_items.reduce((sum, item) => sum + Number(item.final_amount) * item.quantity, 0);
+              return (
+                <Link key={proposal.id} to="/proposta/$id" params={{ id: proposal.id }} className="surface block p-4 transition-colors hover:border-primary/40 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0"><div className="truncate font-semibold">{proposal.client_name || "Cliente Randon"}</div><div className="mt-1 text-xs text-muted-foreground">{formatDateTime(proposal.created_at)}</div></div>
+                    <ShoppingCart className="h-4 w-4 shrink-0 text-primary" />
+                  </div>
+                  <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                    <div><div className="text-xs text-muted-foreground">Cotas</div><div className="font-medium tabular">{quantity}</div></div>
+                    <div><div className="text-xs text-muted-foreground">Crédito</div><div className="break-words font-medium tabular">{formatBRL(credit)}</div></div>
+                    <div><div className="text-xs text-muted-foreground">Parcela/mês</div><div className="break-words font-medium tabular">{formatBRL(monthly)}</div></div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
         <StatCard label="Simulações hoje" value={String(todayCount)} icon={CalendarDays} />
