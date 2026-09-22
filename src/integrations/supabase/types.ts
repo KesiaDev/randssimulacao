@@ -515,6 +515,10 @@ export type Database = {
         Args: { _client_name: string; _items: Json; _proposal_id: string }
         Returns: undefined
       }
+      update_legacy_simulation: {
+        Args: { _client_name: string; _item: Json; _simulation_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "seller"
