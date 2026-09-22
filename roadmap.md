@@ -14,4 +14,4 @@
 - [x] Validar edição e exclusão em celular e computador
 - [x] Atualizar automaticamente o prazo restante dos grupos a cada mês
 - [x] Permitir editar simulações individuais antigas no mesmo registro
-- [ ] Compartilhar a proposta em PDF pelo menu nativo, incluindo WhatsApp e e-mail quando disponíveis
+- [x] Compartilhar a proposta em PDF pelo menu nativo, incluindo WhatsApp e e-mail quando disponíveis
