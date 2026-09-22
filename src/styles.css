@@ -106,6 +106,48 @@
   --proposal-highlight: oklch(0.31 0.11 258);
 }
 
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.155 0.025 260);
+  --foreground: oklch(0.94 0.012 250);
+  --card: oklch(0.205 0.032 258);
+  --card-foreground: oklch(0.95 0.01 250);
+  --popover: oklch(0.205 0.032 258);
+  --popover-foreground: oklch(0.95 0.01 250);
+  --primary: oklch(0.62 0.17 252);
+  --primary-foreground: oklch(0.99 0.005 250);
+  --secondary: oklch(0.25 0.035 258);
+  --secondary-foreground: oklch(0.91 0.015 250);
+  --muted: oklch(0.235 0.028 258);
+  --muted-foreground: oklch(0.69 0.025 250);
+  --accent: oklch(0.285 0.055 255);
+  --accent-foreground: oklch(0.96 0.01 250);
+  --destructive: oklch(0.64 0.19 27);
+  --destructive-foreground: oklch(0.99 0.005 250);
+  --success: oklch(0.67 0.14 158);
+  --success-foreground: oklch(0.14 0.025 258);
+  --border: oklch(0.31 0.032 258);
+  --input: oklch(0.33 0.035 258);
+  --ring: oklch(0.62 0.17 252);
+  --chart-1: oklch(0.65 0.17 252);
+  --chart-2: oklch(0.7 0.12 220);
+  --chart-3: oklch(0.77 0.1 190);
+  --chart-4: oklch(0.7 0.14 155);
+  --chart-5: oklch(0.76 0.14 70);
+  --sidebar: oklch(0.135 0.03 260);
+  --sidebar-foreground: oklch(0.9 0.015 250);
+  --sidebar-primary: oklch(0.65 0.17 252);
+  --sidebar-primary-foreground: oklch(0.99 0.005 250);
+  --sidebar-accent: oklch(0.235 0.055 256);
+  --sidebar-accent-foreground: oklch(0.97 0.008 250);
+  --sidebar-border: oklch(0.255 0.035 258);
+  --sidebar-ring: oklch(0.65 0.17 252);
+  --shadow-card: 0 1px 2px oklch(0.04 0.02 260 / 35%), 0 12px 32px oklch(0.04 0.02 260 / 20%);
+  --shadow-float: 0 18px 48px oklch(0.04 0.02 260 / 45%);
+  --proposal-shade: linear-gradient(180deg, oklch(0.12 0.05 258 / 12%) 0%, oklch(0.1 0.05 258 / 95%) 100%);
+  --proposal-highlight: oklch(0.38 0.14 255);
+}
+
 @theme inline {
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
@@ -125,6 +167,7 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    transition: background-color 180ms ease, color 180ms ease;
   }
 
   h1,

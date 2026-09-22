@@ -6,13 +6,16 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Moon,
   Settings2,
+  Sun,
   Users,
   X,
 } from "lucide-react";
 import { Brand } from "./Brand";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/useTheme";
 
 const sellerNav = [
   { to: "/dashboard", label: "Início", icon: LayoutDashboard },
@@ -28,6 +31,7 @@ const adminNav = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { profile, isAdmin, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -67,6 +71,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-sidebar-border p-4">
+          <Button
+            variant="ghost"
+            onClick={toggleTheme}
+            className="mb-1 w-full justify-start text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === "dark" ? "Modo claro" : "Modo noturno"}
+          </Button>
           <div className="mb-3 truncate text-xs text-sidebar-foreground/60">
             {profile?.name || profile?.email}
             <div className="mt-0.5 uppercase tracking-[0.12em]">
@@ -91,11 +103,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print sticky top-0 z-30 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 border-b border-border bg-card/95 px-3 py-2.5 backdrop-blur sm:px-5 lg:hidden">
+        <header className="no-print sticky top-0 z-30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-card/95 px-3 py-2.5 backdrop-blur sm:px-5 lg:hidden">
           <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Abrir menu">
             <Menu className="h-5 w-5" />
           </Button>
           <div className="min-w-0"><Brand compact /></div>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo noturno"}>
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
         </header>
         <main className="min-w-0 flex-1 px-3 py-5 print:p-0 sm:px-6 sm:py-7 lg:px-8 lg:py-8 xl:px-10 xl:py-10">
           <div className="mx-auto w-full max-w-6xl">{children}</div>
