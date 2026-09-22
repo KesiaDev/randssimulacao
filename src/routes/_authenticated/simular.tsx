@@ -8,6 +8,7 @@ import { useGroupConfig, useGroups, type Group } from "@/hooks/useConfig";
 import { calculate, type CalcResult } from "@/lib/calc";
 import { calculateProposalTotals } from "@/lib/proposal-calc";
 import { formatBRL, formatPercent } from "@/lib/format";
+import { effectiveRemainingTerm } from "@/lib/group-term";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -94,7 +95,7 @@ function Simular() {
         const savedRate = (rateRows.data ?? []).find((row) => row.id === item.administration_rate_id);
         const savedType = (typeRows.data ?? []).find((row) => row.id === item.installment_type_id);
         if (!savedGroup || !savedRange || !savedRate || !savedType) return [];
-        return [{ key: item.id, group: { ...savedGroup, initial_term: Number(savedGroup.initial_term), remaining_term: Number(savedGroup.remaining_term), reserve_fund: Number(savedGroup.reserve_fund) }, range: { id: savedRange.id, credit_value: Number(savedRange.credit_value) }, rate: { id: savedRate.id, rate: Number(savedRate.rate) }, type: { id: savedType.id, name: savedType.name, multiplier: Number(savedType.multiplier) }, insurance: item.insurance_included, insuranceRate: Number(item.insurance_rate), quantity: item.quantity, result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / item.initial_term, installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } }];
+        return [{ key: item.id, group: { ...savedGroup, initial_term: Number(savedGroup.initial_term), remaining_term: effectiveRemainingTerm(Number(savedGroup.remaining_term), savedGroup.term_reference_date), reserve_fund: Number(savedGroup.reserve_fund) }, range: { id: savedRange.id, credit_value: Number(savedRange.credit_value) }, rate: { id: savedRate.id, rate: Number(savedRate.rate) }, type: { id: savedType.id, name: savedType.name, multiplier: Number(savedType.multiplier) }, insurance: item.insurance_included, insuranceRate: Number(item.insurance_rate), quantity: item.quantity, result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / item.initial_term, installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } }];
       });
       if (restored.length !== savedItems.length) toast.warning("Alguma configuração antiga não está mais disponível.");
       setClientName(proposalResponse.data.client_name ?? "");
@@ -118,7 +119,7 @@ function Simular() {
       ]);
       if (!groupResponse.data || !rangeResponse.data || !rateResponse.data || !typeResponse.data) { toast.error("A configuração desta simulação não está mais disponível."); setLoadingSaved(false); return; }
       setClientName(saved.client_name ?? "");
-      setItems([{ key: saved.id, group: { ...groupResponse.data, initial_term: Number(groupResponse.data.initial_term), remaining_term: Number(groupResponse.data.remaining_term), reserve_fund: Number(groupResponse.data.reserve_fund) }, range: { id: rangeResponse.data.id, credit_value: Number(rangeResponse.data.credit_value) }, rate: { id: rateResponse.data.id, rate: Number(rateResponse.data.rate) }, type: { id: typeResponse.data.id, name: typeResponse.data.name, multiplier: Number(typeResponse.data.multiplier) }, insurance: saved.insurance_included, insuranceRate: Number(saved.insurance_rate), quantity: 1, result: { totalBase: Number(saved.base_amount), baseInstallment: Number(saved.base_amount) / saved.initial_term, installment: Number(saved.installment_amount), insurance: Number(saved.insurance_amount), finalAmount: Number(saved.final_amount) } }]);
+      setItems([{ key: saved.id, group: { ...groupResponse.data, initial_term: Number(groupResponse.data.initial_term), remaining_term: effectiveRemainingTerm(Number(groupResponse.data.remaining_term), groupResponse.data.term_reference_date), reserve_fund: Number(groupResponse.data.reserve_fund) }, range: { id: rangeResponse.data.id, credit_value: Number(rangeResponse.data.credit_value) }, rate: { id: rateResponse.data.id, rate: Number(rateResponse.data.rate) }, type: { id: typeResponse.data.id, name: typeResponse.data.name, multiplier: Number(typeResponse.data.multiplier) }, insurance: saved.insurance_included, insuranceRate: Number(saved.insurance_rate), quantity: 1, result: { totalBase: Number(saved.base_amount), baseInstallment: Number(saved.base_amount) / saved.initial_term, installment: Number(saved.installment_amount), insurance: Number(saved.insurance_amount), finalAmount: Number(saved.final_amount) } }]);
       setLoadingSaved(false);
     })();
   }, [legacySimulationId]);
