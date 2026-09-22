@@ -17,3 +17,4 @@
 - [x] Compartilhar a proposta em PDF pelo menu nativo, incluindo WhatsApp e e-mail quando disponíveis
 - [x] Adicionar modo noturno institucional com preferência salva
 - [x] Garantir que WhatsApp e e-mail recebam o arquivo PDF anexado, nunca somente texto
+- [x] Paginar o histórico e carregar somente 10 resultados por vez
