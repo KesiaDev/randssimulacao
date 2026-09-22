@@ -324,7 +324,7 @@ function DeleteConfirm({ title, description, onConfirm, iconOnly = false }: { ti
     <AlertDialog>
       <AlertDialogTrigger asChild><Button variant="outline" size={iconOnly ? "icon" : "sm"} aria-label="Excluir"><Trash2 />{!iconOnly && " Excluir"}</Button></AlertDialogTrigger>
       <AlertDialogContent className="w-[calc(100%-2rem)] rounded-lg">
-        <AlertDialogHeader><AlertDialogTitle>{title}</AlertDialogTitle><AlertDialogDescription>{description}</AlertDialogHeader>
+        <AlertDialogHeader><AlertDialogTitle>{title}</AlertDialogTitle><AlertDialogDescription>{description}</AlertDialogDescription></AlertDialogHeader>
         <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={onConfirm}>Excluir definitivamente</AlertDialogAction></AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
