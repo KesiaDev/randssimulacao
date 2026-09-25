@@ -65,6 +65,26 @@ async function coverImageDataUrl(url: string, targetRatio: number) {
   return canvas.toDataURL("image/jpeg", 0.9);
 }
 
+async function whiteImageDataUrl(source: LoadedImage | null) {
+  if (!source) return null;
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const element = new Image();
+    element.onload = () => resolve(element);
+    element.onerror = () => reject(new Error("Não foi possível preparar a marca."));
+    element.src = source.dataUrl;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = source.width;
+  canvas.height = source.height;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+  context.drawImage(image, 0, 0);
+  context.globalCompositeOperation = "source-in";
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
+}
+
 export async function createProposalPdf(input: Input) {
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
@@ -80,6 +100,7 @@ export async function createProposalPdf(input: Input) {
   let y = 0;
 
   const logo = await loadImage(randonLogo.url).catch(() => null);
+  const whiteLogo = await whiteImageDataUrl(logo).catch(() => null);
   const hero = await coverImageDataUrl(input.imageUrl, pageWidth / 64).catch(() => null);
 
   const drawPageBackground = () => {
@@ -87,10 +108,10 @@ export async function createProposalPdf(input: Input) {
     pdf.rect(0, 0, pageWidth, pageHeight, "F");
   };
 
-  const drawLogo = (x: number, top: number, maxWidth: number, maxHeight: number) => {
+  const drawLogo = (x: number, top: number, maxWidth: number, maxHeight: number, white = false) => {
     if (!logo) return;
     const scale = Math.min(maxWidth / logo.width, maxHeight / logo.height);
-    pdf.addImage(logo.dataUrl, logo.format, x, top, logo.width * scale, logo.height * scale, undefined, "FAST");
+    pdf.addImage(white && whiteLogo ? whiteLogo : logo.dataUrl, white && whiteLogo ? "PNG" : logo.format, x, top, logo.width * scale, logo.height * scale, undefined, "FAST");
   };
 
   const nextPage = () => {
@@ -98,7 +119,7 @@ export async function createProposalPdf(input: Input) {
     drawPageBackground();
     pdf.setFillColor(...navy);
     pdf.rect(0, 0, pageWidth, 24, "F");
-    drawLogo(margin, 7, 52, 10);
+    drawLogo(margin, 7, 52, 10, true);
     pdf.setTextColor(255, 255, 255);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
@@ -195,9 +216,9 @@ export async function createProposalPdf(input: Input) {
     y += 54;
   });
 
-  ensureSpace(78);
+  ensureSpace(52);
   pdf.setFillColor(...blue);
-  pdf.roundedRect(margin, y, contentWidth, 39, 2, 2, "F");
+  pdf.roundedRect(margin, y, contentWidth, 35, 2, 2, "F");
   pdf.setTextColor(210, 229, 248);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(7);
@@ -220,7 +241,7 @@ export async function createProposalPdf(input: Input) {
     pdf.text(`Seguro incluído no total mensal: ${formatBRL(totalInsurance)}`, margin + 7, y + 35);
   }
 
-  y += 50;
+  y += 43;
   pdf.setTextColor(...gray);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(6.5);
