@@ -117,11 +117,11 @@ export async function createProposalPdf(input: Input) {
     pdf.setFillColor(...blue);
     pdf.rect(0, 0, pageWidth, 64, "F");
   }
-  pdf.setFillColor(8, 39, 73);
-  pdf.setGState(new pdf.GState({ opacity: 0.76 }));
-  pdf.rect(0, 0, pageWidth, 64, "F");
-  pdf.setGState(new pdf.GState({ opacity: 1 }));
-  drawLogo(margin, 10, 62, 13);
+  pdf.setFillColor(...navy);
+  pdf.rect(0, 32, pageWidth, 32, "F");
+  pdf.setFillColor(255, 255, 255);
+  pdf.roundedRect(margin - 3, 7, 68, 19, 2, 2, "F");
+  drawLogo(margin, 11, 62, 11);
   pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(8);
