@@ -19,3 +19,4 @@
 - [x] Garantir que WhatsApp e e-mail recebam o arquivo PDF anexado, nunca somente texto
 - [x] Paginar o histórico e carregar somente 10 resultados por vez
 - [x] Registrar o crédito de desenvolvimento da NandiDev no rodapé da plataforma
+- [ ] Corrigir proporção da foto e aperfeiçoar o acabamento do PDF das propostas
