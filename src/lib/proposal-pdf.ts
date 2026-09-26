@@ -172,7 +172,9 @@ export async function createProposalPdf(input: Input) {
   let totalMonthly = 0;
   let totalInsurance = 0;
   input.items.forEach((item, index) => {
-    ensureSpace(53);
+    const isLastItem = index === input.items.length - 1;
+    // Keep the last item with the commercial summary and consultant details.
+    ensureSpace(isLastItem ? 122 : 53);
     const quantity = item.quantity;
     totalQuantity += quantity;
     totalCredit += Number(item.credit_value) * quantity;
@@ -216,9 +218,10 @@ export async function createProposalPdf(input: Input) {
     y += 54;
   });
 
-  ensureSpace(52);
+  const totalsHeight = totalInsurance > 0 ? 37 : 33;
+  ensureSpace(totalsHeight + 30);
   pdf.setFillColor(...blue);
-  pdf.roundedRect(margin, y, contentWidth, 35, 2, 2, "F");
+  pdf.roundedRect(margin, y, contentWidth, totalsHeight, 2, 2, "F");
   pdf.setTextColor(210, 229, 248);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(7);
@@ -241,7 +244,7 @@ export async function createProposalPdf(input: Input) {
     pdf.text(`Seguro incluído no total mensal: ${formatBRL(totalInsurance)}`, margin + 7, y + 35);
   }
 
-  y += 43;
+  y += totalsHeight + 8;
   pdf.setTextColor(...gray);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(6.5);
