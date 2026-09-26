@@ -3,7 +3,7 @@ import { formatBRL, formatDate, formatPercent } from "@/lib/format";
 import randonLogo from "@/assets/randon-logo.png.asset.json";
 
 type ItemRow = Database["public"]["Tables"]["proposal_items"]["Row"];
-type Input = { id: string; clientName: string | null; createdAt: string; sellerName: string; sellerPhone?: string | null; imageUrl: string; items: ItemRow[] };
+type Input = { id: string; clientName: string | null; createdAt: string; sellerName: string; sellerPhone?: string | null; imageUrls: string[]; items: ItemRow[] };
 
 type LoadedImage = { dataUrl: string; width: number; height: number; format: "JPEG" | "PNG" };
 
@@ -101,7 +101,10 @@ export async function createProposalPdf(input: Input) {
 
   const logo = await loadImage(randonLogo.url).catch(() => null);
   const whiteLogo = await whiteImageDataUrl(logo).catch(() => null);
-  const hero = await coverImageDataUrl(input.imageUrl, pageWidth / 64).catch(() => null);
+  const heroHeight = 56;
+  const heroes = await Promise.all(
+    input.imageUrls.map((url) => coverImageDataUrl(url, pageWidth / heroHeight).catch(() => null)),
+  );
 
   const drawPageBackground = () => {
     pdf.setFillColor(...pale);
@@ -114,46 +117,52 @@ export async function createProposalPdf(input: Input) {
     pdf.addImage(white && whiteLogo ? whiteLogo : logo.dataUrl, white && whiteLogo ? "PNG" : logo.format, x, top, logo.width * scale, logo.height * scale, undefined, "FAST");
   };
 
-  const nextPage = () => {
-    pdf.addPage();
+  const drawPhotoHeader = (pageIndex: number, firstPage = false) => {
     drawPageBackground();
+    const hero = heroes[pageIndex % Math.max(heroes.length, 1)] ?? null;
+    if (hero) {
+      pdf.addImage(hero, "JPEG", 0, 0, pageWidth, heroHeight, undefined, "FAST");
+    } else {
+      pdf.setFillColor(...blue);
+      pdf.rect(0, 0, pageWidth, heroHeight, "F");
+    }
     pdf.setFillColor(...navy);
-    pdf.rect(0, 0, pageWidth, 24, "F");
-    drawLogo(margin, 7, 52, 10, true);
+    pdf.rect(0, firstPage ? 28 : 36, pageWidth, firstPage ? 28 : 20, "F");
+    if (firstPage) {
+      pdf.setFillColor(255, 255, 255);
+      pdf.roundedRect(margin - 3, 6, 68, 18, 2, 2, "F");
+      drawLogo(margin, 10, 62, 10);
+    } else {
+      drawLogo(margin, 40, 52, 9, true);
+    }
     pdf.setTextColor(255, 255, 255);
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(9);
-    pdf.text("PROPOSTA COMERCIAL", pageWidth - margin, 14, { align: "right" });
-    y = 34;
+    pdf.setFontSize(8);
+    if (firstPage) {
+      pdf.text("PROPOSTA COMERCIAL", margin, 35);
+      pdf.setFontSize(18);
+      pdf.text("Uma composição sob medida", margin, 44);
+      pdf.text("para movimentar o seu negócio.", margin, 52);
+      pdf.setFontSize(8);
+      pdf.text(formatDate(input.createdAt), pageWidth - margin, 17, { align: "right" });
+    } else {
+      pdf.text("PROPOSTA COMERCIAL", pageWidth - margin, 47, { align: "right" });
+    }
+  };
+
+  const nextPage = () => {
+    pdf.addPage();
+    drawPhotoHeader(pdf.getNumberOfPages() - 1);
+    y = 66;
   };
 
   const ensureSpace = (height: number) => {
     if (y + height > 272) nextPage();
   };
 
-  drawPageBackground();
-  if (hero) {
-    pdf.addImage(hero, "JPEG", 0, 0, pageWidth, 64, undefined, "FAST");
-  } else {
-    pdf.setFillColor(...blue);
-    pdf.rect(0, 0, pageWidth, 64, "F");
-  }
-  pdf.setFillColor(...navy);
-  pdf.rect(0, 32, pageWidth, 32, "F");
-  pdf.setFillColor(255, 255, 255);
-  pdf.roundedRect(margin - 3, 7, 68, 19, 2, 2, "F");
-  drawLogo(margin, 11, 62, 11);
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(8);
-  pdf.text("PROPOSTA COMERCIAL", margin, 40);
-  pdf.setFontSize(20);
-  pdf.text("Uma composição sob medida", margin, 49);
-  pdf.text("para movimentar o seu negócio.", margin, 57);
-  pdf.setFontSize(8);
-  pdf.text(formatDate(input.createdAt), pageWidth - margin, 18, { align: "right" });
+  drawPhotoHeader(0, true);
 
-  y = 77;
+  y = 68;
   pdf.setTextColor(...gray);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(7);
@@ -173,8 +182,8 @@ export async function createProposalPdf(input: Input) {
   let totalInsurance = 0;
   input.items.forEach((item, index) => {
     const isLastItem = index === input.items.length - 1;
-    // Keep the last item with the commercial summary and consultant details.
-    ensureSpace(isLastItem ? 122 : 53);
+    // Keep the closing item, totals and consultant together when they do not fit.
+    ensureSpace(isLastItem ? 112 : 51);
     const quantity = item.quantity;
     totalQuantity += quantity;
     totalCredit += Number(item.credit_value) * quantity;
@@ -182,9 +191,9 @@ export async function createProposalPdf(input: Input) {
     totalInsurance += Number(item.insurance_amount) * quantity;
     pdf.setFillColor(255, 255, 255);
     pdf.setDrawColor(...line);
-    pdf.roundedRect(margin, y, contentWidth, 49, 2, 2, "FD");
+    pdf.roundedRect(margin, y, contentWidth, 47, 2, 2, "FD");
     pdf.setFillColor(...blue);
-    pdf.roundedRect(margin, y, 4, 49, 2, 2, "F");
+    pdf.roundedRect(margin, y, 4, 47, 2, 2, "F");
     pdf.setTextColor(...gray);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(6.5);
@@ -204,7 +213,7 @@ export async function createProposalPdf(input: Input) {
     [firstLabels, secondLabels].forEach((labels, row) => {
       labels.forEach((label, column) => {
         const x = margin + 8 + column * 56;
-        const rowY = y + 28 + row * 12;
+        const rowY = y + 27 + row * 11;
         pdf.setTextColor(...gray);
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(5.8);
@@ -215,7 +224,7 @@ export async function createProposalPdf(input: Input) {
         pdf.text((row === 0 ? firstValues : secondValues)[column] ?? "", x, rowY + 5);
       });
     });
-    y += 54;
+    y += 51;
   });
 
   const totalsHeight = totalInsurance > 0 ? 37 : 33;

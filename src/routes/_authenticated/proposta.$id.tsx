@@ -69,7 +69,10 @@ function Proposta() {
   const proposalImage = proposalImages[imageIndex] ?? graneleiro;
   const totals = calculateProposalTotals(items.map((item) => ({ quantity: item.quantity, credit: Number(item.credit_value), result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / item.initial_term, installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } })));
 
-  async function makePdf() { return createProposalPdf({ id: proposal.id, clientName: proposal.client_name, createdAt: proposal.created_at, sellerName: seller?.name || seller?.email || "Equipe Randon", sellerPhone: seller?.phone ?? null, imageUrl: proposalImage.url, items }); }
+  async function makePdf() {
+    const orderedImages = [...proposalImages.slice(imageIndex), ...proposalImages.slice(0, imageIndex)];
+    return createProposalPdf({ id: proposal.id, clientName: proposal.client_name, createdAt: proposal.created_at, sellerName: seller?.name || seller?.email || "Equipe Randon", sellerPhone: seller?.phone ?? null, imageUrls: orderedImages.map((image) => image.url), items });
+  }
   async function downloadPdf() { try { const { blob, filename } = await makePdf(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url); toast.success("PDF baixado."); } catch { toast.error("Não foi possível gerar o PDF."); } }
   async function share() {
     try {
