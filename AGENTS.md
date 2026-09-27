@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Proposal PDFs must render official vehicle photos with contain-style proportional fitting, never cropping or stretching them, because the product must remain fully visible.

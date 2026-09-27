@@ -21,3 +21,4 @@
 - [x] Registrar o crédito de desenvolvimento da NandiDev no rodapé da plataforma
 - [x] Corrigir proporção da foto e aperfeiçoar o acabamento do PDF das propostas
 - [x] Distribuir fotos Randon e equilibrar o conteúdo em todas as páginas do PDF
+- [x] Exibir as fotos completas sem corte e ampliar a legibilidade do PDF
