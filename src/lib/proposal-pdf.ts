@@ -139,7 +139,7 @@ export async function createProposalPdf(input: Input) {
   };
 
   const ensureSpace = (height: number) => {
-    if (y + height > 272) nextPage();
+    if (y + height > 278) nextPage();
   };
 
   drawPhotoHeader(0, true);
@@ -165,7 +165,7 @@ export async function createProposalPdf(input: Input) {
   input.items.forEach((item, index) => {
     const isLastItem = index === input.items.length - 1;
     // Keep the closing item, totals and consultant together when they do not fit.
-    ensureSpace(isLastItem ? 121 : 65);
+    ensureSpace(isLastItem ? 126 : 65);
     const quantity = item.quantity;
     totalQuantity += quantity;
     totalCredit += Number(item.credit_value) * quantity;
@@ -211,7 +211,7 @@ export async function createProposalPdf(input: Input) {
   });
 
   const totalsHeight = totalInsurance > 0 ? 42 : 38;
-  ensureSpace(totalsHeight + 32);
+  ensureSpace(totalsHeight + 24);
   pdf.setFillColor(...blue);
   pdf.roundedRect(margin, y, contentWidth, totalsHeight, 2, 2, "F");
   pdf.setTextColor(210, 229, 248);
