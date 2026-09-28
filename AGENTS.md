@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Proposal PDFs must render official vehicle photos with contain-style proportional fitting, never cropping or stretching them, because the product must remain fully visible.
+- The admin overview must use the database summary RPC instead of loading complete simulation and profile tables, keeping dashboard reads bounded as data grows.
