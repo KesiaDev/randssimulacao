@@ -80,15 +80,43 @@ export async function createProposalPdf(input: Input) {
     pdf.addImage(white && whiteLogo ? whiteLogo : logo.dataUrl, white && whiteLogo ? "PNG" : logo.format, x, top, logo.width * scale, logo.height * scale, undefined, "FAST");
   };
 
-  const drawContainedPhoto = (photo: LoadedImage, top: number, height: number) => {
-    const innerMargin = 8;
-    const availableWidth = pageWidth - innerMargin * 2;
-    const scale = Math.min(availableWidth / photo.width, height / photo.height);
-    const width = photo.width * scale;
-    const renderedHeight = photo.height * scale;
-    const x = (pageWidth - width) / 2;
-    const imageTop = top + (height - renderedHeight) / 2;
-    pdf.addImage(photo.dataUrl, photo.format, x, imageTop, width, renderedHeight, undefined, "FAST");
+  const drawCoverPhoto = (photo: LoadedImage, top: number, height: number) => {
+    const targetRatio = pageWidth / height;
+    const sourceRatio = photo.width / photo.height;
+    let sourceX = 0;
+    let sourceY = 0;
+    let sourceWidth = photo.width;
+    let sourceHeight = photo.height;
+
+    // Crop only the excess area, preserving the original image proportions.
+    if (sourceRatio > targetRatio) {
+      sourceWidth = photo.height * targetRatio;
+      sourceX = (photo.width - sourceWidth) / 2;
+    } else {
+      sourceHeight = photo.width / targetRatio;
+      sourceY = (photo.height - sourceHeight) / 2;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(sourceWidth));
+    canvas.height = Math.max(1, Math.round(sourceHeight));
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const image = new Image();
+    image.src = photo.dataUrl;
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.94), "JPEG", 0, top, pageWidth, height, undefined, "FAST");
   };
 
   const drawPhotoHeader = (pageIndex: number, firstPage = false) => {
@@ -98,7 +126,7 @@ export async function createProposalPdf(input: Input) {
     pdf.setFillColor(232, 237, 243);
     pdf.rect(0, 0, pageWidth, photoHeight, "F");
     if (hero) {
-      drawContainedPhoto(hero, 0, photoHeight);
+      drawCoverPhoto(hero, 0, photoHeight);
     } else {
       pdf.setFillColor(...blue);
       pdf.rect(0, 0, pageWidth, photoHeight, "F");
