@@ -81,42 +81,18 @@ export async function createProposalPdf(input: Input) {
   };
 
   const drawCoverPhoto = (photo: LoadedImage, top: number, height: number) => {
-    const targetRatio = pageWidth / height;
-    const sourceRatio = photo.width / photo.height;
-    let sourceX = 0;
-    let sourceY = 0;
-    let sourceWidth = photo.width;
-    let sourceHeight = photo.height;
+    const scale = Math.max(pageWidth / photo.width, height / photo.height);
+    const width = photo.width * scale;
+    const renderedHeight = photo.height * scale;
+    const x = (pageWidth - width) / 2;
+    const imageTop = top + (height - renderedHeight) / 2;
 
-    // Crop only the excess area, preserving the original image proportions.
-    if (sourceRatio > targetRatio) {
-      sourceWidth = photo.height * targetRatio;
-      sourceX = (photo.width - sourceWidth) / 2;
-    } else {
-      sourceHeight = photo.width / targetRatio;
-      sourceY = (photo.height - sourceHeight) / 2;
-    }
-
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(sourceWidth));
-    canvas.height = Math.max(1, Math.round(sourceHeight));
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    const image = new Image();
-    image.src = photo.dataUrl;
-    context.drawImage(
-      image,
-      sourceX,
-      sourceY,
-      sourceWidth,
-      sourceHeight,
-      0,
-      0,
-      canvas.width,
-      canvas.height,
-    );
-    pdf.addImage(canvas.toDataURL("image/jpeg", 0.94), "JPEG", 0, top, pageWidth, height, undefined, "FAST");
+    pdf.saveGraphicsState();
+    pdf.rect(0, top, pageWidth, height);
+    pdf.clip();
+    pdf.discardPath();
+    pdf.addImage(photo.dataUrl, photo.format, x, imageTop, width, renderedHeight, undefined, "FAST");
+    pdf.restoreGraphicsState();
   };
 
   const drawPhotoHeader = (pageIndex: number, firstPage = false) => {
