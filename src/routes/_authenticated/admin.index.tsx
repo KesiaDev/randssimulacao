@@ -19,12 +19,14 @@ export const Route = createFileRoute("/_authenticated/admin/")({
       { name: "description", content: "Visão geral da equipe, grupos e simulações." },
       { property: "og:title", content: "Administração — Randon Consórcios" },
       { property: "og:description", content: "Visão geral da equipe, grupos e simulações." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AdminHome,
 });
 
-type AdminOverview = {
+interface AdminOverview {
   total_vendedores: number;
   vendedores_ativos: number;
   grupos_ativos: number;
@@ -40,24 +42,26 @@ type AdminOverview = {
     credit_value: number;
     final_amount: number;
   }>;
-};
+}
 
 function AdminHome() {
   const { data } = useQuery({
     queryKey: ["admin-overview"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_admin_overview");
+      const { data: overview, error } = await supabase.rpc("get_admin_overview", {
+        _top_sellers: 20,
+      });
       if (error) throw error;
-      return data as unknown as AdminOverview;
+      return overview as unknown as AdminOverview;
     },
   });
 
+  const sims = data?.ultimas ?? [];
   const bySeller = data?.por_vendedor ?? [];
-  const byCredit = (data?.por_credito ?? []).map((row) => ({
-    name: formatBRL(Number(row.credit_value)),
-    total: row.total,
+  const byCredit = (data?.por_credito ?? []).map((item) => ({
+    name: formatBRL(Number(item.credit_value)),
+    total: Number(item.total),
   }));
-  const ultimas = data?.ultimas ?? [];
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -69,16 +73,16 @@ function AdminHome() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
-        <Stat label="Vendedores" value={data?.total_vendedores ?? 0} />
-        <Stat label="Vendedores ativos" value={data?.vendedores_ativos ?? 0} />
-        <Stat label="Simulações hoje" value={data?.simulacoes_hoje ?? 0} />
-        <Stat label="Simulações no mês" value={data?.simulacoes_mes ?? 0} />
-        <Stat label="Grupos ativos" value={data?.grupos_ativos ?? 0} />
+        <Stat label="Vendedores" value={Number(data?.total_vendedores ?? 0)} />
+        <Stat label="Vendedores ativos" value={Number(data?.vendedores_ativos ?? 0)} />
+        <Stat label="Simulações hoje" value={Number(data?.simulacoes_hoje ?? 0)} />
+        <Stat label="Simulações no mês" value={Number(data?.simulacoes_mes ?? 0)} />
+        <Stat label="Grupos ativos" value={Number(data?.grupos_ativos ?? 0)} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Chart title="Simulações por vendedor (mês atual)" data={bySeller} />
-        <Chart title="Simulações por faixa de crédito (mês atual)" data={byCredit} />
+        <Chart title="Simulações por vendedor" data={bySeller} />
+        <Chart title="Simulações por faixa de crédito" data={byCredit} />
       </div>
 
       <section className="sm:surface overflow-hidden">
@@ -97,7 +101,7 @@ function AdminHome() {
               </tr>
             </thead>
             <tbody>
-              {ultimas.map((s) => (
+              {sims.slice(0, 10).map((s) => (
                 <tr key={s.id} className="border-t border-border/70">
                   <td data-label="Data" className="px-5 py-3 text-muted-foreground">{formatDateTime(s.created_at)}</td>
                   <td data-label="Vendedor" className="px-5 py-3">{s.seller_name}</td>
@@ -108,7 +112,7 @@ function AdminHome() {
                   </td>
                 </tr>
               ))}
-              {ultimas.length === 0 && (
+              {sims.length === 0 && (
                 <tr>
                   <td colSpan={5} className="mobile-empty px-5 py-10 text-center text-muted-foreground">
                     Nenhuma simulação registrada.

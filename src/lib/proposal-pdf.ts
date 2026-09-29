@@ -7,6 +7,29 @@ type Input = { id: string; clientName: string | null; createdAt: string; sellerN
 
 type LoadedImage = { dataUrl: string; width: number; height: number; format: "JPEG" | "PNG" };
 
+async function createCoverImage(photo: LoadedImage, targetRatio: number) {
+  const sourceRatio = photo.width / photo.height;
+  const sourceWidth = sourceRatio > targetRatio ? photo.height * targetRatio : photo.width;
+  const sourceHeight = sourceRatio > targetRatio ? photo.height : photo.width / targetRatio;
+  const sourceX = (photo.width - sourceWidth) / 2;
+  const sourceY = (photo.height - sourceHeight) / 2;
+  const outputWidth = 1680;
+  const outputHeight = Math.round(outputWidth / targetRatio);
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const element = new Image();
+    element.onload = () => resolve(element);
+    element.onerror = () => reject(new Error("Não foi possível preparar a foto."));
+    element.src = photo.dataUrl;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
+  const context = canvas.getContext("2d");
+  if (!context) return photo.dataUrl;
+  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, outputWidth, outputHeight);
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
 async function loadImage(url: string): Promise<LoadedImage | null> {
   const response = await fetch(url);
   if (!response.ok) return null;
@@ -68,6 +91,11 @@ export async function createProposalPdf(input: Input) {
   const logo = await loadImage(randonLogo.url).catch(() => null);
   const whiteLogo = await whiteImageDataUrl(logo).catch(() => null);
   const heroes = await Promise.all(input.imageUrls.map((url) => loadImage(url).catch(() => null)));
+  const coverPhotos = await Promise.all(heroes.map(async (photo, index) => {
+    if (!photo) return null;
+    const photoHeight = index === 0 ? 72 : 58;
+    return createCoverImage(photo, pageWidth / photoHeight).catch(() => photo.dataUrl);
+  }));
 
   const drawPageBackground = () => {
     pdf.setFillColor(...pale);
@@ -80,29 +108,14 @@ export async function createProposalPdf(input: Input) {
     pdf.addImage(white && whiteLogo ? whiteLogo : logo.dataUrl, white && whiteLogo ? "PNG" : logo.format, x, top, logo.width * scale, logo.height * scale, undefined, "FAST");
   };
 
-  const drawCoverPhoto = (photo: LoadedImage, top: number, height: number) => {
-    const scale = Math.max(pageWidth / photo.width, height / photo.height);
-    const width = photo.width * scale;
-    const renderedHeight = photo.height * scale;
-    const x = (pageWidth - width) / 2;
-    const imageTop = top + (height - renderedHeight) / 2;
-
-    pdf.saveGraphicsState();
-    pdf.rect(0, top, pageWidth, height);
-    pdf.clip();
-    pdf.discardPath();
-    pdf.addImage(photo.dataUrl, photo.format, x, imageTop, width, renderedHeight, undefined, "FAST");
-    pdf.restoreGraphicsState();
-  };
-
   const drawPhotoHeader = (pageIndex: number, firstPage = false) => {
     drawPageBackground();
-    const hero = heroes[pageIndex % Math.max(heroes.length, 1)] ?? null;
+    const hero = coverPhotos[pageIndex % Math.max(coverPhotos.length, 1)] ?? coverPhotos.find((photo) => photo !== null) ?? null;
     const photoHeight = firstPage ? 72 : 58;
     pdf.setFillColor(232, 237, 243);
     pdf.rect(0, 0, pageWidth, photoHeight, "F");
     if (hero) {
-      drawCoverPhoto(hero, 0, photoHeight);
+      pdf.addImage(hero, "JPEG", 0, 0, pageWidth, photoHeight, undefined, "FAST");
     } else {
       pdf.setFillColor(...blue);
       pdf.rect(0, 0, pageWidth, photoHeight, "F");

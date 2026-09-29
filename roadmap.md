@@ -23,3 +23,4 @@
 - [x] Distribuir fotos Randon e equilibrar o conteúdo em todas as páginas do PDF
 - [x] Exibir as fotos completas sem corte e ampliar a legibilidade do PDF
 - [x] Igualar a foto do PDF ao modelo online, preenchendo toda a largura sem deformação
+- [x] Otimizar o painel administrativo com resumo mensal e carregamento limitado no banco

@@ -47,8 +47,8 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1790078000000,
-      "tag": "0006_admin_overview_rpc",
+      "when": 1790596926769,
+      "tag": "0006_optimize_admin_overview",
       "breakpoints": true
     }
   ]
