@@ -39,7 +39,10 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+      });
       if (error) throw error;
       await navigate({ to: "/dashboard", replace: true });
     } catch (err) {

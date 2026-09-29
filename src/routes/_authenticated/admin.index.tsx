@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -25,46 +24,40 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminHome,
 });
 
+type AdminOverview = {
+  total_vendedores: number;
+  vendedores_ativos: number;
+  grupos_ativos: number;
+  simulacoes_hoje: number;
+  simulacoes_mes: number;
+  por_vendedor: Array<{ name: string; total: number }>;
+  por_credito: Array<{ credit_value: number; total: number }>;
+  ultimas: Array<{
+    id: string;
+    created_at: string;
+    seller_name: string;
+    group_code: string;
+    credit_value: number;
+    final_amount: number;
+  }>;
+};
+
 function AdminHome() {
   const { data } = useQuery({
     queryKey: ["admin-overview"],
     queryFn: async () => {
-      const [sims, profiles, groups] = await Promise.all([
-        supabase.from("simulations").select("*").order("created_at", { ascending: false }),
-        supabase.from("profiles").select("id, name, email, active"),
-        supabase.from("groups").select("id, active"),
-      ]);
-      if (sims.error || profiles.error || groups.error)
-        throw sims.error ?? profiles.error ?? groups.error;
-      return { sims: sims.data ?? [], profiles: profiles.data ?? [], groups: groups.data ?? [] };
+      const { data, error } = await supabase.rpc("get_admin_overview");
+      if (error) throw error;
+      return data as unknown as AdminOverview;
     },
   });
 
-  const sims = data?.sims ?? [];
-  const profiles = data?.profiles ?? [];
-  const nameById = useMemo(
-    () => Object.fromEntries(profiles.map((p) => [p.id, p.name || p.email])),
-    [profiles],
-  );
-
-  const today = new Date().toDateString();
-  const month = new Date().getMonth();
-
-  const bySeller = Object.entries(
-    sims.reduce<Record<string, number>>((acc, s) => {
-      const k = nameById[s.seller_id] ?? "—";
-      acc[k] = (acc[k] ?? 0) + 1;
-      return acc;
-    }, {}),
-  ).map(([name, total]) => ({ name, total }));
-
-  const byCredit = Object.entries(
-    sims.reduce<Record<string, number>>((acc, s) => {
-      const k = formatBRL(Number(s.credit_value));
-      acc[k] = (acc[k] ?? 0) + 1;
-      return acc;
-    }, {}),
-  ).map(([name, total]) => ({ name, total }));
+  const bySeller = data?.por_vendedor ?? [];
+  const byCredit = (data?.por_credito ?? []).map((row) => ({
+    name: formatBRL(Number(row.credit_value)),
+    total: row.total,
+  }));
+  const ultimas = data?.ultimas ?? [];
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -76,22 +69,16 @@ function AdminHome() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
-        <Stat label="Vendedores" value={profiles.length} />
-        <Stat label="Vendedores ativos" value={profiles.filter((p) => p.active).length} />
-        <Stat
-          label="Simulações hoje"
-          value={sims.filter((s) => new Date(s.created_at).toDateString() === today).length}
-        />
-        <Stat
-          label="Simulações no mês"
-          value={sims.filter((s) => new Date(s.created_at).getMonth() === month).length}
-        />
-        <Stat label="Grupos ativos" value={(data?.groups ?? []).filter((g) => g.active).length} />
+        <Stat label="Vendedores" value={data?.total_vendedores ?? 0} />
+        <Stat label="Vendedores ativos" value={data?.vendedores_ativos ?? 0} />
+        <Stat label="Simulações hoje" value={data?.simulacoes_hoje ?? 0} />
+        <Stat label="Simulações no mês" value={data?.simulacoes_mes ?? 0} />
+        <Stat label="Grupos ativos" value={data?.grupos_ativos ?? 0} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Chart title="Simulações por vendedor" data={bySeller} />
-        <Chart title="Simulações por faixa de crédito" data={byCredit} />
+        <Chart title="Simulações por vendedor (mês atual)" data={bySeller} />
+        <Chart title="Simulações por faixa de crédito (mês atual)" data={byCredit} />
       </div>
 
       <section className="sm:surface overflow-hidden">
@@ -110,10 +97,10 @@ function AdminHome() {
               </tr>
             </thead>
             <tbody>
-              {sims.slice(0, 10).map((s) => (
+              {ultimas.map((s) => (
                 <tr key={s.id} className="border-t border-border/70">
                   <td data-label="Data" className="px-5 py-3 text-muted-foreground">{formatDateTime(s.created_at)}</td>
-                  <td data-label="Vendedor" className="px-5 py-3">{nameById[s.seller_id] ?? "—"}</td>
+                  <td data-label="Vendedor" className="px-5 py-3">{s.seller_name}</td>
                   <td data-label="Grupo" className="px-5 py-3">{s.group_code}</td>
                   <td data-label="Crédito" className="px-5 py-3 tabular">{formatBRL(Number(s.credit_value))}</td>
                   <td data-label="Parcela final" className="px-5 py-3 font-medium tabular">
@@ -121,7 +108,7 @@ function AdminHome() {
                   </td>
                 </tr>
               ))}
-              {sims.length === 0 && (
+              {ultimas.length === 0 && (
                 <tr>
                   <td colSpan={5} className="mobile-empty px-5 py-10 text-center text-muted-foreground">
                     Nenhuma simulação registrada.

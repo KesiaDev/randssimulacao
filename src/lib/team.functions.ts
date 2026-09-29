@@ -16,10 +16,10 @@ export const createSeller = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
       .object({
-        name: z.string().min(2),
-        email: z.string().email(),
-        phone: z.string().optional().default(""),
-        password: z.string().min(8),
+        name: z.string().trim().min(2),
+        email: z.string().trim().toLowerCase().email(),
+        phone: z.string().trim().optional().default(""),
+        password: z.string().trim().min(8),
       })
       .parse(data),
   )
@@ -55,7 +55,7 @@ export const createSeller = createServerFn({ method: "POST" })
 export const resetSellerPassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({ userId: z.string().uuid(), password: z.string().min(8) }).parse(data),
+    z.object({ userId: z.string().uuid(), password: z.string().trim().min(8) }).parse(data),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as any);
@@ -64,6 +64,78 @@ export const resetSellerPassword = createServerFn({ method: "POST" })
       password: data.password,
     });
     if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateSeller = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        name: z.string().trim().min(2),
+        email: z.string().trim().toLowerCase().email(),
+        phone: z.string().trim().optional().default(""),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as any);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: current, error: fetchErr } = await supabaseAdmin
+      .from("profiles")
+      .select("email")
+      .eq("id", data.userId)
+      .maybeSingle();
+    if (fetchErr) throw new Error(fetchErr.message);
+    if (!current) throw new Error("Vendedor não encontrado.");
+
+    if (current.email !== data.email) {
+      const { error: authErr } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
+        email: data.email,
+        email_confirm: true,
+      });
+      if (authErr) throw new Error(authErr.message);
+    }
+
+    const { error: pErr } = await supabaseAdmin
+      .from("profiles")
+      .update({ name: data.name, email: data.email, phone: data.phone || null })
+      .eq("id", data.userId);
+    if (pErr) throw new Error(pErr.message);
+
+    return { ok: true };
+  });
+
+export const deleteSeller = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ userId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as any);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [{ count: proposalsCount, error: propErr }, { count: simsCount, error: simErr }] = await Promise.all([
+      supabaseAdmin.from("proposals").select("id", { count: "exact", head: true }).eq("seller_id", data.userId),
+      supabaseAdmin.from("simulations").select("id", { count: "exact", head: true }).eq("seller_id", data.userId),
+    ]);
+    if (propErr) throw new Error(propErr.message);
+    if (simErr) throw new Error(simErr.message);
+
+    if ((proposalsCount ?? 0) > 0 || (simsCount ?? 0) > 0) {
+      throw new Error(
+        "Este vendedor tem simulações ou propostas registradas. Excluir apagaria esse histórico " +
+          'permanentemente (a tabela de propostas está ligada ao login do vendedor). Use "Desativar" ' +
+          "para revogar o acesso sem perder os dados.",
+      );
+    }
+
+    const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (authErr) throw new Error(authErr.message);
+
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
+
     return { ok: true };
   });
 

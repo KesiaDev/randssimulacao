@@ -504,6 +504,10 @@ export type Database = {
         Returns: undefined
       }
       ensure_profile: { Args: { _name?: string }; Returns: undefined }
+      get_admin_overview: {
+        Args: { _top_sellers?: number }
+        Returns: Json
+      }
       get_history_page: {
         Args: {
           _credit?: string
