@@ -73,7 +73,20 @@ function Proposta() {
     const orderedImages = [...proposalImages.slice(imageIndex), ...proposalImages.slice(0, imageIndex)];
     return createProposalPdf({ id: proposal.id, clientName: proposal.client_name, createdAt: proposal.created_at, sellerName: seller?.name || seller?.email || "Equipe Randon", sellerPhone: seller?.phone ?? null, imageUrls: orderedImages.map((image) => image.url), items });
   }
-  async function downloadPdf() { try { const { blob, filename } = await makePdf(); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url); toast.success("PDF baixado."); } catch { toast.error("Não foi possível gerar o PDF."); } }
+  function savePdf(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    window.setTimeout(() => {
+      link.remove();
+      URL.revokeObjectURL(url);
+    }, 60_000);
+  }
+  async function downloadPdf() { try { const { blob, filename } = await makePdf(); savePdf(blob, filename); toast.success("PDF baixado."); } catch { toast.error("Não foi possível gerar o PDF."); } }
   async function share() {
     try {
       const { blob, filename } = await makePdf();
@@ -82,7 +95,7 @@ function Proposta() {
         await navigator.share({ title: "Proposta Randon Consórcios", files: [file] });
         return;
       }
-      const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+      savePdf(blob, filename);
       toast.success("PDF baixado. Anexe o arquivo no WhatsApp ou e-mail.");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
