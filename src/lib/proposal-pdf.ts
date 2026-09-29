@@ -110,7 +110,7 @@ export async function createProposalPdf(input: Input) {
 
   const drawPhotoHeader = (pageIndex: number, firstPage = false) => {
     drawPageBackground();
-    const hero = coverPhotos[pageIndex % Math.max(coverPhotos.length, 1)] ?? null;
+    const hero = coverPhotos[pageIndex % Math.max(coverPhotos.length, 1)] ?? coverPhotos.find((photo) => photo !== null) ?? null;
     const photoHeight = firstPage ? 72 : 58;
     pdf.setFillColor(232, 237, 243);
     pdf.rect(0, 0, pageWidth, photoHeight, "F");
