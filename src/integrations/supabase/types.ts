@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      administration_rate_dealers: {
+        Row: {
+          administration_rate_id: string
+          dealer_id: string
+        }
+        Insert: {
+          administration_rate_id: string
+          dealer_id: string
+        }
+        Update: {
+          administration_rate_id?: string
+          dealer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "administration_rate_dealers_administration_rate_id_fkey"
+            columns: ["administration_rate_id"]
+            isOneToOne: false
+            referencedRelation: "administration_rates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "administration_rate_dealers_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       administration_rates: {
         Row: {
           active: boolean
@@ -71,6 +101,57 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "credit_ranges_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dealers: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      group_dealers: {
+        Row: {
+          dealer_id: string
+          group_id: string
+        }
+        Insert: {
+          dealer_id: string
+          group_id: string
+        }
+        Update: {
+          dealer_id?: string
+          group_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_dealers_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_dealers_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
@@ -191,6 +272,7 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          dealer_id: string | null
           email: string
           id: string
           name: string
@@ -199,6 +281,7 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          dealer_id?: string | null
           email: string
           id: string
           name?: string
@@ -207,12 +290,21 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          dealer_id?: string | null
           email?: string
           id?: string
           name?: string
           phone?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       proposal_items: {
         Row: {
