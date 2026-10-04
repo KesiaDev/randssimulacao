@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useGroupConfig, useGroups } from "@/hooks/useConfig";
+import { useDealers, useGroupConfig, useGroups } from "@/hooks/useConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,11 +37,71 @@ function AdminGrupos() {
   const groupId = selected ?? groups?.[0]?.id ?? null;
   const group = (groups ?? []).find((g) => g.id === groupId) ?? null;
   const { data: config } = useGroupConfig(groupId, false);
+  const { data: dealers } = useDealers();
+
+  const rateIds = (config?.rates ?? []).map((r) => r.id);
+  const { data: access } = useQuery({
+    queryKey: ["dealer-access", groupId, rateIds.join(",")],
+    enabled: !!groupId,
+    queryFn: async () => {
+      const [groupDealers, rateDealers] = await Promise.all([
+        supabase.from("group_dealers").select("dealer_id").eq("group_id", groupId as string),
+        rateIds.length
+          ? supabase
+              .from("administration_rate_dealers")
+              .select("administration_rate_id, dealer_id")
+              .in("administration_rate_id", rateIds)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+      if (groupDealers.error) throw groupDealers.error;
+      if (rateDealers.error) throw rateDealers.error;
+      const rateMap = new Map<string, Set<string>>();
+      for (const row of rateDealers.data ?? []) {
+        const set = rateMap.get(row.administration_rate_id) ?? new Set<string>();
+        set.add(row.dealer_id);
+        rateMap.set(row.administration_rate_id, set);
+      }
+      return {
+        groupDealerIds: new Set((groupDealers.data ?? []).map((r) => r.dealer_id)),
+        rateDealerIds: rateMap,
+      };
+    },
+  });
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["groups"] });
     void qc.invalidateQueries({ queryKey: ["group-config"] });
+    void qc.invalidateQueries({ queryKey: ["dealer-access"] });
   };
+
+  async function toggleGroupDealer(dealerId: string, selected: boolean) {
+    if (!groupId) return;
+    const { error } = selected
+      ? await supabase.from("group_dealers").insert({ group_id: groupId, dealer_id: dealerId })
+      : await supabase.from("group_dealers").delete().eq("group_id", groupId).eq("dealer_id", dealerId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    invalidate();
+  }
+
+  async function toggleRateDealer(rateId: string, dealerId: string, selected: boolean) {
+    const { error } = selected
+      ? await supabase
+          .from("administration_rate_dealers")
+          .insert({ administration_rate_id: rateId, dealer_id: dealerId })
+      : await supabase
+          .from("administration_rate_dealers")
+          .delete()
+          .eq("administration_rate_id", rateId)
+          .eq("dealer_id", dealerId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    invalidate();
+  }
 
   const run = useMutation({
     mutationFn: async (fn: () => Promise<{ error: unknown }>) => {
@@ -96,6 +156,17 @@ function AdminGrupos() {
                 run.mutate(async () => supabase.from("groups").update(values).eq("id", group.id))
               }
             />
+            <div className="space-y-2 border-t border-border pt-4">
+              <Label>Revendas com acesso a este grupo</Label>
+              <p className="text-xs text-muted-foreground">
+                Nenhuma selecionada = visível para todas as revendas.
+              </p>
+              <DealerAccessPicker
+                dealers={dealers ?? []}
+                selectedIds={access?.groupDealerIds ?? new Set()}
+                onToggle={toggleGroupDealer}
+              />
+            </div>
           </section>
 
           <section className="surface space-y-4 p-4 sm:p-6">
@@ -146,29 +217,36 @@ function AdminGrupos() {
             </h2>
             <ul className="divide-y divide-border">
               {(config?.rates ?? []).map((r) => (
-                <li key={r.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3">
-                  <span className="tabular">{formatPercent(r.rate)}</span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Switch
-                      checked={r.active}
-                      onCheckedChange={(v) =>
-                        run.mutate(async () =>
-                          supabase.from("administration_rates").update({ active: v }).eq("id", r.id),
-                        )
-                      }
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() =>
-                        run.mutate(async () =>
-                          supabase.from("administration_rates").delete().eq("id", r.id),
-                        )
-                      }
-                    >
-                      <Trash2 className="h-4 w-4 text-muted-foreground" />
-                    </Button>
+                <li key={r.id} className="space-y-2 py-3">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                    <span className="tabular">{formatPercent(r.rate)}</span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Switch
+                        checked={r.active}
+                        onCheckedChange={(v) =>
+                          run.mutate(async () =>
+                            supabase.from("administration_rates").update({ active: v }).eq("id", r.id),
+                          )
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          run.mutate(async () =>
+                            supabase.from("administration_rates").delete().eq("id", r.id),
+                          )
+                        }
+                      >
+                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
                   </div>
+                  <DealerAccessPicker
+                    dealers={dealers ?? []}
+                    selectedIds={access?.rateDealerIds.get(r.id) ?? new Set()}
+                    onToggle={(dealerId, selected) => toggleRateDealer(r.id, dealerId, selected)}
+                  />
                 </li>
               ))}
             </ul>
@@ -440,6 +518,39 @@ function NewTypeForm({ onAdd }: { onAdd: (name: string, multiplier: number) => v
       >
         <Plus className="mr-1 h-4 w-4" /> Adicionar
       </Button>
+    </div>
+  );
+}
+
+function DealerAccessPicker({
+  dealers,
+  selectedIds,
+  onToggle,
+}: {
+  dealers: Array<{ id: string; name: string }>;
+  selectedIds: Set<string>;
+  onToggle: (dealerId: string, selected: boolean) => void;
+}) {
+  if (dealers.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {dealers.map((d) => {
+        const active = selectedIds.has(d.id);
+        return (
+          <button
+            key={d.id}
+            type="button"
+            onClick={() => onToggle(d.id, !active)}
+            className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+              active
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:border-primary/40"
+            }`}
+          >
+            {d.name}
+          </button>
+        );
+      })}
     </div>
   );
 }

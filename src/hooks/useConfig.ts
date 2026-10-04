@@ -40,6 +40,26 @@ export interface InsuranceRule {
   rate: number;
   active: boolean;
 }
+export interface Dealer {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
+export function useDealers() {
+  return useQuery({
+    queryKey: ["dealers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dealers")
+        .select("id, name, active")
+        .eq("active", true)
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Dealer[];
+    },
+  });
+}
 
 export function useGroups(onlyActive = true) {
   return useQuery({

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useRef, useState } from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -221,29 +222,35 @@ function Historico() {
               const quantity = proposal.items.reduce((sum, item) => sum + item.quantity, 0);
               const creditTotal = proposal.items.reduce((sum, item) => sum + Number(item.credit_value) * item.quantity, 0);
               const monthlyTotal = proposal.items.reduce((sum, item) => sum + Number(item.final_amount) * item.quantity, 0);
+              const triggerId = `delete-proposal-${proposal.id}`;
               return (
-                <article key={proposal.id} className="surface p-4 transition-colors hover:border-primary/40 sm:p-5">
-                  <div className="flex justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="truncate font-semibold">{proposal.client_name || "Cliente Randon"}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {formatDateTime(proposal.created_at)} · {proposal.seller_name}
+                <SwipeToDelete
+                  key={proposal.id}
+                  onSwipeLeft={() => document.getElementById(triggerId)?.click()}
+                >
+                  <article className="surface p-4 transition-colors hover:border-primary/40 sm:p-5">
+                    <div className="flex justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold">{proposal.client_name || "Cliente Randon"}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {formatDateTime(proposal.created_at)} · {proposal.seller_name}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-sm font-semibold text-primary">
+                        {quantity} {quantity === 1 ? "cota" : "cotas"}
                       </div>
                     </div>
-                    <div className="shrink-0 text-sm font-semibold text-primary">
-                      {quantity} {quantity === 1 ? "cota" : "cotas"}
+                    <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                      <div><div className="text-xs text-muted-foreground">Crédito total</div><div className="font-medium tabular">{formatBRL(creditTotal)}</div></div>
+                      <div><div className="text-xs text-muted-foreground">Parcela total/mês</div><div className="font-medium tabular">{formatBRL(monthlyTotal)}</div></div>
                     </div>
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                    <div><div className="text-xs text-muted-foreground">Crédito total</div><div className="font-medium tabular">{formatBRL(creditTotal)}</div></div>
-                    <div><div className="text-xs text-muted-foreground">Parcela total/mês</div><div className="font-medium tabular">{formatBRL(monthlyTotal)}</div></div>
-                  </div>
-                  <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
-                    <Button variant="outline" size="sm" asChild><Link to="/proposta/$id" params={{ id: proposal.id }}><Eye /> Abrir</Link></Button>
-                    <Button variant="outline" size="sm" asChild><Link to="/simular" search={{ edit: proposal.id, legacy: undefined }}><Pencil /> Editar</Link></Button>
-                    <DeleteConfirm title="Excluir esta proposta?" description="A proposta, seus itens e as simulações vinculadas serão removidos definitivamente." onConfirm={() => void deleteProposal(proposal.id)} />
-                  </div>
-                </article>
+                    <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
+                      <Button variant="outline" size="sm" asChild><Link to="/proposta/$id" params={{ id: proposal.id }}><Eye /> Abrir</Link></Button>
+                      <Button variant="outline" size="sm" asChild><Link to="/simular" search={{ edit: proposal.id, legacy: undefined }}><Pencil /> Editar</Link></Button>
+                      <DeleteConfirm triggerId={triggerId} title="Excluir esta proposta?" description="A proposta, seus itens e as simulações vinculadas serão removidos definitivamente." onConfirm={() => void deleteProposal(proposal.id)} />
+                    </div>
+                  </article>
+                </SwipeToDelete>
               );
             })}
           </div>
@@ -319,14 +326,42 @@ function paginationPages(current: number, total: number): Array<number | "ellips
   return pages;
 }
 
-function DeleteConfirm({ title, description, onConfirm, iconOnly = false }: { title: string; description: string; onConfirm: () => void; iconOnly?: boolean }) {
+function DeleteConfirm({ title, description, onConfirm, iconOnly = false, triggerId }: { title: string; description: string; onConfirm: () => void; iconOnly?: boolean; triggerId?: string }) {
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild><Button variant="outline" size={iconOnly ? "icon" : "sm"} aria-label="Excluir"><Trash2 />{!iconOnly && " Excluir"}</Button></AlertDialogTrigger>
+      <AlertDialogTrigger asChild><Button id={triggerId} variant="outline" size={iconOnly ? "icon" : "sm"} aria-label="Excluir"><Trash2 />{!iconOnly && " Excluir"}</Button></AlertDialogTrigger>
       <AlertDialogContent className="w-[calc(100%-2rem)] rounded-lg">
         <AlertDialogHeader><AlertDialogTitle>{title}</AlertDialogTitle><AlertDialogDescription>{description}</AlertDialogDescription></AlertDialogHeader>
         <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={onConfirm}>Excluir definitivamente</AlertDialogAction></AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function SwipeToDelete({ onSwipeLeft, children }: { onSwipeLeft: () => void; children: React.ReactNode }) {
+  const startX = useRef<number | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const THRESHOLD = 72;
+
+  return (
+    <div
+      style={{ transform: `translateX(${dragX}px)` }}
+      className="touch-pan-y transition-transform duration-150 ease-out"
+      onTouchStart={(e) => {
+        startX.current = e.touches[0]?.clientX ?? null;
+      }}
+      onTouchMove={(e) => {
+        if (startX.current === null) return;
+        const delta = (e.touches[0]?.clientX ?? startX.current) - startX.current;
+        if (delta < 0) setDragX(Math.max(delta, -THRESHOLD * 1.4));
+      }}
+      onTouchEnd={() => {
+        if (dragX <= -THRESHOLD) onSwipeLeft();
+        setDragX(0);
+        startX.current = null;
+      }}
+    >
+      {children}
+    </div>
   );
 }

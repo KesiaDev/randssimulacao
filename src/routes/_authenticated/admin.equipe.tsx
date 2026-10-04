@@ -17,6 +17,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/lib/format";
+import { useDealers } from "@/hooks/useConfig";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,8 +51,11 @@ type TeamMember = {
   phone: string | null;
   active: boolean;
   created_at: string;
+  dealer_id: string | null;
   role: "admin" | "seller";
 };
+
+const NO_DEALER = "none";
 
 export const Route = createFileRoute("/_authenticated/admin/equipe")({
   head: () => ({
@@ -68,14 +79,20 @@ function AdminEquipe() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", dealerId: NO_DEALER });
   const [editing, setEditing] = useState<TeamMember | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", dealerId: NO_DEALER });
   const [editBusy, setEditBusy] = useState(false);
+  const { data: dealers } = useDealers();
 
   function startEdit(member: TeamMember) {
     setEditing(member);
-    setEditForm({ name: member.name, email: member.email, phone: member.phone ?? "" });
+    setEditForm({
+      name: member.name,
+      email: member.email,
+      phone: member.phone ?? "",
+      dealerId: member.dealer_id ?? NO_DEALER,
+    });
   }
 
   async function submitEdit(e: React.FormEvent) {
@@ -83,7 +100,13 @@ function AdminEquipe() {
     if (!editing) return;
     setEditBusy(true);
     try {
-      await update({ data: { userId: editing.id, ...editForm } });
+      await update({
+        data: {
+          userId: editing.id,
+          ...editForm,
+          dealerId: editForm.dealerId === NO_DEALER ? null : editForm.dealerId,
+        },
+      });
       toast.success("Vendedor atualizado.");
       setEditing(null);
       refresh();
@@ -133,9 +156,11 @@ function AdminEquipe() {
     e.preventDefault();
     setBusy(true);
     try {
-      await create({ data: form });
+      await create({
+        data: { ...form, dealerId: form.dealerId === NO_DEALER ? null : form.dealerId },
+      });
       toast.success("Vendedor criado. Envie a senha inicial com segurança.");
-      setForm({ name: "", email: "", phone: "", password: "" });
+      setForm({ name: "", email: "", phone: "", password: "", dealerId: NO_DEALER });
       setOpen(false);
       refresh();
     } catch (err) {
@@ -186,6 +211,22 @@ function AdminEquipe() {
             />
           </div>
           <div className="space-y-2">
+            <Label>Revenda</Label>
+            <Select value={form.dealerId} onValueChange={(v) => setForm({ ...form, dealerId: v })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem revenda" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_DEALER}>Sem revenda</SelectItem>
+                {(dealers ?? []).map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label>Senha inicial</Label>
             <div className="flex gap-2">
               <Input
@@ -233,6 +274,7 @@ function AdminEquipe() {
               <th className="px-5 py-3">Nome</th>
               <th className="px-5 py-3">E-mail</th>
               <th className="px-5 py-3">Telefone</th>
+              <th className="px-5 py-3">Revenda</th>
               <th className="px-5 py-3">Perfil</th>
               <th className="px-5 py-3">Desde</th>
               <th className="px-5 py-3">Ativo</th>
@@ -245,6 +287,9 @@ function AdminEquipe() {
                 <td data-label="Nome" className="px-5 py-3">{p.name}</td>
                 <td data-label="E-mail" className="px-5 py-3 text-muted-foreground">{p.email}</td>
                 <td data-label="Telefone" className="px-5 py-3">{p.phone || "—"}</td>
+                <td data-label="Revenda" className="px-5 py-3 text-muted-foreground">
+                  {(dealers ?? []).find((d) => d.id === p.dealer_id)?.name ?? "—"}
+                </td>
                 <td data-label="Perfil" className="px-5 py-3">{p.role === "admin" ? "Administrador" : "Vendedor"}</td>
                 <td data-label="Desde" className="px-5 py-3 text-muted-foreground">{formatDate(p.created_at)}</td>
                 <td data-label="Ativo" className="px-5 py-3">
@@ -341,12 +386,31 @@ function AdminEquipe() {
                 required
               />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <Label>Telefone</Label>
               <Input
                 value={editForm.phone}
                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Revenda</Label>
+              <Select
+                value={editForm.dealerId}
+                onValueChange={(v) => setEditForm({ ...editForm, dealerId: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem revenda" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_DEALER}>Sem revenda</SelectItem>
+                  {(dealers ?? []).map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>

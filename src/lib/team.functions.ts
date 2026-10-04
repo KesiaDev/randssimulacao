@@ -20,6 +20,7 @@ export const createSeller = createServerFn({ method: "POST" })
         email: z.string().trim().toLowerCase().email(),
         phone: z.string().trim().optional().default(""),
         password: z.string().trim().min(8),
+        dealerId: z.string().uuid().optional().nullable(),
       })
       .parse(data),
   )
@@ -41,6 +42,7 @@ export const createSeller = createServerFn({ method: "POST" })
       email: data.email,
       phone: data.phone || null,
       active: true,
+      dealer_id: data.dealerId || null,
     });
     if (pErr) throw new Error(pErr.message);
 
@@ -76,6 +78,7 @@ export const updateSeller = createServerFn({ method: "POST" })
         name: z.string().trim().min(2),
         email: z.string().trim().toLowerCase().email(),
         phone: z.string().trim().optional().default(""),
+        dealerId: z.string().uuid().optional().nullable(),
       })
       .parse(data),
   )
@@ -101,7 +104,7 @@ export const updateSeller = createServerFn({ method: "POST" })
 
     const { error: pErr } = await supabaseAdmin
       .from("profiles")
-      .update({ name: data.name, email: data.email, phone: data.phone || null })
+      .update({ name: data.name, email: data.email, phone: data.phone || null, dealer_id: data.dealerId || null })
       .eq("id", data.userId);
     if (pErr) throw new Error(pErr.message);
 
