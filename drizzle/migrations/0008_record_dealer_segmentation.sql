@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.dealers IS 'Revendas usadas para segmentar vendedores, grupos e taxas de administração.';
