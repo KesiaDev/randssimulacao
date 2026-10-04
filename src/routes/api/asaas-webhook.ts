@@ -10,6 +10,9 @@ const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 export const Route = createFileRoute("/api/asaas-webhook")({
   server: {
     handlers: {
+      // Algumas plataformas (e o próprio formulário de cadastro do Asaas)
+      // fazem uma checagem simples de alcançabilidade antes de salvar a URL.
+      GET: async () => new Response("ok", { status: 200 }),
       POST: async ({ request }) => {
         const { verifyAsaasWebhookToken } = await import("@/integrations/asaas/client.server");
         const token = request.headers.get("asaas-access-token");
