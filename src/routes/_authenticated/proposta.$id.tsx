@@ -177,14 +177,36 @@ function LanceSimuladorDialog({ item }: { item: ItemRow }) {
           </div>
         </div>
         {result ? (
-          <dl className="mt-2 grid grid-cols-2 gap-4 rounded-lg border border-border p-4 sm:grid-cols-3">
-            <Item label="Lance total" value={`${formatPercent(result.bidTotalRate)} · ${formatBRL(result.bidTotalAmount)}`} />
-            <Item label="Crédito disponível" value={formatBRL(result.availableCredit)} />
-            <Item label="Nova parcela" value={formatBRL(result.postContemplationInstallment)} />
-            <Item label="Novo prazo" value={`${result.postContemplationTermMonths} meses`} />
-            <Item label="Lance embutido" value={formatBRL(result.embeddedBidAmount)} />
-            <Item label="Lance em espécie" value={formatBRL(result.cashBidAmount)} />
-          </dl>
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+              <span>Grupo {item.group_code} · {formatPercent(result.bidTotalRate)} de lance total</span>
+              <span className="font-medium text-foreground">
+                {item.quantity} {item.quantity === 1 ? "cota" : "cotas"}
+              </span>
+            </div>
+
+            <div className="rounded-lg border border-border p-4">
+              <LabelText>Por cota</LabelText>
+              <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <Item label="Lance embutido" value={formatBRL(result.embeddedBidAmount)} />
+                <Item label="Lance em espécie" value={formatBRL(result.cashBidAmount)} />
+                <Item label="Crédito disponível" value={formatBRL(result.availableCredit)} />
+                <Item label="Nova parcela" value={formatBRL(result.postContemplationInstallment)} />
+                <Item label="Novo prazo" value={`${result.postContemplationTermMonths} meses`} />
+              </dl>
+            </div>
+
+            {item.quantity > 1 && (
+              <div className="proposal-highlight rounded-lg p-4 text-primary-foreground">
+                <LabelText light>Total · {item.quantity} cotas</LabelText>
+                <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <Item light label="Lance total" value={formatBRL(result.bidTotalAmount * item.quantity)} />
+                  <Item light label="Crédito disponível" value={formatBRL(result.availableCredit * item.quantity)} />
+                  <Item light label="Nova parcela" value={formatBRL(result.postContemplationInstallment * item.quantity)} />
+                </dl>
+              </div>
+            )}
+          </div>
         ) : (
           <p className="text-sm text-muted-foreground">Informe percentuais válidos para simular.</p>
         )}
