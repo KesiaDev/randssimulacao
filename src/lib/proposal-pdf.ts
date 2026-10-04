@@ -1,5 +1,6 @@
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, formatDate, formatPercent } from "@/lib/format";
+import { calculateLance } from "@/lib/lance-calc";
 import randonLogo from "@/assets/randon-logo.png.asset.json";
 
 type ItemRow = Database["public"]["Tables"]["proposal_items"]["Row"];
@@ -141,8 +142,8 @@ export async function createProposalPdf(input: Input) {
       pdf.setFontSize(8.5);
       pdf.text("PROPOSTA COMERCIAL", margin, photoHeight + 8);
       pdf.setFontSize(17.5);
-      pdf.text("Uma composição sob medida para", margin, photoHeight + 17);
-      pdf.text("movimentar o seu negócio.", margin, photoHeight + 25);
+      pdf.text("Planejamento inteligente para", margin, photoHeight + 17);
+      pdf.text("renovar ou ampliar sua frota.", margin, photoHeight + 25);
     } else {
       pdf.setFontSize(8.5);
       pdf.text("PROPOSTA COMERCIAL", pageWidth - margin, photoHeight + 11.5, { align: "right" });
@@ -202,7 +203,7 @@ export async function createProposalPdf(input: Input) {
     pdf.text(`Grupo ${item.group_code}`, margin + 9, y + 16);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(8.5);
-    const description = `${item.installment_type_name}  •  Taxa ${formatPercent(Number(item.administration_rate))}  •  ${item.insurance_included ? "Seguro incluído" : "Sem seguro"}`;
+    const description = `${item.installment_type_name}  •  Taxa ${formatPercent(Number(item.administration_rate))}  •  FR ${formatPercent(Number(item.reserve_fund))}  •  ${item.insurance_included ? "Seguro incluído" : "Sem seguro"}`;
     const descriptionLines = pdf.splitTextToSize(description, contentWidth - 18);
     pdf.text(descriptionLines.slice(0, 1), margin + 9, y + 23);
 
@@ -272,6 +273,88 @@ export async function createProposalPdf(input: Input) {
   pdf.setFontSize(7.5);
   const legal = "Esta proposta é informativa. Valores sujeitos às condições, disponibilidade e regras vigentes dos grupos.";
   pdf.text(pdf.splitTextToSize(legal, 82), pageWidth - margin, y, { align: "right" });
+
+  const itemsWithLance = input.items.filter((item) => item.lance_embedded_rate !== null && item.lance_cash_rate !== null);
+  if (itemsWithLance.length > 0) {
+    nextPage();
+    pdf.setTextColor(...navy);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(15);
+    pdf.text("Simulação de lance", margin, y);
+    pdf.setTextColor(...gray);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8.5);
+    pdf.text("Carência de 2 meses sem cobrança após a contemplação. Valores informativos.", margin, y + 6);
+    y += 16;
+
+    itemsWithLance.forEach((item) => {
+      const lance = calculateLance({
+        credit: Number(item.credit_value),
+        adminRate: Number(item.administration_rate),
+        reserveFund: Number(item.reserve_fund),
+        initialTerm: item.initial_term,
+        remainingTerm: item.remaining_term,
+        reducedInstallmentRate: Number(item.installment_multiplier),
+        embeddedBidRate: Number(item.lance_embedded_rate),
+        cashBidRate: Number(item.lance_cash_rate),
+        insuranceRate: Number(item.insurance_rate) || 0.0004,
+      });
+      const quantity = item.quantity;
+      const cardHeight = quantity > 1 ? 68 : 58;
+      ensureSpace(cardHeight + 8);
+
+      pdf.setFillColor(255, 255, 255);
+      pdf.setDrawColor(...line);
+      pdf.roundedRect(margin, y, contentWidth, cardHeight, 2, 2, "FD");
+      pdf.setFillColor(...blue);
+      pdf.roundedRect(margin, y, 4, cardHeight, 2, 2, "F");
+      pdf.setTextColor(...gray);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(7.5);
+      pdf.text(`GRUPO ${item.group_code}`, margin + 9, y + 8);
+      pdf.setTextColor(...navy);
+      pdf.setFontSize(11);
+      pdf.text(`Lance total ${formatPercent(lance.bidTotalRate)}  •  ${quantity} ${quantity === 1 ? "cota" : "cotas"}`, margin + 9, y + 15);
+
+      const lanceRows: Array<{ labels: string[]; values: string[] }> = [
+        {
+          labels: ["LANCE EMBUTIDO/COTA", "LANCE EM ESPÉCIE/COTA", "CRÉDITO DISPONÍVEL/COTA"],
+          values: [formatBRL(lance.embeddedBidAmount), formatBRL(lance.cashBidAmount), formatBRL(lance.availableCredit)],
+        },
+        {
+          labels: ["NOVA PARCELA/COTA", "NOVO PRAZO"],
+          values: [formatBRL(lance.postContemplationInstallment), `${lance.postContemplationTermMonths} meses`],
+        },
+      ];
+      lanceRows.forEach(({ labels, values }, row) => {
+        labels.forEach((label, column) => {
+          const x = margin + 9 + column * 56;
+          const rowY = y + 24 + row * 13;
+          pdf.setTextColor(...gray);
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(6.6);
+          pdf.text(label, x, rowY);
+          pdf.setTextColor(...navy);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(9.8);
+          pdf.text(values[column] ?? "", x, rowY + 5.5);
+        });
+      });
+
+      if (quantity > 1) {
+        pdf.setTextColor(...gray);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7.5);
+        pdf.text(
+          `Total para as ${quantity} cotas: lance ${formatBRL(lance.bidTotalAmount * quantity)}  •  crédito disponível ${formatBRL(lance.availableCredit * quantity)}  •  nova parcela ${formatBRL(lance.postContemplationInstallment * quantity)}`,
+          margin + 9,
+          y + 54,
+        );
+      }
+
+      y += cardHeight + 8;
+    });
+  }
 
   const totalPages = pdf.getNumberOfPages();
   for (let page = 1; page <= totalPages; page += 1) {

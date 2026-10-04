@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/proposta/$id")({
 });
 
 function simulationToItem(sim: SimulationRow): ItemRow {
-  return { ...sim, proposal_id: sim.id, simulation_id: sim.id, quantity: 1, sort_order: 0 };
+  return { ...sim, proposal_id: sim.id, simulation_id: sim.id, quantity: 1, sort_order: 0, lance_embedded_rate: null, lance_cash_rate: null };
 }
 
 function Proposta() {
@@ -111,9 +111,9 @@ function Proposta() {
   return <div className="space-y-6">
     <div className="no-print grid gap-3 sm:flex sm:items-center sm:justify-between"><Button variant="ghost" size="sm" asChild><Link to="/historico" search={{ page: 1, group: "", seller: "", date: "", credit: "" }}><ArrowLeft/> Voltar</Link></Button><div className="grid min-w-0 grid-cols-2 gap-2 sm:flex"><Button variant="outline" asChild className="min-w-0 px-2 sm:px-4"><Link to="/simular" search={legacy ? { edit: undefined, legacy: id } : { edit: id, legacy: undefined }}><Pencil/> Editar</Link></Button><Button variant="outline" className="min-w-0 px-2 sm:px-4" onClick={() => void share()}><Share2/> Compartilhar</Button><Button className="min-w-0 px-2 sm:px-4" onClick={() => void downloadPdf()}><Download/> Baixar PDF</Button><AlertDialog><AlertDialogTrigger asChild><Button variant="outline" className="min-w-0 px-2 sm:px-4"><Trash2/> Excluir</Button></AlertDialogTrigger><AlertDialogContent className="w-[calc(100%-2rem)] rounded-lg"><AlertDialogHeader><AlertDialogTitle>Excluir esta {legacy ? "simulação" : "proposta"}?</AlertDialogTitle><AlertDialogDescription>Esta ação é definitiva e removerá os dados deste registro.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={async () => { const response = legacy ? await supabase.rpc("delete_legacy_simulation", { _simulation_id: id }) : await supabase.rpc("delete_saved_proposal", { _proposal_id: id }); if (response.error) { toast.error("Não foi possível excluir."); return; } toast.success("Registro excluído."); window.location.href = "/historico"; }}>Excluir definitivamente</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></div>
     <article className="proposal-sheet surface mx-auto max-w-4xl overflow-hidden">
-      <div className="relative min-h-64 overflow-hidden sm:min-h-72"><img src={proposalImage.url} alt="Implemento rodoviário Randon" className="absolute inset-0 h-full w-full object-cover"/><div className="proposal-cover-shade absolute inset-0"/><header className="relative flex min-h-64 flex-col justify-between p-5 text-primary-foreground sm:min-h-72 sm:p-10"><Brand variant="dark"/><div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><div><p className="text-xs font-semibold uppercase text-primary-foreground/75">Proposta comercial</p><h1 className="mt-2 max-w-xl text-2xl font-semibold sm:text-4xl">Uma composição sob medida para movimentar o seu negócio.</h1><p className="mt-2 max-w-xl text-sm text-primary-foreground/80 sm:text-base">Planejamento inteligente para renovar ou ampliar sua frota.</p></div><div className="text-xs text-primary-foreground/80 sm:text-right">Proposta personalizada<div>{formatDate(proposal.created_at)}</div></div></div></header></div>
+      <div className="relative min-h-64 overflow-hidden sm:min-h-72"><img src={proposalImage.url} alt="Implemento rodoviário Randon" className="absolute inset-0 h-full w-full object-cover"/><div className="proposal-cover-shade absolute inset-0"/><header className="relative flex min-h-64 flex-col justify-between p-5 text-primary-foreground sm:min-h-72 sm:p-10"><Brand variant="dark"/><div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><div><p className="text-xs font-semibold uppercase text-primary-foreground/75">Proposta comercial</p><h1 className="mt-2 max-w-xl text-2xl font-semibold sm:text-4xl">Planejamento inteligente para renovar ou ampliar sua frota.</h1></div><div className="text-xs text-primary-foreground/80 sm:text-right">Proposta personalizada<div>{formatDate(proposal.created_at)}</div></div></div></header></div>
       <div className="px-4 py-6 sm:px-10 sm:py-8"><div className="mb-7 grid gap-5 border-b border-border pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><div><LabelText>Preparada para</LabelText><div className="mt-1 text-2xl font-semibold">{proposal.client_name || "Cliente Randon"}</div></div><div className="sm:text-right"><LabelText>Composição</LabelText><div className="mt-1 text-xl font-semibold text-primary">{totals.quantity} {totals.quantity === 1 ? "cota" : "cotas"} · {items.length} {items.length === 1 ? "item" : "itens"}</div></div></div>
-        <div className="space-y-4">{items.map((item, index) => <section key={item.id} className="proposal-item rounded-lg border border-border p-4 sm:p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><LabelText>Item {index + 1}</LabelText><h2 className="mt-1 text-xl font-semibold">Grupo {item.group_code}</h2><p className="mt-1 text-sm text-muted-foreground">{item.installment_type_name} · Taxa {formatPercent(Number(item.administration_rate))} · {item.insurance_included ? "Com seguro" : "Sem seguro"}</p></div>{!legacy && <div className="no-print w-28 space-y-1"><label htmlFor={`proposal-quantity-${item.id}`} className="text-xs text-muted-foreground">Quantidade</label><Input id={`proposal-quantity-${item.id}`} type="number" min={1} max={999} defaultValue={item.quantity} onBlur={(event) => void updateQuantity(item.id, Number(event.target.value))}/></div>}<div className="hidden print:block"><LabelText>Quantidade</LabelText><div className="font-semibold">{item.quantity}</div></div><div className="no-print"><LanceSimuladorDialog item={item}/></div></div><dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4"><Item label="Crédito/cota" value={formatBRL(Number(item.credit_value))}/><Item label="Quantidade" value={`${item.quantity} ${item.quantity === 1 ? "cota" : "cotas"}`}/><Item label="Crédito total" value={formatBRL(Number(item.credit_value) * item.quantity)}/><Item label="Crédito com taxa total" value={formatBRL(Number(item.base_amount) * item.quantity)}/><Item label="Fundo de reserva" value={formatPercent(Number(item.reserve_fund))}/><Item label="Parcela/cota" value={formatBRL(Number(item.final_amount))}/><Item label="Prazo" value={`${item.initial_term} meses · ${item.remaining_term} restantes`}/><Item label="Seguro/cota" value={item.insurance_included ? formatBRL(Number(item.insurance_amount)) : "Não incluído"}/><Item label="Parcela total" value={`${formatBRL(Number(item.final_amount) * item.quantity)}/mês`}/></dl></section>)}</div>
+        <div className="space-y-4">{items.map((item, index) => <section key={item.id} className="proposal-item rounded-lg border border-border p-4 sm:p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><LabelText>Item {index + 1}</LabelText><h2 className="mt-1 text-xl font-semibold">Grupo {item.group_code}</h2><p className="mt-1 text-sm text-muted-foreground">{item.installment_type_name} · Taxa {formatPercent(Number(item.administration_rate))} · FR {formatPercent(Number(item.reserve_fund))} · {item.insurance_included ? "Com seguro" : "Sem seguro"}</p></div>{!legacy && <div className="no-print w-28 space-y-1"><label htmlFor={`proposal-quantity-${item.id}`} className="text-xs text-muted-foreground">Quantidade</label><Input id={`proposal-quantity-${item.id}`} type="number" min={1} max={999} defaultValue={item.quantity} onBlur={(event) => void updateQuantity(item.id, Number(event.target.value))}/></div>}<div className="hidden print:block"><LabelText>Quantidade</LabelText><div className="font-semibold">{item.quantity}</div></div><div className="no-print"><LanceSimuladorDialog item={item} legacy={legacy} onSaved={() => void queryClient.invalidateQueries({ queryKey: ["proposal", id] })}/></div></div><dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4"><Item label="Crédito/cota" value={formatBRL(Number(item.credit_value))}/><Item label="Quantidade" value={`${item.quantity} ${item.quantity === 1 ? "cota" : "cotas"}`}/><Item label="Crédito total" value={formatBRL(Number(item.credit_value) * item.quantity)}/><Item label="Crédito com taxa total" value={formatBRL(Number(item.base_amount) * item.quantity)}/><Item label="Parcela/cota" value={formatBRL(Number(item.final_amount))}/><Item label="Prazo" value={`${item.initial_term} meses · ${item.remaining_term} restantes`}/><Item label="Seguro/cota" value={item.insurance_included ? formatBRL(Number(item.insurance_amount)) : "Não incluído"}/><Item label="Parcela total" value={`${formatBRL(Number(item.final_amount) * item.quantity)}/mês`}/></dl></section>)}</div>
         <div className="proposal-highlight mt-7 rounded-lg p-5 text-primary-foreground sm:p-7"><LabelText light>Total da proposta</LabelText><div className="mt-4 grid gap-5 sm:grid-cols-4"><Item label="Quantidade total" value={`${totals.quantity} ${totals.quantity === 1 ? "cota" : "cotas"}`} light/><Item label="Crédito total" value={formatBRL(totals.credit)} light/><Item label="Crédito com taxa total" value={formatBRL(totals.creditWithFees)} light/><Item label="Parcela total/mês" value={formatBRL(totals.finalAmount)} light/></div>{totals.insurance > 0 && <div className="mt-4 text-sm text-primary-foreground/75">Seguro total incluído: {formatBRL(totals.insurance)}/mês</div>}</div>
         <div className="mt-8 grid gap-4 border-t border-border pt-6 text-sm sm:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] sm:items-end"><div><LabelText>Consultor</LabelText><div className="font-medium">{seller?.name || seller?.email || "—"}</div>{seller?.phone && <div className="text-muted-foreground">{seller.phone}</div>}</div><p className="text-xs leading-relaxed text-muted-foreground sm:text-right">Esta proposta é informativa. Valores sujeitos às condições, disponibilidade e regras vigentes dos grupos.</p></div>
       </div>
@@ -123,10 +123,13 @@ function Proposta() {
 function LabelText({ children, light = false }: { children: React.ReactNode; light?: boolean }) { return <div className={`text-[11px] font-semibold uppercase ${light ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{children}</div>; }
 function Item({ label, value, light = false }: { label: string; value: string; light?: boolean }) { return <div className="min-w-0"><dt className={`text-[11px] uppercase ${light ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{label}</dt><dd className="mt-1 break-words text-base font-medium tabular">{value}</dd></div>; }
 
-function LanceSimuladorDialog({ item }: { item: ItemRow }) {
-  const [installmentPct, setInstallmentPct] = useState(String(Number(item.installment_multiplier) * 100));
-  const [embeddedPct, setEmbeddedPct] = useState("40");
-  const [cashPct, setCashPct] = useState("20");
+function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy: boolean; onSaved: () => void }) {
+  const alreadySaved = item.lance_embedded_rate !== null && item.lance_cash_rate !== null;
+  const [embeddedPct, setEmbeddedPct] = useState(
+    alreadySaved ? String(Number(item.lance_embedded_rate) * 100) : "40",
+  );
+  const [cashPct, setCashPct] = useState(alreadySaved ? String(Number(item.lance_cash_rate) * 100) : "20");
+  const [saving, setSaving] = useState(false);
 
   const parsePct = (value: string) => {
     const n = Number(value.replace(",", "."));
@@ -134,39 +137,67 @@ function LanceSimuladorDialog({ item }: { item: ItemRow }) {
   };
 
   const result = useMemo(() => {
-    const reducedInstallmentRate = parsePct(installmentPct);
     const embeddedBidRate = parsePct(embeddedPct);
     const cashBidRate = parsePct(cashPct);
-    if (![reducedInstallmentRate, embeddedBidRate, cashBidRate].every(Number.isFinite)) return null;
+    if (![embeddedBidRate, cashBidRate].every(Number.isFinite)) return null;
     return calculateLance({
       credit: Number(item.credit_value),
       adminRate: Number(item.administration_rate),
       reserveFund: Number(item.reserve_fund),
       initialTerm: item.initial_term,
       remainingTerm: item.remaining_term,
-      reducedInstallmentRate,
+      reducedInstallmentRate: Number(item.installment_multiplier),
       embeddedBidRate,
       cashBidRate,
       insuranceRate: Number(item.insurance_rate) || 0.0004,
     });
-  }, [installmentPct, embeddedPct, cashPct, item]);
+  }, [embeddedPct, cashPct, item]);
+
+  async function saveLance() {
+    const embeddedBidRate = parsePct(embeddedPct);
+    const cashBidRate = parsePct(cashPct);
+    if (!Number.isFinite(embeddedBidRate) || !Number.isFinite(cashBidRate)) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("proposal_items")
+      .update({ lance_embedded_rate: embeddedBidRate, lance_cash_rate: cashBidRate })
+      .eq("id", item.id);
+    setSaving(false);
+    if (error) {
+      toast.error("Não foi possível salvar a simulação.");
+      return;
+    }
+    toast.success("Simulação salva — vai aparecer na última página do PDF.");
+    onSaved();
+  }
+
+  async function removeSavedLance() {
+    setSaving(true);
+    const { error } = await supabase
+      .from("proposal_items")
+      .update({ lance_embedded_rate: null, lance_cash_rate: null })
+      .eq("id", item.id);
+    setSaving(false);
+    if (error) {
+      toast.error("Não foi possível remover a simulação.");
+      return;
+    }
+    toast.success("Simulação removida.");
+    onSaved();
+  }
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          <TrendingUp /> Simular lance
+          <TrendingUp /> Simular lance{alreadySaved && " · salva"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="pr-6">Simular lance · Grupo {item.group_code}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label>% Parcela negociada</Label>
-            <Input value={installmentPct} onChange={(e) => setInstallmentPct(e.target.value)} />
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>% Lance embutido</Label>
             <Input value={embeddedPct} onChange={(e) => setEmbeddedPct(e.target.value)} />
@@ -210,9 +241,26 @@ function LanceSimuladorDialog({ item }: { item: ItemRow }) {
         ) : (
           <p className="text-sm text-muted-foreground">Informe percentuais válidos para simular.</p>
         )}
-        <p className="text-xs text-muted-foreground">
-          Simulação informativa — não é salva na proposta. Valores sujeitos às condições vigentes do grupo.
-        </p>
+
+        {legacy ? (
+          <p className="text-xs text-muted-foreground">
+            Simulações antigas não podem ser salvas — crie uma proposta nova para guardar esse lance.
+          </p>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={() => void saveLance()} disabled={saving || !result}>
+              {saving ? "Salvando…" : alreadySaved ? "Atualizar simulação salva" : "Salvar simulação nesta proposta"}
+            </Button>
+            {alreadySaved && (
+              <Button size="sm" variant="outline" onClick={() => void removeSavedLance()} disabled={saving}>
+                Remover
+              </Button>
+            )}
+            <p className="w-full text-xs text-muted-foreground">
+              Salvando, essa simulação aparece numa página extra ao gerar o PDF da proposta.
+            </p>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
