@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
 import { Route as AuthenticatedSimularRouteImport } from './routes/_authenticated/simular'
+import { Route as ApiAsaasWebhookRouteImport } from './routes/api/asaas-webhook'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
 import { Route as AuthenticatedAdminGruposRouteImport } from './routes/_authenticated/admin.grupos'
@@ -33,6 +35,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -54,6 +61,11 @@ const AuthenticatedSimularRoute = AuthenticatedSimularRouteImport.update({
   id: '/simular',
   path: '/simular',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiAsaasWebhookRoute = ApiAsaasWebhookRouteImport.update({
+  id: '/api/asaas-webhook',
+  path: '/api/asaas-webhook',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
@@ -81,10 +93,12 @@ const AuthenticatedPropostaIdRoute = AuthenticatedPropostaIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/simular': typeof AuthenticatedSimularRoute
+  '/api/asaas-webhook': typeof ApiAsaasWebhookRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/grupos': typeof AuthenticatedAdminGruposRoute
   '/proposta/$id': typeof AuthenticatedPropostaIdRoute
@@ -93,9 +107,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/simular': typeof AuthenticatedSimularRoute
+  '/api/asaas-webhook': typeof ApiAsaasWebhookRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/grupos': typeof AuthenticatedAdminGruposRoute
   '/proposta/$id': typeof AuthenticatedPropostaIdRoute
@@ -106,10 +122,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
   '/_authenticated/simular': typeof AuthenticatedSimularRoute
+  '/api/asaas-webhook': typeof ApiAsaasWebhookRoute
   '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/_authenticated/admin/grupos': typeof AuthenticatedAdminGruposRoute
   '/_authenticated/proposta/$id': typeof AuthenticatedPropostaIdRoute
@@ -120,10 +138,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/cadastro'
     | '/admin'
     | '/dashboard'
     | '/historico'
     | '/simular'
+    | '/api/asaas-webhook'
     | '/admin/equipe'
     | '/admin/grupos'
     | '/proposta/$id'
@@ -132,9 +152,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/cadastro'
     | '/dashboard'
     | '/historico'
     | '/simular'
+    | '/api/asaas-webhook'
     | '/admin/equipe'
     | '/admin/grupos'
     | '/proposta/$id'
@@ -144,10 +166,12 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/cadastro'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/historico'
     | '/_authenticated/simular'
+    | '/api/asaas-webhook'
     | '/_authenticated/admin/equipe'
     | '/_authenticated/admin/grupos'
     | '/_authenticated/proposta/$id'
@@ -158,6 +182,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CadastroRoute: typeof CadastroRoute
+  ApiAsaasWebhookRoute: typeof ApiAsaasWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -181,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -210,6 +243,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/simular'
       preLoaderRoute: typeof AuthenticatedSimularRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/asaas-webhook': {
+      id: '/api/asaas-webhook'
+      path: '/api/asaas-webhook'
+      fullPath: '/api/asaas-webhook'
+      preLoaderRoute: typeof ApiAsaasWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -280,6 +320,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CadastroRoute: CadastroRoute,
+  ApiAsaasWebhookRoute: ApiAsaasWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
