@@ -1,6 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { checkSession } from "@/lib/session.functions";
+import { SESSION_TOKEN_STORAGE_KEY } from "@/lib/session-token";
+
+const SESSION_CHECK_INTERVAL_MS = 8000;
 
 export type Role = "admin" | "seller";
 
@@ -46,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [license, setLicense] = useState<License | null>(null);
+  const checkSessionFn = useServerFn(checkSession);
 
   async function loadContext(current: Session | null) {
     if (!current) {
@@ -100,6 +107,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!session) return;
+    const token = localStorage.getItem(SESSION_TOKEN_STORAGE_KEY);
+    // Sem carimbo salvo (ex.: sessão antiga de antes dessa checagem existir)
+    // — não força logout, só não participa da checagem.
+    if (!token) return;
+
+    let cancelled = false;
+    const interval = setInterval(async () => {
+      try {
+        const { valid } = await checkSessionFn({ data: { token } });
+        if (!cancelled && !valid) {
+          localStorage.removeItem(SESSION_TOKEN_STORAGE_KEY);
+          await supabase.auth.signOut();
+          toast.error("Sua conta foi acessada em outro dispositivo. Você foi desconectado.");
+        }
+      } catch {
+        // Falha de rede/servidor não deve derrubar a sessão por conta própria.
+      }
+    }, SESSION_CHECK_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [session, checkSessionFn]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       loading,
@@ -115,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await loadContext(data.session);
       },
       signOut: async () => {
+        localStorage.removeItem(SESSION_TOKEN_STORAGE_KEY);
         await supabase.auth.signOut();
         setProfile(null);
         setRole(null);

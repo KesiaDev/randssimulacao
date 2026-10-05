@@ -92,6 +92,20 @@
       "when": 1791204796301,
       "tag": "0012_scope_selected_rls_reads_by_dealer",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791300000000,
+      "tag": "0013_fix_group_visibility_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791300100000,
+      "tag": "0014_single_session_enforcement",
+      "breakpoints": true
     }
   ]
 }

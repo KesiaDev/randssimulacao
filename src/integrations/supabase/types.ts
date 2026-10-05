@@ -318,6 +318,7 @@ export type Database = {
       profiles: {
         Row: {
           active: boolean
+          active_session_token: string | null
           cpf: string | null
           created_at: string
           dealer_id: string | null
@@ -329,6 +330,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          active_session_token?: string | null
           cpf?: string | null
           created_at?: string
           dealer_id?: string | null
@@ -340,6 +342,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          active_session_token?: string | null
           cpf?: string | null
           created_at?: string
           dealer_id?: string | null

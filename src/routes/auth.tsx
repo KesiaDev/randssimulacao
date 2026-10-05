@@ -2,8 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { claimSession } from "@/lib/session.functions";
+import { SESSION_TOKEN_STORAGE_KEY } from "@/lib/session-token";
 import { Brand } from "@/components/Brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +30,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
+  const claim = useServerFn(claimSession);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -47,8 +51,11 @@ function AuthPage() {
       if (error) throw error;
       // Derruba qualquer outra sessão ativa dessa conta (ex.: alguém usando
       // o mesmo login em outro aparelho) — só a sessão que acabou de entrar
-      // continua valendo.
+      // continua valendo. O carimbo garante o corte quase instantâneo mesmo
+      // antes do token antigo expirar (ver useAuth.tsx).
       await supabase.auth.signOut({ scope: "others" });
+      const { token } = await claim();
+      localStorage.setItem(SESSION_TOKEN_STORAGE_KEY, token);
       await navigate({ to: "/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível entrar.");
