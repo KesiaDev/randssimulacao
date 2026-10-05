@@ -45,6 +45,10 @@ function AuthPage() {
         password: password.trim(),
       });
       if (error) throw error;
+      // Derruba qualquer outra sessão ativa dessa conta (ex.: alguém usando
+      // o mesmo login em outro aparelho) — só a sessão que acabou de entrar
+      // continua valendo.
+      await supabase.auth.signOut({ scope: "others" });
       await navigate({ to: "/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível entrar.");
