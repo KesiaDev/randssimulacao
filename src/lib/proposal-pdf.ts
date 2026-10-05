@@ -284,8 +284,13 @@ export async function createProposalPdf(input: Input) {
     pdf.setTextColor(...gray);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(8.5);
-    pdf.text("Carência de 2 meses sem cobrança após a contemplação. Valores informativos.", margin, y + 6);
+    pdf.text("Valores informativos, sujeitos às condições vigentes do grupo.", margin, y + 6);
     y += 16;
+
+    let grandLanceTotal = 0;
+    let grandCashTotal = 0;
+    let grandAvailableTotal = 0;
+    let grandInstallmentTotal = 0;
 
     itemsWithLance.forEach((item) => {
       const lance = calculateLance({
@@ -300,8 +305,14 @@ export async function createProposalPdf(input: Input) {
         insuranceRate: Number(item.insurance_rate) || 0.0004,
       });
       const quantity = item.quantity;
-      const cardHeight = quantity > 1 ? 68 : 58;
-      ensureSpace(cardHeight + 8);
+      grandLanceTotal += lance.bidTotalAmount * quantity;
+      grandCashTotal += lance.cashBidAmount * quantity;
+      grandAvailableTotal += lance.availableCredit * quantity;
+      grandInstallmentTotal += lance.postContemplationInstallment * quantity;
+
+      const cardHeight = 58;
+      const miniTotalHeight = 24;
+      ensureSpace(cardHeight + (quantity > 1 ? miniTotalHeight + 4 : 0) + 8);
 
       pdf.setFillColor(255, 255, 255);
       pdf.setDrawColor(...line);
@@ -345,19 +356,67 @@ export async function createProposalPdf(input: Input) {
         });
       });
 
-      if (quantity > 1) {
-        pdf.setTextColor(...gray);
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(7.5);
-        pdf.text(
-          `Total para as ${quantity} cotas: lance ${formatBRL(lance.bidTotalAmount * quantity)}  •  crédito disponível ${formatBRL(lance.availableCredit * quantity)}  •  nova parcela ${formatBRL(lance.postContemplationInstallment * quantity)}`,
-          margin + 9,
-          y + 54,
-        );
-      }
+      y += cardHeight + 4;
 
-      y += cardHeight + 8;
+      if (quantity > 1) {
+        pdf.setFillColor(...blue);
+        pdf.roundedRect(margin, y, contentWidth, miniTotalHeight, 2, 2, "F");
+        pdf.setTextColor(210, 229, 248);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(6.8);
+        pdf.text(`TOTAL PARA AS ${quantity} COTAS`, margin + 8, y + 8);
+        const miniLabels = ["LANCE TOTAL", "CRÉDITO DISPONÍVEL", "NOVA PARCELA"];
+        const miniValues = [
+          formatBRL(lance.bidTotalAmount * quantity),
+          formatBRL(lance.availableCredit * quantity),
+          formatBRL(lance.postContemplationInstallment * quantity),
+        ];
+        miniLabels.forEach((label, column) => {
+          const x = margin + 8 + column * 56;
+          pdf.setTextColor(190, 217, 244);
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(6.2);
+          pdf.text(label, x, y + 15);
+          pdf.setTextColor(255, 255, 255);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(9.5);
+          pdf.text(miniValues[column] ?? "", x, y + 20.5);
+        });
+        y += miniTotalHeight + 8;
+      } else {
+        y += 4;
+      }
     });
+
+    if (itemsWithLance.length > 1) {
+      const grandTotalHeight = 40;
+      ensureSpace(grandTotalHeight + 8);
+      pdf.setFillColor(...blue);
+      pdf.roundedRect(margin, y, contentWidth, grandTotalHeight, 2, 2, "F");
+      pdf.setTextColor(210, 229, 248);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.text("TOTAL GERAL DA SIMULAÇÃO DE LANCE", margin + 8, y + 9);
+      const grandRows: Array<{ labels: string[]; values: string[] }> = [
+        { labels: ["LANCE TOTAL", "CRÉDITO DISPONÍVEL"], values: [formatBRL(grandLanceTotal), formatBRL(grandAvailableTotal)] },
+        { labels: ["LANCE EM ESPÉCIE", "NOVA PARCELA"], values: [formatBRL(grandCashTotal), formatBRL(grandInstallmentTotal)] },
+      ];
+      grandRows.forEach(({ labels, values }, row) => {
+        labels.forEach((label, column) => {
+          const x = margin + 8 + column * 85;
+          const rowY = y + 19 + row * 11;
+          pdf.setTextColor(190, 217, 244);
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(6.8);
+          pdf.text(label, x, rowY);
+          pdf.setTextColor(255, 255, 255);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(10.5);
+          pdf.text(values[column] ?? "", x, rowY + 5.5);
+        });
+      });
+      y += grandTotalHeight + 8;
+    }
   }
 
   const totalPages = pdf.getNumberOfPages();
