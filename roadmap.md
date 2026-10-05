@@ -25,5 +25,5 @@
 - [x] Igualar a foto do PDF ao modelo online, preenchendo toda a largura sem deformação
 - [x] Otimizar o painel administrativo com resumo mensal e carregamento limitado no banco
 - [x] Corrigir propostas novas que geravam PDF em branco em alguns leitores
-- [ ] Adicionar CPF, identificação de cadastro próprio e licenças de vendedores
-- [ ] Validar permissões e estabilidade da nova estrutura de licenças
+- [x] Adicionar CPF, identificação de cadastro próprio e licenças de vendedores
+- [x] Validar permissões e estabilidade da nova estrutura de licenças
