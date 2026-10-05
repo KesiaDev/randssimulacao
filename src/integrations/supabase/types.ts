@@ -519,6 +519,36 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_dealers: {
+        Row: {
+          dealer_id: string
+          seller_id: string
+        }
+        Insert: {
+          dealer_id: string
+          seller_id: string
+        }
+        Update: {
+          dealer_id?: string
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_dealers_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_dealers_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       simulations: {
         Row: {
           administration_rate: number
@@ -693,6 +723,7 @@ export type Database = {
         Args: { _client_name: string; _item: Json; _simulation_id: string }
         Returns: undefined
       }
+      user_dealer_ids: { Args: { _user_id: string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "seller"
