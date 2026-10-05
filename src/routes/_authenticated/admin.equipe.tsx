@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/lib/format";
 import { useDealers } from "@/hooks/useConfig";
+import { DealerAccessPicker } from "@/components/DealerAccessPicker";
 import {
   Select,
   SelectContent,
@@ -175,6 +176,31 @@ function AdminEquipe() {
   });
 
   const refresh = () => void qc.invalidateQueries({ queryKey: ["team"] });
+
+  const { data: extraDealerIds } = useQuery({
+    queryKey: ["seller-extra-dealers", editing?.id],
+    enabled: !!editing,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("seller_dealers")
+        .select("dealer_id")
+        .eq("seller_id", editing!.id);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.dealer_id));
+    },
+  });
+
+  async function toggleExtraDealer(dealerId: string, selected: boolean) {
+    if (!editing) return;
+    const { error } = selected
+      ? await supabase.from("seller_dealers").insert({ seller_id: editing.id, dealer_id: dealerId })
+      : await supabase.from("seller_dealers").delete().eq("seller_id", editing.id).eq("dealer_id", dealerId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    void qc.invalidateQueries({ queryKey: ["seller-extra-dealers", editing.id] });
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -463,6 +489,18 @@ function AdminEquipe() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Revendas extras liberadas</Label>
+              <p className="text-xs text-muted-foreground">
+                Além da revenda principal acima — use para quem precisa enxergar grupos/taxas de
+                outra revenda também (ex.: consultor atendendo mais de uma).
+              </p>
+              <DealerAccessPicker
+                dealers={dealers ?? []}
+                selectedIds={extraDealerIds ?? new Set()}
+                onToggle={toggleExtraDealer}
+              />
             </div>
             <DialogFooter className="sm:col-span-2">
               <Button type="button" variant="outline" onClick={() => setEditing(null)}>

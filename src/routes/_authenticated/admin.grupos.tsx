@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDealers, useGroupConfig, useGroups } from "@/hooks/useConfig";
+import { DealerAccessPicker } from "@/components/DealerAccessPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -518,39 +519,6 @@ function NewTypeForm({ onAdd }: { onAdd: (name: string, multiplier: number) => v
       >
         <Plus className="mr-1 h-4 w-4" /> Adicionar
       </Button>
-    </div>
-  );
-}
-
-function DealerAccessPicker({
-  dealers,
-  selectedIds,
-  onToggle,
-}: {
-  dealers: Array<{ id: string; name: string }>;
-  selectedIds: Set<string>;
-  onToggle: (dealerId: string, selected: boolean) => void;
-}) {
-  if (dealers.length === 0) return null;
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {dealers.map((d) => {
-        const active = selectedIds.has(d.id);
-        return (
-          <button
-            key={d.id}
-            type="button"
-            onClick={() => onToggle(d.id, !active)}
-            className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
-              active
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:border-primary/40"
-            }`}
-          >
-            {d.name}
-          </button>
-        );
-      })}
     </div>
   );
 }
