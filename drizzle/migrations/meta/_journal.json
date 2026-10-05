@@ -85,6 +85,13 @@
       "when": 1791193413892,
       "tag": "0011_add_seller_licenses",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791204796301,
+      "tag": "0012_scope_selected_rls_reads_by_dealer",
+      "breakpoints": true
     }
   ]
 }
