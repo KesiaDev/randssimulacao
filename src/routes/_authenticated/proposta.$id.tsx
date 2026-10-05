@@ -219,8 +219,8 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
             <div className="rounded-lg border border-border p-4">
               <LabelText>Por cota</LabelText>
               <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                <Item label="Lance embutido" value={formatBRL(result.embeddedBidAmount)} />
-                <Item label="Lance em espécie" value={formatBRL(result.cashBidAmount)} />
+                <Item label={`Lance embutido (${embeddedPct}%)`} value={formatBRL(result.embeddedBidAmount)} />
+                <Item label={`Lance em espécie (${cashPct}%)`} value={formatBRL(result.cashBidAmount)} />
                 <Item label="Crédito disponível" value={formatBRL(result.availableCredit)} />
                 <Item label="Nova parcela" value={formatBRL(result.postContemplationInstallment)} />
                 <Item label="Novo prazo" value={`${result.postContemplationTermMonths} meses`} />

@@ -329,7 +329,11 @@ export async function createProposalPdf(input: Input) {
 
       const lanceRows: Array<{ labels: string[]; values: string[] }> = [
         {
-          labels: ["LANCE EMBUTIDO/COTA", "LANCE EM ESPÉCIE/COTA", "CRÉDITO DISPONÍVEL/COTA"],
+          labels: [
+            `LANCE EMBUTIDO/COTA (${formatPercent(Number(item.lance_embedded_rate))})`,
+            `LANCE EM ESPÉCIE/COTA (${formatPercent(Number(item.lance_cash_rate))})`,
+            "CRÉDITO DISPONÍVEL/COTA",
+          ],
           values: [formatBRL(lance.embeddedBidAmount), formatBRL(lance.cashBidAmount), formatBRL(lance.availableCredit)],
         },
         {
