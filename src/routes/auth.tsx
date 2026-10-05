@@ -30,6 +30,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [recovering, setRecovering] = useState(false);
 
   useEffect(() => {
     if (!loading && session) void navigate({ to: "/dashboard", replace: true });
@@ -47,6 +48,27 @@ function AuthPage() {
       await navigate({ to: "/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível entrar.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendRecoveryEmail() {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) {
+      toast.error("Digite seu e-mail para receber o link de redefinição.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+        redirectTo: `${window.location.origin}/redefinir-senha`,
+      });
+      if (error) throw error;
+      toast.success("Enviamos um link de redefinição para o seu e-mail.");
+      setRecovering(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível enviar o e-mail.");
     } finally {
       setBusy(false);
     }
@@ -72,43 +94,84 @@ function AuthPage() {
             <Brand />
           </div>
           <h1 className="text-2xl font-semibold sm:text-3xl">
-            Acessar plataforma
+            {recovering ? "Redefinir senha" : "Acessar plataforma"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Use o e-mail corporativo cadastrado.
+            {recovering
+              ? "Informe seu e-mail e enviaremos um link para criar uma nova senha."
+              : "Use o e-mail corporativo cadastrado."}
           </p>
 
-          <form onSubmit={submit} className="mt-7 space-y-4 sm:mt-8">
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
+          {recovering ? (
+            <div className="mt-7 space-y-4 sm:mt-8">
+              <div className="space-y-2">
+                <Label htmlFor="recovery-email">E-mail</Label>
+                <Input
+                  id="recovery-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              <Button className="w-full" disabled={busy} onClick={() => void sendRecoveryEmail()}>
+                {busy ? "Enviando…" : "Enviar link de redefinição"}
+              </Button>
+              <button
+                type="button"
+                className="block text-sm font-medium text-primary underline-offset-2 hover:underline"
+                onClick={() => setRecovering(false)}
+              >
+                Voltar para o login
+              </button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                autoComplete="current-password"
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? "Aguarde…" : "Entrar"}
-            </Button>
-          </form>
+          ) : (
+            <form onSubmit={submit} className="mt-7 space-y-4 sm:mt-8">
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Senha</Label>
+                  <button
+                    type="button"
+                    className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+                    onClick={() => setRecovering(true)}
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  autoComplete="current-password"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={busy}>
+                {busy ? "Aguarde…" : "Entrar"}
+              </Button>
+            </form>
+          )}
 
           <p className="mt-6 text-sm text-muted-foreground">
-            O acesso é criado pelo administrador da equipe.
+            O acesso é criado pelo administrador da equipe ou pelo{" "}
+            <a href="/cadastro" className="font-medium text-primary underline-offset-2 hover:underline">
+              cadastro
+            </a>
+            .
           </p>
 
           <div className="mt-10 space-y-1.5 text-xs text-muted-foreground">

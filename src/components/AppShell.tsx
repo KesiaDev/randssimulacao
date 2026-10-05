@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import {
   Calculator,
   ClipboardList,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -85,6 +86,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               {isAdmin ? "Administrador" : "Vendedor"}
             </div>
           </div>
+          <Button
+            variant="ghost"
+            onClick={() => setOpen(false)}
+            asChild
+            className="mb-1 w-full justify-start text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+          >
+            <Link to="/conta">
+              <KeyRound className="h-4 w-4" /> Minha conta
+            </Link>
+          </Button>
           <Button
             variant="ghost"
             onClick={() => void signOut()}

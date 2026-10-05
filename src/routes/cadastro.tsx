@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { useDealers } from "@/hooks/useConfig";
 import { registerSeller } from "@/lib/register.functions";
 import { Brand } from "@/components/Brand";
@@ -26,12 +26,25 @@ function CadastroPage() {
   const { data: dealers } = useDealers();
   const register = useServerFn(registerSeller);
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", cpf: "", dealerId: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    cpf: "",
+    dealerId: "",
+    password: "",
+    confirmPassword: "",
+  });
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.dealerId) {
       toast.error("Selecione sua revenda.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      toast.error("As senhas não coincidem.");
       return;
     }
     setBusy(true);
@@ -118,12 +131,34 @@ function CadastroPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  minLength={8}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar senha</Label>
               <Input
-                id="password"
-                type="password"
+                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
                 minLength={8}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                value={form.confirmPassword}
+                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                 required
               />
             </div>
