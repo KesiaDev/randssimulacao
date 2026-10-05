@@ -33,7 +33,7 @@ export const generateLicenseCharge = createServerFn({ method: "POST" })
       customerId: customer.id,
       totalValue: ANNUAL_LICENSE_VALUE,
       installmentCount: INSTALLMENT_COUNT,
-      description: "Licença anual — Simulador Randon Consórcios",
+      description: "Licença Anual simulação Consórcio",
     });
 
     const { error: lErr } = await supabaseAdmin.from("licenses").insert({
