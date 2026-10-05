@@ -3,7 +3,11 @@ import { calculateLance, rate } from "./lance-calc";
 
 /**
  * Fonte de verdade: planilha "Proposta Marlon simulação lance.xlsx",
- * abas "Mascarello" (Grupo 1075) e "Cortina" (Grupo 940).
+ * abas "Mascarello" (Grupo 1075) e "Cortina" (Grupo 940) — exceto o saldo
+ * devedor e tudo que depende dele (parcela pós-contemplação, custo
+ * efetivo), que foram recalculados conforme correção do Mauricio
+ * (05/10/2026): o saldo devedor desconta a parcela inicial inteira, não
+ * só o seguro.
  */
 describe("motor de cálculo de lance vs planilha", () => {
   it("Grupo 1075 (aba Mascarello)", () => {
@@ -27,11 +31,11 @@ describe("motor de cálculo de lance vs planilha", () => {
     expect(r.embeddedBidAmount).toBeCloseTo(221000, 6);
     expect(r.cashBidAmount).toBeCloseTo(66300, 6);
     expect(r.availableCredit).toBeCloseTo(179000, 6);
-    expect(r.remainingBalance).toBeCloseTo(154523.20000000001, 6);
+    expect(r.remainingBalance).toBeCloseTo(152460.53333333333, 6);
     expect(r.postContemplationTermMonths).toBe(56);
-    expect(r.postContemplationInstallment).toBeCloseTo(2759.3428571428572, 6);
+    expect(r.postContemplationInstallment).toBeCloseTo(2722.5095238095237, 6);
     expect(r.newMoney).toBeCloseTo(110460.53333333333, 6);
-    expect(r.effectiveMonthlyCostRate).toBeCloseTo(1.256896730102277e-2, 8);
+    expect(r.effectiveMonthlyCostRate).toBeCloseTo(0.01203192255135422, 8);
   });
 
   it("Grupo 940 (aba Cortina)", () => {
@@ -55,15 +59,15 @@ describe("motor de cálculo de lance vs planilha", () => {
     expect(r.embeddedBidAmount).toBeCloseTo(85085, 6);
     expect(r.cashBidAmount).toBeCloseTo(60775, 6);
     expect(r.availableCredit).toBeCloseTo(134915, 6);
-    expect(r.remainingBalance).toBeCloseTo(97142.76, 6);
+    expect(r.remainingBalance).toBeCloseTo(95985.14095238096, 6);
     expect(r.postContemplationTermMonths).toBe(82);
-    expect(r.postContemplationInstallment).toBeCloseTo(1184.6678048780486, 6);
+    expect(r.postContemplationInstallment).toBeCloseTo(1170.55049941928, 6);
     expect(r.newMoney).toBeCloseTo(72885.140952380956, 6);
-    expect(r.effectiveMonthlyCostRate).toBeCloseTo(7.3060037770330119e-3, 8);
+    expect(r.effectiveMonthlyCostRate).toBeCloseTo(0.006984321561935898, 8);
   });
 
   it("RATE reproduz a função financeira do Excel", () => {
-    expect(rate(56, -2759.3428571428572, 110460.53333333333)).toBeCloseTo(1.256896730102277e-2, 8);
-    expect(rate(82, -1184.6678048780486, 72885.140952380956)).toBeCloseTo(7.3060037770330119e-3, 8);
+    expect(rate(56, -2722.5095238095237, 110460.53333333333)).toBeCloseTo(0.01203192255135422, 8);
+    expect(rate(82, -1170.55049941928, 72885.140952380956)).toBeCloseTo(0.006984321561935898, 8);
   });
 });

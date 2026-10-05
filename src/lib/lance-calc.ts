@@ -1,13 +1,13 @@
 /**
  * Motor de cálculo de lance (contemplação por oferta de lance).
  *
- * Fonte de verdade: planilha "Proposta Marlon simulação lance.xlsx", abas
- * "Mascarello" e "Cortina" (fórmulas idênticas entre as duas e consistentes
- * com a explicação verbal recebida). A aba "Planilha2" do mesmo arquivo usa
- * uma fórmula diferente para parcela pós-contemplação (percentual fixo sobre
- * o crédito, em vez de saldo devedor / prazo) — não foi usada aqui porque
- * diverge das outras duas abas e da explicação original; confirmar antes de
- * considerar essa variante.
+ * Fonte original: planilha "Proposta Marlon simulação lance.xlsx", abas
+ * "Mascarello" e "Cortina". O saldo devedor foi corrigido a pedido do
+ * Mauricio (05/10/2026): a planilha só descontava o seguro, mas o saldo
+ * devedor correto desconta a parcela inicial inteira (a que já sai
+ * quando a proposta é montada), não só o seguro. A aba "Planilha2" do
+ * mesmo arquivo usa ainda outra fórmula (percentual fixo sobre o
+ * crédito) e não é usada aqui.
  */
 
 export interface LanceInput {
@@ -52,7 +52,7 @@ export interface LanceResult {
   cashBidAmount: number;
   /** Crédito que resta disponível após o lance embutido */
   availableCredit: number;
-  /** Saldo devedor após o lance (crédito+taxas menos o lance e o seguro) */
+  /** Saldo devedor: crédito+taxas menos o lance (embutido + espécie) e uma parcela inicial já paga */
   remainingBalance: number;
   /** Novo prazo restante após a carência pós-contemplação */
   postContemplationTermMonths: number;
@@ -90,7 +90,7 @@ export function calculateLance(input: LanceInput): LanceResult {
   const cashBidAmount = creditWithFees * cashBidRate;
 
   const availableCredit = credit - embeddedBidAmount;
-  const remainingBalance = creditWithFees - embeddedBidAmount - cashBidAmount - insurance;
+  const remainingBalance = creditWithFees - embeddedBidAmount - cashBidAmount - installment;
 
   const postContemplationTermMonths = remainingTerm - gracePeriodMonths;
   const postContemplationInstallment =
