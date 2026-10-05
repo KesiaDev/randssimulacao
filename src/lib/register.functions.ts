@@ -37,7 +37,13 @@ export const registerSeller = createServerFn({ method: "POST" })
     const userId = created.user.id;
 
     const cleanupAndThrow = async (message: string): Promise<never> => {
+      // Remove tudo que já tiver sido criado para este cadastro — deletar só o
+      // login (auth.users) não apaga profiles/user_roles automaticamente, o
+      // que deixava "fantasmas" na lista de vendedores quando a etapa do
+      // Asaas falhava depois do perfil já ter sido gravado.
       await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => undefined);
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+      await supabaseAdmin.from("profiles").delete().eq("id", userId);
       throw new Error(message);
     };
 

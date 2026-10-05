@@ -134,7 +134,10 @@ export const deleteSeller = createServerFn({ method: "POST" })
     }
 
     const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
-    if (authErr) throw new Error(authErr.message);
+    // "User not found" acontece em perfis órfãos (sobraram de um cadastro que
+    // falhou antes do login ser criado/já foi removido) — nesse caso só
+    // precisamos limpar as tabelas abaixo mesmo. Qualquer outro erro, para.
+    if (authErr && !/not found/i.test(authErr.message)) throw new Error(authErr.message);
 
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
