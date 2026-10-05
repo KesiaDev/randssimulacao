@@ -68,15 +68,22 @@
     {
       "idx": 9,
       "version": "7",
-      "when": 1791136841896,
-      "tag": "0010_save_lance_simulation",
+      "when": 1791126500000,
+      "tag": "0009_save_lance_simulation",
       "breakpoints": true
     },
     {
       "idx": 10,
       "version": "7",
-      "when": 1791140000000,
-      "tag": "0011_seller_self_registration_license",
+      "when": 1791136841896,
+      "tag": "0010_save_lance_simulation",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791193413892,
+      "tag": "0011_add_seller_licenses",
       "breakpoints": true
     }
   ]
