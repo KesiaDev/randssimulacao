@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, Eye, EyeOff, KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
+import { Copy, CreditCard, Eye, EyeOff, KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  chargeSellerLicense,
   createSeller,
   deleteSeller,
   resetSellerPassword,
@@ -49,6 +50,7 @@ type TeamMember = {
   name: string;
   email: string;
   phone: string | null;
+  cpf: string | null;
   active: boolean;
   created_at: string;
   dealer_id: string | null;
@@ -76,13 +78,15 @@ function AdminEquipe() {
   const remove = useServerFn(deleteSeller);
   const resetPwd = useServerFn(resetSellerPassword);
   const toggle = useServerFn(setSellerActive);
+  const chargeLicense = useServerFn(chargeSellerLicense);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", dealerId: NO_DEALER });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", cpf: "", password: "", dealerId: NO_DEALER });
   const [editing, setEditing] = useState<TeamMember | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", dealerId: NO_DEALER });
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", cpf: "", dealerId: NO_DEALER });
   const [editBusy, setEditBusy] = useState(false);
+  const [chargingId, setChargingId] = useState<string | null>(null);
   const { data: dealers } = useDealers();
 
   function startEdit(member: TeamMember) {
@@ -91,6 +95,7 @@ function AdminEquipe() {
       name: member.name,
       email: member.email,
       phone: member.phone ?? "",
+      cpf: member.cpf ?? "",
       dealerId: member.dealer_id ?? NO_DEALER,
     });
   }
@@ -114,6 +119,25 @@ function AdminEquipe() {
       toast.error(err instanceof Error ? err.message : "Não foi possível atualizar o vendedor.");
     } finally {
       setEditBusy(false);
+    }
+  }
+
+  async function handleChargeLicense(member: TeamMember) {
+    setChargingId(member.id);
+    try {
+      const { invoiceUrl } = await chargeLicense({ data: { userId: member.id } });
+      await navigator.clipboard.writeText(invoiceUrl).catch(() => undefined);
+      toast.success("Cobrança gerada e link copiado — envie para o vendedor.", {
+        action: {
+          label: "Copiar de novo",
+          onClick: () => void navigator.clipboard.writeText(invoiceUrl),
+        },
+      });
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível gerar a cobrança.");
+    } finally {
+      setChargingId(null);
     }
   }
 
@@ -160,7 +184,7 @@ function AdminEquipe() {
         data: { ...form, dealerId: form.dealerId === NO_DEALER ? null : form.dealerId },
       });
       toast.success("Vendedor criado. Envie a senha inicial com segurança.");
-      setForm({ name: "", email: "", phone: "", password: "", dealerId: NO_DEALER });
+      setForm({ name: "", email: "", phone: "", cpf: "", password: "", dealerId: NO_DEALER });
       setOpen(false);
       refresh();
     } catch (err) {
@@ -209,6 +233,15 @@ function AdminEquipe() {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>CPF (opcional)</Label>
+            <Input
+              value={form.cpf}
+              onChange={(e) => setForm({ ...form, cpf: e.target.value })}
+              placeholder="000.000.000-00"
+            />
+            <p className="text-xs text-muted-foreground">Só é necessário se for cobrar licença dele depois.</p>
           </div>
           <div className="space-y-2">
             <Label>Revenda</Label>
@@ -327,6 +360,17 @@ function AdminEquipe() {
                     <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => startEdit(p)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
+                    {p.role !== "admin" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={chargingId === p.id}
+                        onClick={() => void handleChargeLicense(p)}
+                      >
+                        <CreditCard className="mr-1 h-4 w-4" />
+                        {chargingId === p.id ? "Gerando…" : "Cobrar licença"}
+                      </Button>
+                    )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -391,6 +435,14 @@ function AdminEquipe() {
               <Input
                 value={editForm.phone}
                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>CPF (opcional)</Label>
+              <Input
+                value={editForm.cpf}
+                onChange={(e) => setEditForm({ ...editForm, cpf: e.target.value })}
+                placeholder="000.000.000-00"
               />
             </div>
             <div className="space-y-2">
