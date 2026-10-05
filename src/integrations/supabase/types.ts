@@ -723,10 +723,7 @@ export type Database = {
         Args: { _client_name: string; _item: Json; _simulation_id: string }
         Returns: undefined
       }
-      user_dealer_ids: {
-        Args: { _user_id: string }
-        Returns: string[]
-      }
+      user_dealer_ids: { Args: { _user_id: string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "seller"
