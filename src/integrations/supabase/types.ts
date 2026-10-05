@@ -268,33 +268,86 @@ export type Database = {
           },
         ]
       }
+      licenses: {
+        Row: {
+          asaas_customer_id: string | null
+          asaas_installment_id: string | null
+          asaas_payment_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          paid_at: string | null
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          asaas_customer_id?: string | null
+          asaas_installment_id?: string | null
+          asaas_payment_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          asaas_customer_id?: string | null
+          asaas_installment_id?: string | null
+          asaas_payment_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenses_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active: boolean
+          cpf: string | null
           created_at: string
           dealer_id: string | null
           email: string
           id: string
           name: string
           phone: string | null
+          self_registered: boolean
         }
         Insert: {
           active?: boolean
+          cpf?: string | null
           created_at?: string
           dealer_id?: string | null
           email: string
           id: string
           name?: string
           phone?: string | null
+          self_registered?: boolean
         }
         Update: {
           active?: boolean
+          cpf?: string | null
           created_at?: string
           dealer_id?: string | null
           email?: string
           id?: string
           name?: string
           phone?: string | null
+          self_registered?: boolean
         }
         Relationships: [
           {
