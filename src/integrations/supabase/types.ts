@@ -649,6 +649,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      administration_rate_visible_to_user: {
+        Args: { _rate_id: string; _user_id: string }
+        Returns: boolean
+      }
       delete_legacy_simulation: {
         Args: { _simulation_id: string }
         Returns: undefined
@@ -669,6 +673,10 @@ export type Database = {
           _seller?: string
         }
         Returns: Json
+      }
+      group_visible_to_user: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
