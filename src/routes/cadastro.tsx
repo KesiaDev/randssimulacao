@@ -37,26 +37,29 @@ function CadastroPage() {
     email: "",
     phone: "",
     cpf: "",
-    dealerId: "",
+    dealerId: "none",
     password: "",
     confirmPassword: "",
   });
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.dealerId) {
-      toast.error("Selecione sua revenda.");
-      return;
-    }
     if (form.password !== form.confirmPassword) {
       toast.error("As senhas não coincidem.");
       return;
     }
     setBusy(true);
     try {
-      const { invoiceUrl } = await register({ data: form });
-      toast.success("Conta criada! Redirecionando para o pagamento da licença…");
-      window.location.href = invoiceUrl;
+      const { invoiceUrl } = await register({
+        data: { ...form, dealerId: form.dealerId === "none" ? undefined : form.dealerId },
+      });
+      if (invoiceUrl) {
+        toast.success("Conta criada! Redirecionando para o pagamento da licença…");
+        window.location.href = invoiceUrl;
+      } else {
+        toast.success("Conta criada! Já pode entrar.");
+        await navigate({ to: "/auth" });
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível criar sua conta.");
       setBusy(false);
@@ -68,7 +71,9 @@ function CadastroPage() {
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-semibold sm:text-3xl">Criar minha conta</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Licença anual de R$ 500 em até 12x sem juros no cartão.
+          {form.dealerId === "none"
+            ? "Acesso cortesia, sem cobrança de licença."
+            : "Licença anual de R$ 500 em até 12x sem juros no cartão."}
         </p>
 
         <form onSubmit={submit} className="mt-7 space-y-4 sm:mt-8">
@@ -116,6 +121,7 @@ function CadastroPage() {
                 <SelectValue placeholder="Selecione sua revenda" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">Sem revenda (acesso cortesia)</SelectItem>
                 {(dealers ?? []).map((d) => (
                   <SelectItem key={d.id} value={d.id}>
                     {d.name}
@@ -158,7 +164,11 @@ function CadastroPage() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? "Criando conta…" : "Criar conta e pagar a licença"}
+            {busy
+              ? "Criando conta…"
+              : form.dealerId === "none"
+                ? "Criar conta"
+                : "Criar conta e pagar a licença"}
           </Button>
         </form>
 

@@ -17,7 +17,9 @@ export const registerSeller = createServerFn({ method: "POST" })
         phone: z.string().trim().optional().default(""),
         cpf: z.string().trim().refine(isValidCpf, "CPF inválido"),
         password: z.string().trim().min(8),
-        dealerId: z.string().uuid(),
+        // Sem revenda = acesso cortesia (ex.: equipe interna, parceiros):
+        // não gera cobrança no Asaas nem fica sujeito ao bloqueio de licença.
+        dealerId: z.string().uuid().optional().nullable(),
       })
       .parse(data),
   )
@@ -47,14 +49,18 @@ export const registerSeller = createServerFn({ method: "POST" })
       throw new Error(message);
     };
 
+    const chargesLicense = !!data.dealerId;
+
     const { error: pErr } = await supabaseAdmin.from("profiles").upsert({
       id: userId,
       name: data.name,
       email: data.email,
       phone: data.phone || null,
       cpf: data.cpf.replace(/\D/g, ""),
-      dealer_id: data.dealerId,
-      self_registered: true,
+      dealer_id: data.dealerId || null,
+      // Sem revenda = cortesia: self_registered fica false, então o portão
+      // de licença (useAuth.isLicenseBlocked) nunca bloqueia essa conta.
+      self_registered: chargesLicense,
       active: true,
     });
     if (pErr) return cleanupAndThrow(pErr.message);
@@ -63,6 +69,10 @@ export const registerSeller = createServerFn({ method: "POST" })
       .from("user_roles")
       .upsert({ user_id: userId, role: "seller" }, { onConflict: "user_id,role" });
     if (rErr) return cleanupAndThrow(rErr.message);
+
+    if (!chargesLicense) {
+      return { invoiceUrl: null };
+    }
 
     try {
       const customer = await findOrCreateAsaasCustomer({
