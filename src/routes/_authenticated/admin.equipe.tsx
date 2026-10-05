@@ -181,10 +181,11 @@ function AdminEquipe() {
     queryKey: ["seller-extra-dealers", editing?.id],
     enabled: !!editing,
     queryFn: async () => {
+      if (!editing) return new Set<string>();
       const { data, error } = await supabase
         .from("seller_dealers")
         .select("dealer_id")
-        .eq("seller_id", editing!.id);
+        .eq("seller_id", editing.id);
       if (error) throw error;
       return new Set((data ?? []).map((r) => r.dealer_id));
     },
