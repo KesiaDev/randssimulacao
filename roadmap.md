@@ -27,3 +27,5 @@
 - [x] Corrigir propostas novas que geravam PDF em branco em alguns leitores
 - [x] Adicionar CPF, identificação de cadastro próprio e licenças de vendedores
 - [x] Validar permissões e estabilidade da nova estrutura de licenças
+- [x] Adicionar campo de cliente e manter filtros de vendedor e data no histórico
+- [ ] Confirmar atualização da busca por cliente no ambiente conectado e validar o fluxo autenticado — atualização aplicada não aparece na consulta; sessão de teste recebe acesso negado
