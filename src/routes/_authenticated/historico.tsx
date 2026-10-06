@@ -102,12 +102,12 @@ function Historico() {
   const { isAdmin } = useAuth();
   const { data: groups } = useGroups(false);
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, isError } = useQuery({
     queryKey: ["history-page", search],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const filters = {
-        _client: search.client ?? "",
+        ...(search.client ? { _client: search.client } : {}),
         _page: search.page,
         _page_size: PAGE_SIZE,
         ...(search.group ? { _group: search.group } : {}),
@@ -220,6 +220,8 @@ function Historico() {
         {isFetching && <span>Atualizando…</span>}
       </div>
 
+      {isError && <p role="alert" className="text-sm text-destructive">Não foi possível consultar o histórico com estes filtros. Tente novamente em instantes.</p>}
+
       {proposals.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center gap-2">
@@ -302,7 +304,7 @@ function Historico() {
         </div>
       )}
 
-      {entries.length === 0 && (
+      {!isError && entries.length === 0 && (
         <div className="surface px-5 py-10 text-center text-sm text-muted-foreground">
           Nenhuma simulação encontrada com os filtros atuais.
         </div>
