@@ -30,6 +30,7 @@ type HistorySearch = {
   seller: string;
   date: string;
   credit: string;
+  client?: string;
 };
 
 type ProposalItem = {
@@ -79,6 +80,7 @@ export const Route = createFileRoute("/_authenticated/historico")({
     seller: typeof search["seller"] === "string" ? search["seller"] : "",
     date: typeof search["date"] === "string" ? search["date"] : "",
     credit: typeof search["credit"] === "string" ? search["credit"] : "",
+    client: typeof search["client"] === "string" ? search["client"] : "",
   }),
   head: () => ({
     meta: [
@@ -104,14 +106,16 @@ function Historico() {
     queryKey: ["history-page", search],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_history_page", {
+      const filters = {
+        _client: search.client ?? "",
         _page: search.page,
         _page_size: PAGE_SIZE,
         ...(search.group ? { _group: search.group } : {}),
         ...(search.seller ? { _seller: search.seller } : {}),
         ...(search.date ? { _date: search.date } : {}),
         ...(search.credit ? { _credit: search.credit } : {}),
-      });
+      };
+      const { data, error } = await supabase.rpc("get_history_page", filters);
       if (error) throw error;
       return data as unknown as HistoryPage;
     },
@@ -170,7 +174,11 @@ function Historico() {
         </p>
       </div>
 
-      <div className="surface grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
+      <div className="grid gap-4 border-y border-border py-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="space-y-2">
+          <Label htmlFor="history-client">Cliente</Label>
+          <Input id="history-client" value={search.client ?? ""} onChange={(event) => updateFilter("client", event.target.value)} placeholder="Nome do cliente" />
+        </div>
         <div className="space-y-2">
           <Label>Grupo</Label>
           <select
@@ -185,16 +193,17 @@ function Historico() {
           </select>
         </div>
         <div className="space-y-2">
-          <Label>Vendedor</Label>
+          <Label htmlFor="history-seller">Vendedor</Label>
           <Input
+            id="history-seller"
             value={search.seller}
             onChange={(event) => updateFilter("seller", event.target.value)}
             placeholder="Nome do vendedor"
           />
         </div>
         <div className="space-y-2">
-          <Label>Data</Label>
-          <Input type="date" value={search.date} onChange={(event) => updateFilter("date", event.target.value)} />
+          <Label htmlFor="history-date">Data</Label>
+          <Input id="history-date" type="date" value={search.date} onChange={(event) => updateFilter("date", event.target.value)} />
         </div>
         <div className="space-y-2">
           <Label>Faixa de crédito</Label>

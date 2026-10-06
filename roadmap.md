@@ -27,3 +27,4 @@
 - [x] Corrigir propostas novas que geravam PDF em branco em alguns leitores
 - [x] Adicionar CPF, identificação de cadastro próprio e licenças de vendedores
 - [x] Validar permissões e estabilidade da nova estrutura de licenças
+- [ ] Filtrar histórico por cliente, vendedor e data antes da paginação e validar a busca
