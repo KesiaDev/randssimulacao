@@ -28,4 +28,4 @@
 - [x] Adicionar CPF, identificação de cadastro próprio e licenças de vendedores
 - [x] Validar permissões e estabilidade da nova estrutura de licenças
 - [x] Adicionar campo de cliente e manter filtros de vendedor e data no histórico
-- [ ] Confirmar atualização da busca por cliente no ambiente conectado e validar o fluxo autenticado — atualização aplicada não aparece na consulta; sessão de teste recebe acesso negado
+- [ ] Ativar busca por cliente no banco conectado e validar resultados no histórico — a sessão autenticada funciona, mas o banco ainda não contém a função com filtro de cliente; a atualização pelo serviço de migração não aparece nesse banco e a conexão direta não tem permissão para criar a função.
