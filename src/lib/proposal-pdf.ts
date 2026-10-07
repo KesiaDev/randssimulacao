@@ -365,9 +365,9 @@ export async function createProposalPdf(input: Input) {
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(6.8);
         pdf.text(`TOTAL PARA AS ${quantity} COTAS`, margin + 8, y + 8);
-        const miniLabels = ["LANCE TOTAL", "CRÉDITO DISPONÍVEL", "NOVA PARCELA"];
+        const miniLabels = ["LANCE EM ESPÉCIE TOTAL", "CRÉDITO DISPONÍVEL", "NOVA PARCELA"];
         const miniValues = [
-          formatBRL(lance.bidTotalAmount * quantity),
+          formatBRL(lance.cashBidAmount * quantity),
           formatBRL(lance.availableCredit * quantity),
           formatBRL(lance.postContemplationInstallment * quantity),
         ];

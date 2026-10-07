@@ -231,7 +231,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
               <div className="proposal-highlight rounded-lg p-4 text-primary-foreground">
                 <LabelText light>Total · {item.quantity} cotas</LabelText>
                 <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  <Item light label="Lance total" value={formatBRL(result.bidTotalAmount * item.quantity)} />
+                  <Item light label="Lance em espécie total" value={formatBRL(result.cashBidAmount * item.quantity)} />
                   <Item light label="Crédito disponível" value={formatBRL(result.availableCredit * item.quantity)} />
                   <Item light label="Nova parcela" value={formatBRL(result.postContemplationInstallment * item.quantity)} />
                 </dl>
