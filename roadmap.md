@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Exibir lance em espécie total por grupo na barra azul da tela e do PDF, multiplicado pela quantidade de cotas; PDF validado com R$ 81.700 × 5
+
 - [x] Preservar integralmente o motor de cálculo individual existente
 - [x] Adicionar quantidade de cotas por item
 - [x] Permitir vários grupos e planos na mesma proposta
