@@ -14,13 +14,13 @@ import { calculateProposalTotals } from "@/lib/proposal-calc";
 import { calculateLance } from "@/lib/lance-calc";
 import { createProposalPdf } from "@/lib/proposal-pdf";
 import { formatBRL, formatDate, formatPercent } from "@/lib/format";
-import graneleiro from "@/assets/graneleiro.jpg.asset.json";
-import frigorifico from "@/assets/frigorifico.jpg.asset.json";
-import furgao from "@/assets/furgao.jpg.asset.json";
-import sider from "@/assets/sider.jpg.asset.json";
+import graneleiro from "@/assets/graneleiro-kv.jpg.asset.json";
+import florestal from "@/assets/florestal.jpg.asset.json";
+import basculante from "@/assets/basculante-4-eixos.jpg.asset.json";
+import tanque from "@/assets/tanque-4e-preto.jpg.asset.json";
 import type { Database } from "@/integrations/supabase/types";
 
-const proposalImages = [graneleiro, frigorifico, furgao, sider];
+const proposalImages = [graneleiro, florestal, basculante, tanque];
 type ItemRow = Database["public"]["Tables"]["proposal_items"]["Row"];
 type ProposalRow = Database["public"]["Tables"]["proposals"]["Row"];
 type SimulationRow = Database["public"]["Tables"]["simulations"]["Row"];

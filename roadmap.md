@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Usar as quatro fotos enviadas (Florestal, Basculante 4 eixos, Tanque preto e Graneleiro KV) no revezamento das propostas e PDFs
+
 - [x] Exibir lance em espécie total por grupo na barra azul da tela e do PDF, multiplicado pela quantidade de cotas; PDF validado com R$ 81.700 × 5
 
 - [x] Preservar integralmente o motor de cálculo individual existente
