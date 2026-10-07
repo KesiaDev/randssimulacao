@@ -134,6 +134,13 @@
       "when": 1791312961707,
       "tag": "0018_ensure_history_client_filter",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791368691359,
+      "tag": "0019_activate_history_client_search",
+      "breakpoints": true
     }
   ]
 }
