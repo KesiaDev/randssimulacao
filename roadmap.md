@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Entregar formulário Word preenchível para Mauricio confirmar regras, exemplos e dados de custo efetivo, modalidades e contemplação
+
 - [ ] Concluir análise de custo efetivo, modalidades prorrogada/diluída e contemplação — Grupo_920.xlsx conferida: parcela usa prazo inicial, sem modalidade diluída nem CET; falta planilha de lance/contrato com exemplos, regra de seguro/carência e aplicação do lance; confirmado lance sobre a carta, pagamentos detalhados e escolha entre reduzir parcela ou prazo; teste inicial somente para administradores
 
 - [x] Exibir o percentual da parcela reduzida escolhido no passo 4 na proposta final e no PDF — validado com proposta salva e PDF contendo Parcela Reduzida 40%; cálculos preservados
