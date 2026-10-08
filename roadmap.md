@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Entregar formulário Word preenchível para Mauricio confirmar regras, exemplos e dados de custo efetivo, modalidades e contemplação
+- [x] Entregar formulário Word preenchível para Mauricio confirmar regras, exemplos e dados de custo efetivo, modalidades e contemplação — sete páginas, arquivo validado e diagramação revisada
 
 - [ ] Concluir análise de custo efetivo, modalidades prorrogada/diluída e contemplação — Grupo_920.xlsx conferida: parcela usa prazo inicial, sem modalidade diluída nem CET; falta planilha de lance/contrato com exemplos, regra de seguro/carência e aplicação do lance; confirmado lance sobre a carta, pagamentos detalhados e escolha entre reduzir parcela ou prazo; teste inicial somente para administradores
 
