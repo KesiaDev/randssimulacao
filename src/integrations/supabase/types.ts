@@ -693,17 +693,30 @@ export type Database = {
       }
       ensure_profile: { Args: { _name?: string }; Returns: undefined }
       get_admin_overview: { Args: { _top_sellers?: number }; Returns: Json }
-      get_history_page: {
-        Args: {
-          _credit?: string
-          _date?: string
-          _group?: string
-          _page?: number
-          _page_size?: number
-          _seller?: string
-        }
-        Returns: Json
-      }
+      get_history_page:
+        | {
+            Args: {
+              _client: string
+              _credit?: string
+              _date?: string
+              _group?: string
+              _page?: number
+              _page_size?: number
+              _seller?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _credit?: string
+              _date?: string
+              _group?: string
+              _page?: number
+              _page_size?: number
+              _seller?: string
+            }
+            Returns: Json
+          }
       group_visible_to_user: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
