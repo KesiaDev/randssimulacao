@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Exibir o percentual da parcela reduzida escolhido no passo 4 na proposta final e no PDF
+- [x] Exibir o percentual da parcela reduzida escolhido no passo 4 na proposta final e no PDF — validado com proposta salva e PDF contendo Parcela Reduzida 40%; cálculos preservados
 
 - [x] Usar as quatro fotos enviadas (Florestal, Basculante 4 eixos, Tanque preto e Graneleiro KV) no revezamento das propostas e PDFs
 
