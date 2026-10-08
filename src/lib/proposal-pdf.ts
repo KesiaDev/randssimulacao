@@ -1,5 +1,5 @@
 import type { Database } from "@/integrations/supabase/types";
-import { formatBRL, formatDate, formatPercent } from "@/lib/format";
+import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/lib/format";
 import { calculateLance } from "@/lib/lance-calc";
 import randonLogo from "@/assets/randon-logo.png.asset.json";
 
@@ -203,7 +203,7 @@ export async function createProposalPdf(input: Input) {
     pdf.text(`Grupo ${item.group_code}`, margin + 9, y + 16);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(8.5);
-    const description = `${item.installment_type_name}  •  Taxa ${formatPercent(Number(item.administration_rate))}  •  FR ${formatPercent(Number(item.reserve_fund))}  •  ${item.insurance_included ? "Seguro incluído" : "Sem seguro"}`;
+    const description = `${formatInstallmentType(item.installment_type_name, item.installment_multiplier)}  •  Taxa ${formatPercent(Number(item.administration_rate))}  •  FR ${formatPercent(Number(item.reserve_fund))}  •  ${item.insurance_included ? "Seguro incluído" : "Sem seguro"}`;
     const descriptionLines = pdf.splitTextToSize(description, contentWidth - 18);
     pdf.text(descriptionLines.slice(0, 1), margin + 9, y + 23);
 
