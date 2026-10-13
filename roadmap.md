@@ -1,5 +1,15 @@
 # Roadmap
 
+- [x] Entregar formulário Word preenchível para Mauricio confirmar regras, exemplos e dados de custo efetivo, modalidades e contemplação — sete páginas, arquivo validado e diagramação revisada
+
+- [ ] Concluir análise de custo efetivo, modalidades prorrogada/diluída e contemplação — Grupo_920.xlsx conferida: parcela usa prazo inicial, sem modalidade diluída nem CET; falta planilha de lance/contrato com exemplos, regra de seguro/carência e aplicação do lance; confirmado lance sobre a carta, pagamentos detalhados e escolha entre reduzir parcela ou prazo; teste inicial somente para administradores
+
+- [x] Exibir o percentual da parcela reduzida escolhido no passo 4 na proposta final e no PDF — validado com proposta salva e PDF contendo Parcela Reduzida 40%; cálculos preservados
+
+- [x] Usar as quatro fotos enviadas (Florestal, Basculante 4 eixos, Tanque preto e Graneleiro KV) no revezamento das propostas e PDFs
+
+- [x] Exibir lance em espécie total por grupo na barra azul da tela e do PDF, multiplicado pela quantidade de cotas; PDF validado com R$ 81.700 × 5
+
 - [x] Preservar integralmente o motor de cálculo individual existente
 - [x] Adicionar quantidade de cotas por item
 - [x] Permitir vários grupos e planos na mesma proposta
@@ -27,3 +37,5 @@
 - [x] Corrigir propostas novas que geravam PDF em branco em alguns leitores
 - [x] Adicionar CPF, identificação de cadastro próprio e licenças de vendedores
 - [x] Validar permissões e estabilidade da nova estrutura de licenças
+- [x] Adicionar campo de cliente e manter filtros de vendedor e data no histórico
+- [x] Ativar busca por cliente no banco conectado e validar resultados no histórico — função com _client confirmada no banco; busca parcial sem distinguir maiúsculas validada com proposta salva e filtro combinado de vendedor; proposta temporária removida.

@@ -17,6 +17,13 @@ export function formatPercent(rate: number | string | null | undefined): string 
   return `${fixed.replace(".", ",")}%`;
 }
 
+export function formatInstallmentType(name: string, multiplier: number | string): string {
+  const rate = Number(multiplier);
+  if (!Number.isFinite(rate) || rate <= 0 || rate >= 1) return name;
+  const nameWithoutPercent = name.replace(/\s*\(?\d+(?:[.,]\d+)?\s*%\)?/g, "").trim();
+  return `${nameWithoutPercent} ${formatPercent(rate)}`;
+}
+
 export function formatDateTime(value: string | Date): string {
   const d = typeof value === "string" ? new Date(value) : value;
   return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
