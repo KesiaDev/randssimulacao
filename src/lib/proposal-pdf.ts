@@ -125,14 +125,16 @@ export async function createProposalPdf(input: Input) {
     pdf.rect(0, photoHeight, pageWidth, firstPage ? 29 : 18, "F");
     if (firstPage) {
       pdf.setFillColor(255, 255, 255);
-      pdf.roundedRect(margin - 3, 7, 72, 20, 2, 2, "F");
-      drawLogo(margin, 11, 66, 11);
-      pdf.setFillColor(255, 255, 255);
       pdf.roundedRect(pageWidth - margin - 27, 8, 30, 10, 2, 2, "F");
       pdf.setTextColor(...gray);
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(7.5);
       pdf.text(formatDate(input.createdAt), pageWidth - margin - 12, 14.5, { align: "center" });
+      // Logo branca na faixa azul-marinho, igual às demais páginas — não
+      // mais numa caixa branca sobre a foto (ficava mal com certas fotos).
+      const logoScale = logo ? Math.min(48 / logo.width, 8.5 / logo.height) : 0;
+      const logoWidth = logo ? logo.width * logoScale : 0;
+      drawLogo(pageWidth - margin - logoWidth, photoHeight + 4.5, 48, 8.5, true);
     } else {
       drawLogo(margin, photoHeight + 4.5, 48, 8.5, true);
     }
