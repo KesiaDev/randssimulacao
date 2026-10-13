@@ -66,6 +66,31 @@ describe("motor de cálculo de lance vs planilha", () => {
     expect(r.effectiveMonthlyCostRate).toBeCloseTo(0.006984321561935898, 8);
   });
 
+  it("Grupo 1061 sem seguro (insuranceRate 0 não pode cair no padrão 0,04%)", () => {
+    // Regressão: caller passava `Number(item.insurance_rate) || 0.0004`, e
+    // como 0 é falsy em JS, todo grupo "sem seguro" caía no padrão de
+    // 0,04% só dentro do cálculo do lance (a parcela normal da proposta
+    // ficava certa, só a simulação de lance inflava o saldo devedor).
+    // Caso real reportado pelo Mauricio (12/10/2026): parcela pós deu
+    // R$728,37 em vez de R$729,24.
+    const r = calculateLance({
+      credit: 145970.16,
+      adminRate: 0.12,
+      reserveFund: 0.01,
+      initialTerm: 100,
+      remainingTerm: 78,
+      reducedInstallmentRate: 0.4,
+      embeddedBidRate: 0.5,
+      cashBidRate: 0.16,
+      insuranceRate: 0,
+    });
+
+    expect(r.insurance).toBe(0);
+    expect(r.installment).toBeCloseTo(659.7851232, 6);
+    expect(r.postContemplationTermMonths).toBe(76);
+    expect(r.postContemplationInstallment).toBeCloseTo(729.2361888, 6);
+  });
+
   it("RATE reproduz a função financeira do Excel", () => {
     expect(rate(56, -2722.5095238095237, 110460.53333333333)).toBeCloseTo(0.01203192255135422, 8);
     expect(rate(82, -1170.55049941928, 72885.140952380956)).toBeCloseTo(0.006984321561935898, 8);

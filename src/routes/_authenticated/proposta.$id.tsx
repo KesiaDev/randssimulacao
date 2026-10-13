@@ -149,7 +149,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
       reducedInstallmentRate: Number(item.installment_multiplier),
       embeddedBidRate,
       cashBidRate,
-      insuranceRate: Number(item.insurance_rate) || 0.0004,
+      insuranceRate: Number(item.insurance_rate),
     });
   }, [embeddedPct, cashPct, item]);
 

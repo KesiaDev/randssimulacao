@@ -302,7 +302,7 @@ export async function createProposalPdf(input: Input) {
         reducedInstallmentRate: Number(item.installment_multiplier),
         embeddedBidRate: Number(item.lance_embedded_rate),
         cashBidRate: Number(item.lance_cash_rate),
-        insuranceRate: Number(item.insurance_rate) || 0.0004,
+        insuranceRate: Number(item.insurance_rate),
       });
       const quantity = item.quantity;
       grandLanceTotal += lance.bidTotalAmount * quantity;
