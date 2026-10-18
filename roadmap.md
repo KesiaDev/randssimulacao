@@ -1,6 +1,7 @@
 # Roadmap
 
 - [ ] Incluir comparações mensais/anuais, projeções transparentes e oportunidades de melhoria na gestão comercial, preservando lacunas e histórico.
+- [ ] Retirar o programa de indicação de terceiros das telas de gestão comercial, preservando registros históricos.
 
 - [x] Entregar formulário Word preenchível para Mauricio confirmar regras, exemplos e dados de custo efetivo, modalidades e contemplação — sete páginas, arquivo validado e diagramação revisada
 
