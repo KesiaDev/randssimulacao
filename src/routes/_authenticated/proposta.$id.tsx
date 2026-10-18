@@ -248,11 +248,6 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
             );
           })}
         </div>
-        {reduceTermBlocked && result && (
-          <p className="text-sm text-muted-foreground">
-            Nova parcela: {formatBRL(result.remainingBalance)} ÷ ({item.remaining_term} meses − 2 de carência) = {formatBRL(result.newInstallment)}.
-          </p>
-        )}
         {result ? (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
