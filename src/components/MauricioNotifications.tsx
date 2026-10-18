@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,16 +9,13 @@ import { MAURICIO_USER_ID } from "@/lib/mauricio";
 import { syncReservaNotifications } from "@/lib/mauricio.functions";
 import { useAppointmentReminders } from "@/hooks/useAppointmentReminders";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
-type Measurable = { getBoundingClientRect(): DOMRect };
-
 /**
- * Painel de avisos do Maurício. Abre sempre no topo da tela, como as
- * notificações de celular: a âncora é um ponto invisível fixo na borda
- * superior da janela, então o painel desce de cima independentemente de onde
- * o sino esteja ou de quanto a página esteja rolada.
+ * Painel de avisos do Maurício. O sino é pequeno e o painel abre sempre no topo
+ * da tela, como as notificações de celular — a posição é fixada no CSS pela
+ * regra que envolve [data-notification-shade].
  */
 export function MauricioNotifications({ tone = "header" }: { tone?: "header" | "sidebar" }) {
   const { user } = useAuth();
@@ -35,15 +32,6 @@ export function MauricioNotifications({ tone = "header" }: { tone?: "header" | "
     void syncFn().then(() => qc.invalidateQueries({ queryKey: ["m-notificacoes"] })).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autorizado]);
-
-  const anchor = useMemo<Measurable>(() => ({
-    getBoundingClientRect: () => {
-      const w = window.innerWidth;
-      const pad = w >= 640 ? 20 : 12;
-      return new DOMRect(w - pad, 0, 0, 0);
-    },
-  }), []);
-  const anchorRef = useRef<Measurable | null>(anchor);
 
   if (!autorizado) return null;
   const naoLidas = (notificacoes ?? []).filter(n => !n.lida).length + reminders.filter(r => !r.read).length;
@@ -76,7 +64,6 @@ export function MauricioNotifications({ tone = "header" }: { tone?: "header" | "
     : "size-9 shrink-0 border border-border bg-card text-foreground shadow-none hover:bg-muted";
 
   return <Popover>
-    <PopoverAnchor virtualRef={anchorRef} className="hidden" />
     <PopoverTrigger asChild>
       <Button size="icon" className={`relative ${sino} [&_svg]:size-[18px]`} aria-label="Notificações" title="Compromissos e reservas">
         <Bell strokeWidth={2} />
@@ -84,6 +71,7 @@ export function MauricioNotifications({ tone = "header" }: { tone?: "header" | "
       </Button>
     </PopoverTrigger>
     <PopoverContent
+      data-notification-shade=""
       align="end" side="bottom" sideOffset={10}
       className="w-[min(26rem,calc(100vw-1.5rem))] rounded-b-2xl border-x border-b p-0 shadow-2xl data-[state=open]:slide-in-from-top-8 data-[state=open]:duration-200 data-[state=closed]:duration-150"
     >
