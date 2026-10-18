@@ -306,11 +306,16 @@
   transform: none !important;
   left: auto !important;
   right: 12px !important;
-  top: 10px !important;
+  top: 0 !important;
 }
 
 @media (min-width: 640px) {
   [data-radix-popper-content-wrapper]:has([data-notification-shade]) {
     right: 20px !important;
   }
+}
+
+[data-notification-shade] {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
