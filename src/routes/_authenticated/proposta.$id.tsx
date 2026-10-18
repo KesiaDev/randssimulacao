@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useLocation, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -27,6 +27,9 @@ type ProposalRow = Database["public"]["Tables"]["proposals"]["Row"];
 type SimulationRow = Database["public"]["Tables"]["simulations"]["Row"];
 
 export const Route = createFileRoute("/_authenticated/proposta/$id")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    highlightLance: search.highlightLance === "1" ? true : undefined,
+  }),
   head: () => ({ meta: [
     { title: "Proposta comercial — Randon Consórcios" },
     { name: "description", content: "Proposta comercial personalizada de consórcio Randon." },
@@ -67,24 +70,24 @@ function Proposta() {
     },
   });
 
-  const location = useLocation();
+  const { highlightLance } = Route.useSearch();
   const lanceHighlightDone = useRef(false);
   useEffect(() => {
     if (!data || lanceHighlightDone.current) return;
-    const state = (location.state ?? {}) as { highlightLance?: boolean };
-    if (!state.highlightLance || data.items.length === 0) return;
+    if (!highlightLance || data.items.length === 0) return;
+    const firstItem = data.items[0];
+    if (!firstItem) return;
     lanceHighlightDone.current = true;
     const timer = window.setTimeout(() => {
-      const target = document.getElementById(`lance-cta-${data.items[0].id}`);
+      const target = document.getElementById(`lance-cta-${firstItem.id}`);
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         target.classList.add("lance-cta-highlight");
         window.setTimeout(() => target.classList.remove("lance-cta-highlight"), 6000);
       }
-      window.history.replaceState({}, "");
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [data, location.state]);
+  }, [data, highlightLance]);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando proposta…</p>;
   if (!data) return <p className="text-sm text-muted-foreground">Proposta não encontrada.</p>;

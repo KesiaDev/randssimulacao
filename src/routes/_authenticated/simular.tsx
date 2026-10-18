@@ -184,7 +184,7 @@ function Simular() {
         const itemResponse = await supabase.from("proposal_items").insert({ proposal_id: proposalId, simulation_id: simulationResponse.data.id, sort_order: index, quantity: item.quantity, group_id: item.group.id, credit_range_id: item.range.id, administration_rate_id: item.rate.id, installment_type_id: item.type.id, group_code: item.group.code, credit_value: item.range.credit_value, administration_rate: item.rate.rate, reserve_fund: item.group.reserve_fund, installment_type_name: item.type.name, installment_multiplier: item.type.multiplier, initial_term: item.group.initial_term, remaining_term: item.group.remaining_term, contract_modality: item.modality, insurance_included: item.insurance, insurance_rate: item.insuranceRate, base_amount: item.result.totalBase, installment_amount: item.result.installment, insurance_amount: item.result.insurance, final_amount: item.result.finalAmount });
         if (itemResponse.error) throw itemResponse.error;
       }
-      await navigate({ to: "/proposta/$id", params: { id: proposalId }, state: { highlightLance: true } });
+      await navigate({ to: "/proposta/$id", params: { id: proposalId }, search: { highlightLance: true } });
     } catch (error) {
       if (proposalId) await supabase.from("proposals").delete().eq("id", proposalId);
       toast.error(error instanceof Error ? error.message : "Não foi possível gerar a proposta.");
