@@ -10,6 +10,8 @@
  * crédito) e não é usada aqui.
  */
 
+import { savedContractTerm } from "./calc";
+
 export interface LanceInput {
   /** Valor do crédito contratado (sem taxas) */
   credit: number;
@@ -19,6 +21,11 @@ export interface LanceInput {
   reserveFund: number;
   /** Prazo total do grupo, em meses */
   initialTerm: number;
+  /**
+   * Prazo-base da parcela atual da proposta (padrão: initialTerm). Na
+   * modalidade de contratação Diluída é o prazo restante salvo no item.
+   */
+  installmentTerm?: number;
   /** Prazo restante do grupo até este momento, em meses */
   remainingTerm: number;
   /** Percentual da parcela negociado para este lance, em decimal (ex.: 0.35) */
@@ -70,6 +77,7 @@ export function calculateLance(input: LanceInput): LanceResult {
     adminRate,
     reserveFund,
     initialTerm,
+    installmentTerm = initialTerm,
     remainingTerm,
     reducedInstallmentRate,
     embeddedBidRate,
@@ -80,7 +88,7 @@ export function calculateLance(input: LanceInput): LanceResult {
 
   const creditWithFees = credit * (adminRate + reserveFund) + credit;
   const installmentBeforeInsurance =
-    initialTerm > 0 ? (creditWithFees / initialTerm) * reducedInstallmentRate : 0;
+    installmentTerm > 0 ? (creditWithFees / installmentTerm) * reducedInstallmentRate : 0;
   const insurance = creditWithFees * insuranceRate;
   const installment = installmentBeforeInsurance + insurance;
 
@@ -97,7 +105,11 @@ export function calculateLance(input: LanceInput): LanceResult {
     postContemplationTermMonths > 0 ? remainingBalance / postContemplationTermMonths : 0;
 
   const newMoney = credit - installment - embeddedBidAmount - cashBidAmount;
-  const effectiveMonthlyCostRate = rate(postContemplationTermMonths, -postContemplationInstallment, newMoney);
+  const effectiveMonthlyCostRate = rate(
+    postContemplationTermMonths,
+    -postContemplationInstallment,
+    newMoney,
+  );
 
   return {
     creditWithFees,
@@ -118,13 +130,212 @@ export function calculateLance(input: LanceInput): LanceResult {
 }
 
 /**
+ * Modalidade de aplicação do lance.
+ * - reduzir_prazo: padrão da empresa. Após a contemplação o cliente paga a
+ *   parcela mínima de referência (0,8% de crédito + taxas) e o prazo
+ *   encurta até quitar o saldo devedor.
+ * - reduzir_parcela: mantém o prazo restante (menos a carência) e
+ *   recalcula a parcela — é a regra original de `calculateLance`.
+ */
+export type LanceModality = "reduzir_prazo" | "reduzir_parcela";
+
+/** Modalidade selecionada automaticamente em toda nova simulação de lance. */
+export const DEFAULT_LANCE_MODALITY: LanceModality = "reduzir_prazo";
+
+export const LANCE_MODALITIES: Record<LanceModality, { label: string; description: string }> = {
+  reduzir_prazo: {
+    label: "Reduzir prazo",
+    description: "Recomendado pela empresa: quita o contrato o mais rápido possível.",
+  },
+  reduzir_parcela: {
+    label: "Reduzir parcela",
+    description: "Alternativa para diminuir o compromisso mensal, mantendo o prazo.",
+  },
+};
+
+/** Regra da empresa: parcela mínima de referência = (crédito + taxas) × 0,8%. */
+export const MINIMUM_INSTALLMENT_RATE = 0.008;
+
+export function minimumReferenceInstallment(creditWithFees: number): number {
+  return creditWithFees * MINIMUM_INSTALLMENT_RATE;
+}
+
+/**
+ * Modalidade de um lance já salvo. Lances salvos antes da escolha de
+ * modalidade foram calculados como Reduzir parcela.
+ */
+export function parseSavedLanceModality(value: unknown): LanceModality {
+  return value === "reduzir_prazo" ? "reduzir_prazo" : "reduzir_parcela";
+}
+
+export interface LanceSimulationInput extends LanceInput {
+  modality: LanceModality;
+  /** Parcela atual da proposta, para comparação (padrão: parcela calculada pelo lance) */
+  currentInstallment?: number;
+}
+
+export interface LanceSimulation extends LanceResult {
+  modality: LanceModality;
+  /** Total de taxas (administração + fundo de reserva) */
+  feesAmount: number;
+  /** Parcela mínima de referência: (crédito + taxas) × 0,8% */
+  minimumInstallment: number;
+  /** Parcela atual da proposta */
+  currentInstallment: number;
+  /** Prazo após a carência sem reduzir prazo, em meses */
+  currentTermMonths: number;
+  /** Prazo simulado após a contemplação, em meses inteiros */
+  newTermMonths: number;
+  /** Parcela mensal simulada após a contemplação */
+  newInstallment: number;
+  /** Última parcela (menor quando o saldo não divide exatamente pela parcela mínima) */
+  lastInstallment: number;
+  /** Meses a menos em relação ao prazo atual */
+  monthsReduced: number;
+  /** Nova parcela − parcela atual (negativo = parcela menor) */
+  installmentDifference: number;
+}
+
+export type LanceSimulationResult =
+  { ok: true; simulation: LanceSimulation } | { ok: false; error: string };
+
+const isNonNegative = (value: number) => Number.isFinite(value) && value >= 0;
+
+/** Simulação de lance com validações; nunca altera o input nem os dados da proposta. */
+export function simulateLance(input: LanceSimulationInput): LanceSimulationResult {
+  const { credit, adminRate, reserveFund, initialTerm, remainingTerm, reducedInstallmentRate } =
+    input;
+  const installmentTerm = input.installmentTerm ?? initialTerm;
+  const { embeddedBidRate, cashBidRate, gracePeriodMonths = 2 } = input;
+
+  if (!Number.isFinite(credit) || credit <= 0) return { ok: false, error: "Crédito inválido." };
+  if (!isNonNegative(adminRate) || !isNonNegative(reserveFund))
+    return { ok: false, error: "Taxas inválidas." };
+  if (!Number.isInteger(initialTerm) || initialTerm <= 0)
+    return { ok: false, error: "Prazo do grupo inválido." };
+  if (!Number.isInteger(installmentTerm) || installmentTerm <= 0 || installmentTerm > initialTerm) {
+    return { ok: false, error: "Prazo-base da parcela inválido." };
+  }
+  if (!Number.isInteger(remainingTerm) || remainingTerm <= 0 || remainingTerm > initialTerm) {
+    return { ok: false, error: "Prazo restante do grupo inválido." };
+  }
+  if (
+    !Number.isFinite(reducedInstallmentRate) ||
+    reducedInstallmentRate <= 0 ||
+    reducedInstallmentRate > 1
+  ) {
+    return { ok: false, error: "Percentual da parcela inválido." };
+  }
+  if (!isNonNegative(embeddedBidRate) || !isNonNegative(cashBidRate)) {
+    return { ok: false, error: "Os percentuais de lance não podem ser negativos." };
+  }
+  if (embeddedBidRate + cashBidRate <= 0)
+    return { ok: false, error: "Informe um lance maior que zero." };
+
+  const base = calculateLance(input);
+  if (base.availableCredit < 0)
+    return { ok: false, error: "O lance embutido não pode ser maior que o crédito." };
+  if (base.remainingBalance <= 0) {
+    return {
+      ok: false,
+      error: "O lance quita todo o saldo devedor; reduza o percentual de lance.",
+    };
+  }
+  if (base.postContemplationTermMonths <= 0) {
+    return { ok: false, error: "O prazo restante não comporta a carência após a contemplação." };
+  }
+
+  const minimumInstallment = minimumReferenceInstallment(base.creditWithFees);
+  const currentInstallment = input.currentInstallment ?? base.installment;
+  const currentTermMonths = base.postContemplationTermMonths;
+
+  let newTermMonths = currentTermMonths;
+  let newInstallment = base.postContemplationInstallment;
+  let lastInstallment = newInstallment;
+
+  if (input.modality === "reduzir_prazo") {
+    // Em centavos para o número de parcelas não depender de ruído de ponto flutuante.
+    const balanceCents = Math.round(base.remainingBalance * 100);
+    const minimumCents = Math.round(minimumInstallment * 100);
+    if (minimumCents <= 0) return { ok: false, error: "Parcela mínima de referência inválida." };
+    newTermMonths = Math.ceil(balanceCents / minimumCents);
+    if (newTermMonths > currentTermMonths) {
+      return {
+        ok: false,
+        error:
+          "A parcela mínima de 0,8% não quita o saldo dentro do prazo restante. Use Reduzir parcela.",
+      };
+    }
+    newInstallment = minimumCents / 100;
+    lastInstallment = (balanceCents - (newTermMonths - 1) * minimumCents) / 100;
+  }
+
+  return {
+    ok: true,
+    simulation: {
+      ...base,
+      modality: input.modality,
+      feesAmount: base.creditWithFees - credit,
+      minimumInstallment,
+      currentInstallment,
+      currentTermMonths,
+      newTermMonths,
+      newInstallment,
+      lastInstallment,
+      monthsReduced: currentTermMonths - newTermMonths,
+      installmentDifference: newInstallment - currentInstallment,
+    },
+  };
+}
+
+/** Dados de um item salvo da proposta (snapshot), sem consultar a configuração atual do grupo. */
+export interface LanceItemSnapshot {
+  credit_value: number;
+  administration_rate: number;
+  reserve_fund: number;
+  initial_term: number;
+  remaining_term: number;
+  contract_modality?: string | null;
+  installment_multiplier: number;
+  insurance_rate: number;
+  final_amount: number;
+}
+
+export function lanceInputFromItem(
+  item: LanceItemSnapshot,
+  rates: { embeddedBidRate: number; cashBidRate: number },
+  modality: LanceModality,
+): LanceSimulationInput {
+  return {
+    credit: Number(item.credit_value),
+    adminRate: Number(item.administration_rate),
+    reserveFund: Number(item.reserve_fund),
+    initialTerm: item.initial_term,
+    installmentTerm: savedContractTerm(item),
+    remainingTerm: item.remaining_term,
+    reducedInstallmentRate: Number(item.installment_multiplier),
+    insuranceRate: Number(item.insurance_rate),
+    currentInstallment: Number(item.final_amount),
+    ...rates,
+    modality,
+  };
+}
+
+/**
  * Equivalente à função financeira RATE do Excel/Google Sheets: resolve a
  * taxa periódica `r` tal que
  *   pv * (1+r)^nper + pmt * (1/r + type) * ((1+r)^nper - 1) + fv = 0
  * via Newton-Raphson com derivada numérica (mesma abordagem usada por
  * bibliotecas de planilha de código aberto).
  */
-export function rate(nper: number, pmt: number, pv: number, fv = 0, type: 0 | 1 = 0, guess = 0.1): number {
+export function rate(
+  nper: number,
+  pmt: number,
+  pv: number,
+  fv = 0,
+  type: 0 | 1 = 0,
+  guess = 0.1,
+): number {
   const epsMax = 1e-10;
   const iterMax = 100;
   const dr = 1e-6;

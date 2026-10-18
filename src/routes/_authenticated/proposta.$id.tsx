@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { calculateProposalTotals } from "@/lib/proposal-calc";
-import { calculateLance } from "@/lib/lance-calc";
+import { DEFAULT_LANCE_MODALITY, LANCE_MODALITIES, lanceInputFromItem, parseSavedLanceModality, simulateLance, type LanceModality } from "@/lib/lance-calc";
 import { formatContractModality, savedContractTerm } from "@/lib/calc";
 import { createProposalPdf } from "@/lib/proposal-pdf";
 import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/lib/format";
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/proposta/$id")({
 });
 
 function simulationToItem(sim: SimulationRow): ItemRow {
-  return { ...sim, proposal_id: sim.id, simulation_id: sim.id, quantity: 1, sort_order: 0, lance_embedded_rate: null, lance_cash_rate: null };
+  return { ...sim, proposal_id: sim.id, simulation_id: sim.id, quantity: 1, sort_order: 0, lance_embedded_rate: null, lance_cash_rate: null, lance_modality: null };
 }
 
 function Proposta() {
@@ -130,6 +130,9 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
     alreadySaved ? String(Number(item.lance_embedded_rate) * 100) : "40",
   );
   const [cashPct, setCashPct] = useState(alreadySaved ? String(Number(item.lance_cash_rate) * 100) : "20");
+  const [modality, setModality] = useState<LanceModality>(
+    alreadySaved ? parseSavedLanceModality(item.lance_modality) : DEFAULT_LANCE_MODALITY,
+  );
   const [saving, setSaving] = useState(false);
 
   const parsePct = (value: string) => {
@@ -137,31 +140,22 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
     return Number.isFinite(n) ? n / 100 : NaN;
   };
 
-  const result = useMemo(() => {
-    const embeddedBidRate = parsePct(embeddedPct);
-    const cashBidRate = parsePct(cashPct);
-    if (![embeddedBidRate, cashBidRate].every(Number.isFinite)) return null;
-    return calculateLance({
-      credit: Number(item.credit_value),
-      adminRate: Number(item.administration_rate),
-      reserveFund: Number(item.reserve_fund),
-      initialTerm: item.initial_term,
-      remainingTerm: item.remaining_term,
-      reducedInstallmentRate: Number(item.installment_multiplier),
-      embeddedBidRate,
-      cashBidRate,
-      insuranceRate: Number(item.insurance_rate),
-    });
-  }, [embeddedPct, cashPct, item]);
+  const simulation = useMemo(() => {
+    const embeddedBidRate = embeddedPct.trim() === "" ? NaN : parsePct(embeddedPct);
+    const cashBidRate = cashPct.trim() === "" ? NaN : parsePct(cashPct);
+    if (![embeddedBidRate, cashBidRate].every(Number.isFinite)) {
+      return { ok: false as const, error: "Informe percentuais de lance válidos." };
+    }
+    return simulateLance(lanceInputFromItem(item, { embeddedBidRate, cashBidRate }, modality));
+  }, [embeddedPct, cashPct, modality, item]);
+  const result = simulation.ok ? simulation.simulation : null;
 
   async function saveLance() {
-    const embeddedBidRate = parsePct(embeddedPct);
-    const cashBidRate = parsePct(cashPct);
-    if (!Number.isFinite(embeddedBidRate) || !Number.isFinite(cashBidRate)) return;
+    if (!result) return;
     setSaving(true);
     const { error } = await supabase
       .from("proposal_items")
-      .update({ lance_embedded_rate: embeddedBidRate, lance_cash_rate: cashBidRate })
+      .update({ lance_embedded_rate: parsePct(embeddedPct), lance_cash_rate: parsePct(cashPct), lance_modality: modality })
       .eq("id", item.id);
     setSaving(false);
     if (error) {
@@ -176,7 +170,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
     setSaving(true);
     const { error } = await supabase
       .from("proposal_items")
-      .update({ lance_embedded_rate: null, lance_cash_rate: null })
+      .update({ lance_embedded_rate: null, lance_cash_rate: null, lance_modality: null })
       .eq("id", item.id);
     setSaving(false);
     if (error) {
@@ -208,6 +202,24 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
             <Input value={cashPct} onChange={(e) => setCashPct(e.target.value)} />
           </div>
         </div>
+        <div role="radiogroup" aria-label="Modalidade do lance" className="grid gap-2 sm:grid-cols-2">
+          {(Object.keys(LANCE_MODALITIES) as LanceModality[]).map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={modality === option}
+              onClick={() => setModality(option)}
+              className={`rounded-lg border p-3 text-left transition-colors ${modality === option ? "border-primary bg-primary/5 ring-2 ring-primary" : "border-border hover:border-primary/40"}`}
+            >
+              <div className="flex items-center gap-2 font-semibold">
+                {LANCE_MODALITIES[option].label}
+                {option === DEFAULT_LANCE_MODALITY && <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-semibold uppercase text-primary-foreground">Recomendado</span>}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{LANCE_MODALITIES[option].description}</p>
+            </button>
+          ))}
+        </div>
         {result ? (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
@@ -218,13 +230,28 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
             </div>
 
             <div className="rounded-lg border border-border p-4">
-              <LabelText>Por cota</LabelText>
+              <LabelText>Condição original · por cota</LabelText>
+              <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <Item label="Crédito" value={formatBRL(Number(item.credit_value))} />
+                <Item label="Total de taxas" value={formatBRL(result.feesAmount)} />
+                <Item label="Parcela atual" value={formatBRL(result.currentInstallment)} />
+                <Item label="Prazo atual (após carência)" value={`${result.currentTermMonths} meses`} />
+                <Item label="Parcela mínima (0,8%)" value={formatBRL(result.minimumInstallment)} />
+              </dl>
+            </div>
+
+            <div className="rounded-lg border border-border p-4">
+              <LabelText>Simulação · {LANCE_MODALITIES[modality].label} · por cota</LabelText>
               <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <Item label={`Lance embutido (${embeddedPct}%)`} value={formatBRL(result.embeddedBidAmount)} />
                 <Item label={`Lance em espécie (${cashPct}%)`} value={formatBRL(result.cashBidAmount)} />
+                <Item label="Valor do lance" value={formatBRL(result.bidTotalAmount)} />
                 <Item label="Crédito disponível" value={formatBRL(result.availableCredit)} />
-                <Item label="Nova parcela" value={formatBRL(result.postContemplationInstallment)} />
-                <Item label="Novo prazo" value={`${result.postContemplationTermMonths} meses`} />
+                <Item label="Nova parcela" value={formatBRL(result.newInstallment)} />
+                <Item label="Novo prazo" value={`${result.newTermMonths} meses`} />
+                {result.lastInstallment !== result.newInstallment && <Item label="Última parcela" value={formatBRL(result.lastInstallment)} />}
+                <Item label="Meses reduzidos" value={`${result.monthsReduced} ${result.monthsReduced === 1 ? "mês" : "meses"}`} />
+                <Item label="Diferença na parcela" value={`${result.installmentDifference > 0 ? "+" : ""}${formatBRL(result.installmentDifference)}`} />
               </dl>
             </div>
 
@@ -234,13 +261,14 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
                 <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
                   <Item light label="Lance em espécie total" value={formatBRL(result.cashBidAmount * item.quantity)} />
                   <Item light label="Crédito disponível" value={formatBRL(result.availableCredit * item.quantity)} />
-                  <Item light label="Nova parcela" value={formatBRL(result.postContemplationInstallment * item.quantity)} />
+                  <Item light label="Nova parcela" value={formatBRL(result.newInstallment * item.quantity)} />
                 </dl>
               </div>
             )}
+            <p className="text-xs text-muted-foreground">Estimativa informativa, sujeita às condições vigentes do grupo e à confirmação da administradora.</p>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Informe percentuais válidos para simular.</p>
+          <p className="text-sm text-destructive">{simulation.ok ? "" : simulation.error}</p>
         )}
 
         {legacy ? (

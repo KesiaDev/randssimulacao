@@ -1,6 +1,6 @@
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/lib/format";
-import { calculateLance } from "@/lib/lance-calc";
+import { LANCE_MODALITIES, lanceInputFromItem, parseSavedLanceModality, simulateLance } from "@/lib/lance-calc";
 import { formatContractModality } from "@/lib/calc";
 import randonLogo from "@/assets/randon-logo.png.asset.json";
 
@@ -296,22 +296,18 @@ export async function createProposalPdf(input: Input) {
     let grandInstallmentTotal = 0;
 
     itemsWithLance.forEach((item) => {
-      const lance = calculateLance({
-        credit: Number(item.credit_value),
-        adminRate: Number(item.administration_rate),
-        reserveFund: Number(item.reserve_fund),
-        initialTerm: item.initial_term,
-        remainingTerm: item.remaining_term,
-        reducedInstallmentRate: Number(item.installment_multiplier),
-        embeddedBidRate: Number(item.lance_embedded_rate),
-        cashBidRate: Number(item.lance_cash_rate),
-        insuranceRate: Number(item.insurance_rate),
-      });
+      const modality = parseSavedLanceModality(item.lance_modality);
+      const simulated = simulateLance(
+        lanceInputFromItem(item, { embeddedBidRate: Number(item.lance_embedded_rate), cashBidRate: Number(item.lance_cash_rate) }, modality),
+      );
+      // Lance salvo que deixou de ser válido (ex.: prazo do grupo esgotado) não entra no PDF.
+      if (!simulated.ok) return;
+      const lance = simulated.simulation;
       const quantity = item.quantity;
       grandLanceTotal += lance.bidTotalAmount * quantity;
       grandCashTotal += lance.cashBidAmount * quantity;
       grandAvailableTotal += lance.availableCredit * quantity;
-      grandInstallmentTotal += lance.postContemplationInstallment * quantity;
+      grandInstallmentTotal += lance.newInstallment * quantity;
 
       const cardHeight = 58;
       const miniTotalHeight = 24;
@@ -328,7 +324,7 @@ export async function createProposalPdf(input: Input) {
       pdf.text(`GRUPO ${item.group_code}`, margin + 9, y + 8);
       pdf.setTextColor(...navy);
       pdf.setFontSize(11);
-      pdf.text(`Lance total ${formatPercent(lance.bidTotalRate)}  •  ${quantity} ${quantity === 1 ? "cota" : "cotas"}`, margin + 9, y + 15);
+      pdf.text(`${LANCE_MODALITIES[modality].label}  •  Lance total ${formatPercent(lance.bidTotalRate)}  •  ${quantity} ${quantity === 1 ? "cota" : "cotas"}`, margin + 9, y + 15);
 
       const lanceRows: Array<{ labels: string[]; values: string[] }> = [
         {
@@ -340,8 +336,8 @@ export async function createProposalPdf(input: Input) {
           values: [formatBRL(lance.embeddedBidAmount), formatBRL(lance.cashBidAmount), formatBRL(lance.availableCredit)],
         },
         {
-          labels: ["NOVA PARCELA/COTA", "NOVO PRAZO"],
-          values: [formatBRL(lance.postContemplationInstallment), `${lance.postContemplationTermMonths} meses`],
+          labels: ["NOVA PARCELA/COTA", "NOVO PRAZO", "MESES REDUZIDOS"],
+          values: [formatBRL(lance.newInstallment), `${lance.newTermMonths} meses`, `${lance.monthsReduced} ${lance.monthsReduced === 1 ? "mês" : "meses"}`],
         },
       ];
       lanceRows.forEach(({ labels, values }, row) => {
@@ -372,7 +368,7 @@ export async function createProposalPdf(input: Input) {
         const miniValues = [
           formatBRL(lance.cashBidAmount * quantity),
           formatBRL(lance.availableCredit * quantity),
-          formatBRL(lance.postContemplationInstallment * quantity),
+          formatBRL(lance.newInstallment * quantity),
         ];
         miniLabels.forEach((label, column) => {
           const x = margin + 8 + column * 56;
