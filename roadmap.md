@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Acrescentar filtro por grupo às reservas de cotas e validar com os demais filtros, sem alterar cálculos ou registros.
+
 - [x] Analisar todas as abas de Propostas_Simulação.xlsx e reproduzir exemplos do Grupo 1075 — Padrão usa crédito de R$ 400 mil e espécie 19%; Planilha2 usa crédito de R$ 200 mil e espécie 20%; 101 testes existentes passaram sem alterações financeiras.
 - [x] Corrigir simulação de lance conforme planilha oficial — saldo desconta parcela sem seguro conforme Padrão/Planilha2!S; exemplos separados confirmados; 38 × R$ 3.440 e 39ª de R$ 860; R$ 1.247,84 em 51 meses; 105 testes passaram, proposta real aberta sem gravações e PDF oficial conferido; proposta original, autenticação e banco preservados.
 

@@ -15,7 +15,14 @@ import { syncReservaNotifications } from "@/lib/mauricio.functions";
 import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mauricio/reservas")({
-  head: () => ({ meta: [{ title: "Reservas de Cotas — Gestão Comercial" }] }),
+  head: () => ({ meta: [
+    { title: "Reservas de Cotas — Randon Gestão Comercial" },
+    { name: "description", content: "Reservas de cotas Randon por grupo, revenda e status, com acompanhamento de validade." },
+    { property: "og:title", content: "Reservas de Cotas — Randon Gestão Comercial" },
+    { property: "og:description", content: "Acompanhe as reservas de cotas Randon por grupo, revenda, status e validade." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ReservasPage,
 });
 
@@ -34,6 +41,7 @@ function ReservasPage() {
   const qc = useQueryClient();
   const syncFn = useServerFn(syncReservaNotifications);
   const [busca, setBusca] = useState("");
+  const [filtroGrupo, setFiltroGrupo] = useState("todos");
   const [filtroRevenda, setFiltroRevenda] = useState("todas");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [editando, setEditando] = useState<Reserva | null>(null);
@@ -55,7 +63,13 @@ function ReservasPage() {
     [reservas],
   );
 
+  const grupos = useMemo(
+    () => [...new Set(lista.map((r) => r.grupo))].sort((a, b) => a - b),
+    [lista],
+  );
+
   const filtradas = lista.filter((r) => {
+    if (filtroGrupo !== "todos" && String(r.grupo) !== filtroGrupo) return false;
     if (busca && !`${r.grupo} ${r.cota} ${r.vendedor ?? ""}`.toLowerCase().includes(busca.toLowerCase())) return false;
     if (filtroRevenda !== "todas" && r.revenda !== filtroRevenda) return false;
     if (filtroStatus !== "todos" && r.efetivo !== filtroStatus) return false;
@@ -133,6 +147,15 @@ function ReservasPage() {
               onChange={(e) => setBusca(e.target.value)}
               className="max-w-xs"
             />
+            <Select value={filtroGrupo} onValueChange={setFiltroGrupo}>
+              <SelectTrigger className="w-40" aria-label="Filtrar por grupo"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os grupos</SelectItem>
+                {grupos.map((grupo) => (
+                  <SelectItem key={grupo} value={String(grupo)}>Grupo {grupo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select value={filtroRevenda} onValueChange={setFiltroRevenda}>
               <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
               <SelectContent>
