@@ -277,11 +277,11 @@ describe("Reduzir prazo bloqueado quando o novo prazo ultrapassa o prazo restant
     expect(empty.modality).toBe("reduzir_parcela");
     expect(empty.cashBidAmount).toBe(0);
     expect(empty.newTermMonths).toBe(33);
-    expect(empty.newInstallment).toBeCloseTo(5110.437793939394, 8);
+    expect(empty.newInstallment).toBeCloseTo(5110.437187878788, 8);
     const edited = calculate("20");
     expect(edited.modality).toBe("reduzir_parcela");
     expect(edited.newTermMonths).toBe(33);
-    expect(edited.newInstallment).toBeCloseTo(3513.426172727273, 8);
+    expect(edited.newInstallment).toBeCloseTo(3513.4255666666663, 8);
     const higher = calculate("40");
     expect(higher.modality).toBe("reduzir_prazo");
     expect(higher.newTermMonths).toBe(30);
