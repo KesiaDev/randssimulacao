@@ -702,7 +702,6 @@ export type Database = {
           insurance_rate: number
           lance_cash_rate: number | null
           lance_embedded_rate: number | null
-          lance_modality: string | null
           proposal_id: string
           quantity: number
           remaining_term: number
@@ -732,7 +731,6 @@ export type Database = {
           insurance_rate?: number
           lance_cash_rate?: number | null
           lance_embedded_rate?: number | null
-          lance_modality?: string | null
           proposal_id: string
           quantity?: number
           remaining_term: number
@@ -762,7 +760,6 @@ export type Database = {
           insurance_rate?: number
           lance_cash_rate?: number | null
           lance_embedded_rate?: number | null
-          lance_modality?: string | null
           proposal_id?: string
           quantity?: number
           remaining_term?: number
