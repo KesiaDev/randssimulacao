@@ -1,13 +1,11 @@
 /**
  * Motor de cálculo de lance (contemplação por oferta de lance).
  *
- * Fonte original: planilha "Proposta Marlon simulação lance.xlsx", abas
- * "Mascarello" e "Cortina". O saldo devedor foi corrigido a pedido do
- * Mauricio (05/10/2026): a planilha só descontava o seguro, mas o saldo
- * devedor correto desconta a parcela inicial inteira (a que já sai
- * quando a proposta é montada), não só o seguro. A aba "Planilha2" do
- * mesmo arquivo usa ainda outra fórmula (percentual fixo sobre o
- * crédito) e não é usada aqui.
+ * Fonte: "Propostas_Simulação.xlsx", abas "Padrão" e "Planilha2".
+ * S3/S4 descontam a parcela SEM seguro (K), não a parcela com seguro (I).
+ * Padrão!U = G × 0,8%; V = S / U. Planilha2!V = E − 2; U = S / V.
+ * Prazo fracionário é quitado com última parcela menor, confirmado pela
+ * solicitante: Padrão!V4 = 38,25 → 38 × 3.440 + última de 860.
  */
 
 import { savedContractTerm } from "./calc";
@@ -59,7 +57,7 @@ export interface LanceResult {
   cashBidAmount: number;
   /** Crédito que resta disponível após o lance embutido */
   availableCredit: number;
-  /** Saldo devedor: crédito+taxas menos o lance (embutido + espécie) e uma parcela inicial já paga */
+  /** Padrão/Planilha2!S: crédito+taxas menos lances e parcela inicial SEM seguro */
   remainingBalance: number;
   /** Novo prazo restante após a carência pós-contemplação */
   postContemplationTermMonths: number;
@@ -98,7 +96,7 @@ export function calculateLance(input: LanceInput): LanceResult {
   const cashBidAmount = creditWithFees * cashBidRate;
 
   const availableCredit = credit - embeddedBidAmount;
-  const remainingBalance = creditWithFees - embeddedBidAmount - cashBidAmount - installment;
+  const remainingBalance = creditWithFees - embeddedBidAmount - cashBidAmount - installmentBeforeInsurance;
 
   const postContemplationTermMonths = remainingTerm - gracePeriodMonths;
   const postContemplationInstallment =

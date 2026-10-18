@@ -16,3 +16,4 @@
 - Proposal screen and PDF share installment-label formatting from the saved item snapshot, so displayed percentages remain consistent without querying current group settings.
 - Commercial strategic indicators use a pure calculation module and bounded year-range reads under existing RLS; projections require complete monthly coverage and year-over-year comparisons use matched months, keeping imported annual history independent.
 - Calendar deletion is a verified hard delete under existing Mauricio RLS and invalidates every event surface; appointment reminders derive from live events using Sao Paulo date boundaries, with read receipts cascading on event deletion so deleted events cannot leave orphaned notices.
+- Lance financial rules remain centralized in lance-calc with workbook cell references and scenario regressions; UI and PDF consume its results rather than duplicating formulas, keeping both outputs consistent.
