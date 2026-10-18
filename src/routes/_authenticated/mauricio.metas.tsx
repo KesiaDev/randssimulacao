@@ -32,15 +32,6 @@ function MetasPage() {
     queryFn: async () =>
       (await supabase.from("mauricio_metas_anuais").select("*").order("revenda").order("ano")).data ?? [],
   });
-  const { data: seguros } = useQuery({
-    queryKey: ["m-seguro", ANO],
-    queryFn: async () =>
-      (await supabase.from("mauricio_seguro").select("*").eq("ano", ANO)).data ?? [],
-  });
-  const { data: campanhas } = useQuery({
-    queryKey: ["m-campanhas"],
-    queryFn: async () => (await supabase.from("mauricio_campanhas").select("*")).data ?? [],
-  });
   const { data: indicacao } = useQuery({
     queryKey: ["m-indicacao"],
     queryFn: async () => (await supabase.from("mauricio_indicacao").select("*").order("grupo")).data ?? [],
