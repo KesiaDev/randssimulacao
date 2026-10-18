@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Incluir comparações mensais/anuais, projeções transparentes e oportunidades de melhoria na gestão comercial, preservando lacunas e histórico.
+- [x] Incluir comparações mensais/anuais, projeções transparentes e oportunidades de melhoria na gestão comercial, preservando lacunas e histórico — filtros e cenários validados com acesso do Maurício; 11 testes passaram; sem projeção para cobertura incompleta.
+- [x] Retirar o programa de indicação de terceiros das telas de gestão comercial, preservando registros históricos — ausência conferida na tela de metas.
 
 - [x] Entregar formulário Word preenchível para Mauricio confirmar regras, exemplos e dados de custo efetivo, modalidades e contemplação — sete páginas, arquivo validado e diagramação revisada
 
