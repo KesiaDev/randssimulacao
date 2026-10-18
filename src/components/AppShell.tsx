@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
+  CalendarDays,
   Calculator,
   ClipboardList,
   KeyRound,
@@ -10,13 +11,17 @@ import {
   Moon,
   Settings2,
   Sun,
+  Target,
   Users,
   X,
+  Bookmark,
 } from "lucide-react";
 import { Brand } from "./Brand";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
+import { MAURICIO_USER_ID } from "@/lib/mauricio";
+import { MauricioNotifications } from "./MauricioNotifications";
 
 const sellerNav = [
   { to: "/dashboard", label: "Início", icon: LayoutDashboard },
@@ -30,13 +35,24 @@ const adminNav = [
   { to: "/admin/equipe", label: "Minha equipe", icon: Users },
 ] as const;
 
+const mauricioNav = [
+  { to: "/mauricio", label: "Gestão comercial", icon: LayoutDashboard },
+  { to: "/mauricio/metas", label: "Metas e resultados", icon: Target },
+  { to: "/mauricio/calendario", label: "Calendário", icon: CalendarDays },
+  { to: "/mauricio/reservas", label: "Reservas de cotas", icon: Bookmark },
+] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
-  const { profile, isAdmin, signOut } = useAuth();
+  const { profile, isAdmin, signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const items = [...sellerNav, ...(isAdmin ? adminNav : [])];
+  const items = [
+    ...sellerNav,
+    ...(isAdmin ? adminNav : []),
+    ...(user?.id === MAURICIO_USER_ID ? mauricioNav : []),
+  ];
 
   return (
     <div className="flex min-h-dvh bg-background">
