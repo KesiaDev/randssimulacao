@@ -32,15 +32,6 @@ function MetasPage() {
     queryFn: async () =>
       (await supabase.from("mauricio_metas_anuais").select("*").order("revenda").order("ano")).data ?? [],
   });
-  const { data: seguros } = useQuery({
-    queryKey: ["m-seguro", ANO],
-    queryFn: async () =>
-      (await supabase.from("mauricio_seguro").select("*").eq("ano", ANO)).data ?? [],
-  });
-  const { data: campanhas } = useQuery({
-    queryKey: ["m-campanhas"],
-    queryFn: async () => (await supabase.from("mauricio_campanhas").select("*")).data ?? [],
-  });
   const { data: indicacao } = useQuery({
     queryKey: ["m-indicacao"],
     queryFn: async () => (await supabase.from("mauricio_indicacao").select("*").order("grupo")).data ?? [],
@@ -186,49 +177,6 @@ function MetasPage() {
           </table>
         </CardContent>
       </Card>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Seguro — {ANO}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {(seguros ?? []).map((s) => (
-              <div key={s.id} className="rounded-lg border p-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{s.revenda}</span>
-                  <Badge variant="secondary">{formatPct(Number(s.meta), Number(s.realizado))}</Badge>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Meta {formatBRL(Number(s.meta))} · Realizado {formatBRL(Number(s.realizado))}
-                </p>
-                {s.observacao && <p className="mt-1 text-xs text-muted-foreground italic">{s.observacao}</p>}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Campanhas comerciais</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {(campanhas ?? []).map((c) => (
-              <div key={c.id} className="rounded-lg border p-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{c.nome}</span>
-                  <Badge variant="secondary">{formatPct(Number(c.meta), Number(c.realizado))}</Badge>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Meta {formatBRL(Number(c.meta))} · Realizado {formatBRL(Number(c.realizado))}
-                  {c.periodo ? ` · ${c.periodo}` : ""}
-                </p>
-                {c.observacao && <p className="mt-1 text-xs text-muted-foreground italic">{c.observacao}</p>}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
 
       <Card>
         <CardHeader>

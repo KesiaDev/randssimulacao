@@ -24,15 +24,6 @@ function MauricioDashboard() {
     queryFn: async () =>
       (await supabase.from("mauricio_resultados_mensais").select("*").eq("ano", ANO)).data ?? [],
   });
-  const { data: seguros } = useQuery({
-    queryKey: ["m-seguro", ANO],
-    queryFn: async () =>
-      (await supabase.from("mauricio_seguro").select("*").eq("ano", ANO)).data ?? [],
-  });
-  const { data: campanhas } = useQuery({
-    queryKey: ["m-campanhas"],
-    queryFn: async () => (await supabase.from("mauricio_campanhas").select("*")).data ?? [],
-  });
   const { data: eventos } = useQuery({
     queryKey: ["m-eventos-proximos"],
     queryFn: async () =>
@@ -132,50 +123,29 @@ function MauricioDashboard() {
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Desempenho por revenda ({ANO})</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {(metas ?? []).map((m) => (
-                <div key={m.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
-                  <div>
-                    <p className="font-medium">{m.revenda}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Meta {formatBRL(Number(m.meta))} · Realizado {formatBRL(Number(m.realizado))}
-                    </p>
-                  </div>
-                  <Badge variant="secondary">{formatPct(Number(m.meta), Number(m.realizado))}</Badge>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Desempenho por revenda ({ANO})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {(metas ?? []).map((m) => (
+              <Link
+                key={m.id}
+                to="/mauricio/revenda/$nome"
+                params={{ nome: m.revenda }}
+                className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:border-primary/40 hover:bg-muted/40"
+              >
+                <div>
+                  <p className="font-medium text-primary">{m.revenda}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Meta {formatBRL(Number(m.meta))} · Realizado {formatBRL(Number(m.realizado))}
+                  </p>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Seguro e campanhas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              {(seguros ?? []).map((s) => (
-                <div key={s.id} className="flex items-center justify-between">
-                  <span>Seguro {s.revenda}</span>
-                  <span className="font-medium">
-                    {formatBRL(Number(s.realizado))} / {formatBRL(Number(s.meta))} ({formatPct(Number(s.meta), Number(s.realizado))})
-                  </span>
-                </div>
-              ))}
-              {(campanhas ?? []).map((c) => (
-                <div key={c.id} className="flex items-center justify-between">
-                  <span>{c.nome}</span>
-                  <span className="font-medium">
-                    {formatBRL(Number(c.realizado))} / {formatBRL(Number(c.meta))} ({formatPct(Number(c.meta), Number(c.realizado))})
-                  </span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+                <Badge variant="secondary">{formatPct(Number(m.meta), Number(m.realizado))}</Badge>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

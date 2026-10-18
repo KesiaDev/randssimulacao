@@ -29,6 +29,7 @@ import { Route as AuthenticatedMauricioCalendarioRouteImport } from './routes/_a
 import { Route as AuthenticatedMauricioMetasRouteImport } from './routes/_authenticated/mauricio.metas'
 import { Route as AuthenticatedMauricioReservasRouteImport } from './routes/_authenticated/mauricio.reservas'
 import { Route as AuthenticatedPropostaIdRouteImport } from './routes/_authenticated/proposta.$id'
+import { Route as AuthenticatedMauricioRevendaNomeRouteImport } from './routes/_authenticated/mauricio.revenda.$nome'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -135,6 +136,12 @@ const AuthenticatedPropostaIdRoute = AuthenticatedPropostaIdRouteImport.update({
   path: '/proposta/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMauricioRevendaNomeRoute =
+  AuthenticatedMauricioRevendaNomeRouteImport.update({
+    id: '/revenda/$nome',
+    path: '/revenda/$nome',
+    getParentRoute: () => AuthenticatedMauricioRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/proposta/$id': typeof AuthenticatedPropostaIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/mauricio/': typeof AuthenticatedMauricioIndexRoute
+  '/mauricio/revenda/$nome': typeof AuthenticatedMauricioRevendaNomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -175,6 +183,7 @@ export interface FileRoutesByTo {
   '/proposta/$id': typeof AuthenticatedPropostaIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/mauricio': typeof AuthenticatedMauricioIndexRoute
+  '/mauricio/revenda/$nome': typeof AuthenticatedMauricioRevendaNomeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -198,6 +207,7 @@ export interface FileRoutesById {
   '/_authenticated/proposta/$id': typeof AuthenticatedPropostaIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/mauricio/': typeof AuthenticatedMauricioIndexRoute
+  '/_authenticated/mauricio/revenda/$nome': typeof AuthenticatedMauricioRevendaNomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/proposta/$id'
     | '/admin/'
     | '/mauricio/'
+    | '/mauricio/revenda/$nome'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/proposta/$id'
     | '/admin'
     | '/mauricio'
+    | '/mauricio/revenda/$nome'
   id:
     | '__root__'
     | '/'
@@ -262,6 +274,7 @@ export interface FileRouteTypes {
     | '/_authenticated/proposta/$id'
     | '/_authenticated/admin/'
     | '/_authenticated/mauricio/'
+    | '/_authenticated/mauricio/revenda/$nome'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -415,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPropostaIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mauricio/revenda/$nome': {
+      id: '/_authenticated/mauricio/revenda/$nome'
+      path: '/revenda/$nome'
+      fullPath: '/mauricio/revenda/$nome'
+      preLoaderRoute: typeof AuthenticatedMauricioRevendaNomeRouteImport
+      parentRoute: typeof AuthenticatedMauricioRoute
+    }
   }
 }
 
@@ -438,6 +458,7 @@ interface AuthenticatedMauricioRouteChildren {
   AuthenticatedMauricioMetasRoute: typeof AuthenticatedMauricioMetasRoute
   AuthenticatedMauricioReservasRoute: typeof AuthenticatedMauricioReservasRoute
   AuthenticatedMauricioIndexRoute: typeof AuthenticatedMauricioIndexRoute
+  AuthenticatedMauricioRevendaNomeRoute: typeof AuthenticatedMauricioRevendaNomeRoute
 }
 
 const AuthenticatedMauricioRouteChildren: AuthenticatedMauricioRouteChildren = {
@@ -445,6 +466,7 @@ const AuthenticatedMauricioRouteChildren: AuthenticatedMauricioRouteChildren = {
   AuthenticatedMauricioMetasRoute: AuthenticatedMauricioMetasRoute,
   AuthenticatedMauricioReservasRoute: AuthenticatedMauricioReservasRoute,
   AuthenticatedMauricioIndexRoute: AuthenticatedMauricioIndexRoute,
+  AuthenticatedMauricioRevendaNomeRoute: AuthenticatedMauricioRevendaNomeRoute,
 }
 
 const AuthenticatedMauricioRouteWithChildren =
