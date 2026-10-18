@@ -5,9 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE } from "@/lib/mauricio";
 import { CalendarDays, Target, TrendingUp, AlertTriangle } from "lucide-react";
+import { CommercialInsights } from "@/components/CommercialInsights";
 
 export const Route = createFileRoute("/_authenticated/mauricio/")({
-  head: () => ({ meta: [{ title: "Gestão Comercial — Painel" }] }),
+  head: () => ({ meta: [
+    { title: "Gestão Comercial e Perspectiva Estratégica — Randon" },
+    { name: "description", content: "Metas, evolução por revenda, comparações históricas e projeções comerciais Randon." },
+    { property: "og:title", content: "Gestão Comercial — Randon" },
+    { property: "og:description", content: "Resultados, histórico e oportunidades de melhoria comercial por revenda." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: MauricioDashboard,
 });
 
@@ -97,6 +105,8 @@ function MauricioDashboard() {
           <CardContent className="text-2xl font-bold">{formatBRL(falta > 0 ? falta : 0)}</CardContent>
         </Card>
       </div>
+
+      <CommercialInsights currentYear={ANO} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
