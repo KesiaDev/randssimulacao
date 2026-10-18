@@ -4,8 +4,8 @@
  * Fonte: "Propostas_Simulação.xlsx", abas "Padrão" e "Planilha2".
  * S3/S4 descontam a parcela SEM seguro (K), não a parcela com seguro (I).
  * Padrão!U = G × 0,8%; V = S / U. Planilha2!V = E − 2; U = S / V.
- * Prazo fracionário é quitado com última parcela menor, confirmado pela
- * solicitante: Padrão!V4 = 38,25 → 38 × 3.440 + última de 860.
+ * Prazo fracionário é truncado (sobra desconsiderada), confirmado pela
+ * solicitante: 165.391,67 / 4.460 = 37,08 → 37 parcelas de 4.460.
  */
 
 import { savedContractTerm } from "./calc";
