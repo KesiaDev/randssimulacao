@@ -135,9 +135,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="min-w-0"><Brand compact /></div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo noturno"}>
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center gap-1">
+            <MauricioNotifications />
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo noturno"}>
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+          </div>
         </header>
         <main className="min-w-0 flex-1 px-3 py-5 print:p-0 sm:px-6 sm:py-7 lg:px-8 lg:py-8 xl:px-10 xl:py-10">
           <div className="mx-auto w-full max-w-6xl">{children}</div>
