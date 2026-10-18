@@ -256,7 +256,8 @@ export function simulateLance(input: LanceSimulationInput): LanceSimulationResul
     const balanceCents = Math.round(base.remainingBalance * 100);
     const minimumCents = Math.round(minimumInstallment * 100);
     if (minimumCents <= 0) return { ok: false, error: "Parcela mínima de referência inválida." };
-    newTermMonths = Math.ceil(balanceCents / minimumCents);
+    // Regra confirmada: V = S / U truncado; a sobra fracionária é desconsiderada.
+    newTermMonths = Math.floor(balanceCents / minimumCents);
     if (newTermMonths > currentTermMonths) {
       return {
         ok: false,
@@ -264,8 +265,13 @@ export function simulateLance(input: LanceSimulationInput): LanceSimulationResul
           "A parcela mínima de 0,8% não quita o saldo dentro do prazo restante. Use Reduzir parcela.",
       };
     }
-    newInstallment = minimumCents / 100;
-    lastInstallment = (balanceCents - (newTermMonths - 1) * minimumCents) / 100;
+    if (newTermMonths < 1) {
+      newTermMonths = 1;
+      newInstallment = balanceCents / 100;
+    } else {
+      newInstallment = minimumCents / 100;
+    }
+    lastInstallment = newInstallment;
   }
 
   return {
