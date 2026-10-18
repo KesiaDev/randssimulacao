@@ -204,6 +204,13 @@ export type LanceSimulationResult =
 
 const isNonNegative = (value: number) => Number.isFinite(value) && value >= 0;
 
+/** Campo de lance opcional: vazio representa nenhum lance; texto inválido continua inválido. */
+export function parseLancePercent(value: string): number {
+  if (value.trim() === "") return 0;
+  const parsed = Number(value.trim().replace(",", "."));
+  return Number.isFinite(parsed) ? parsed / 100 : NaN;
+}
+
 /** Simulação de lance com validações; nunca altera o input nem os dados da proposta. */
 export function simulateLance(input: LanceSimulationInput): LanceSimulationResult {
   const { credit, adminRate, reserveFund, initialTerm, remainingTerm, reducedInstallmentRate } =
