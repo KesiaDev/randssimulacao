@@ -28,7 +28,7 @@ type SimulationRow = Database["public"]["Tables"]["simulations"]["Row"];
 
 export const Route = createFileRoute("/_authenticated/proposta/$id")({
   validateSearch: (search: Record<string, unknown>) => ({
-    highlightLance: search["highlightLance"] === "1" ? true : undefined,
+    highlightLance: search["highlightLance"] === true || search["highlightLance"] === "1" ? true : undefined,
   }),
   head: () => ({ meta: [
     { title: "Proposta comercial — Randon Consórcios" },
