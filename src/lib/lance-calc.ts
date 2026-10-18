@@ -4,8 +4,8 @@
  * Fonte: "Propostas_Simulação.xlsx", abas "Padrão" e "Planilha2".
  * S3/S4 descontam a parcela SEM seguro (K), não a parcela com seguro (I).
  * Padrão!U = G × 0,8%; V = S / U. Planilha2!V = E − 2; U = S / V.
- * Prazo fracionário é quitado com última parcela menor, confirmado pela
- * solicitante: Padrão!V4 = 38,25 → 38 × 3.440 + última de 860.
+ * Prazo fracionário é truncado (sobra desconsiderada), confirmado pela
+ * solicitante: 165.391,67 / 4.460 = 37,08 → 37 parcelas de 4.460.
  */
 
 import { savedContractTerm } from "./calc";
@@ -256,7 +256,8 @@ export function simulateLance(input: LanceSimulationInput): LanceSimulationResul
     const balanceCents = Math.round(base.remainingBalance * 100);
     const minimumCents = Math.round(minimumInstallment * 100);
     if (minimumCents <= 0) return { ok: false, error: "Parcela mínima de referência inválida." };
-    newTermMonths = Math.ceil(balanceCents / minimumCents);
+    // Regra confirmada: V = S / U truncado; a sobra fracionária é desconsiderada.
+    newTermMonths = Math.floor(balanceCents / minimumCents);
     if (newTermMonths > currentTermMonths) {
       return {
         ok: false,
@@ -264,8 +265,13 @@ export function simulateLance(input: LanceSimulationInput): LanceSimulationResul
           "A parcela mínima de 0,8% não quita o saldo dentro do prazo restante. Use Reduzir parcela.",
       };
     }
-    newInstallment = minimumCents / 100;
-    lastInstallment = (balanceCents - (newTermMonths - 1) * minimumCents) / 100;
+    if (newTermMonths < 1) {
+      newTermMonths = 1;
+      newInstallment = balanceCents / 100;
+    } else {
+      newInstallment = minimumCents / 100;
+    }
+    lastInstallment = newInstallment;
   }
 
   return {

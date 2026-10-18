@@ -68,18 +68,19 @@ describe("modalidade do lance", () => {
     expect(s.remainingBalance).toBeCloseTo(152637.33333333334, 6);
     expect(s.currentTermMonths).toBe(56);
     expect(s.newInstallment).toBe(3536);
-    expect(s.newTermMonths).toBe(44);
-    expect(s.lastInstallment).toBeCloseTo(589.33, 10);
-    expect(s.monthsReduced).toBe(12);
+    expect(s.newTermMonths).toBe(43);
+    expect(s.lastInstallment).toBe(3536);
+    expect(s.monthsReduced).toBe(13);
     expect(s.installmentDifference).toBeCloseTo(3536 - 2239.4666666666667, 6);
   });
 
-  it("Reduzir prazo: parcelas somadas quitam exatamente o saldo (em centavos)", () => {
-    const s = ok({ ...GROUP_1075, modality: "reduzir_prazo" });
-    const paid = (s.newTermMonths - 1) * s.newInstallment + s.lastInstallment;
-    expect(paid).toBeCloseTo(Math.round(s.remainingBalance * 100) / 100, 6);
-    expect(s.lastInstallment).toBeGreaterThan(0);
-    expect(s.lastInstallment).toBeLessThanOrEqual(s.newInstallment);
+  it("Reduzir prazo: Grupo 1081 → 165.391,67 / 4.460 = 37 parcelas, sobra desconsiderada", () => {
+    const s = ok({ credit: 500000, adminRate: 0.1, reserveFund: 0.015, initialTerm: 120,
+      remainingTerm: 120, reducedInstallmentRate: 1, embeddedBidRate: 0.5, cashBidRate: 0.2,
+      insuranceRate: 0, modality: "reduzir_prazo" });
+    expect(s.newInstallment).toBe(4460);
+    expect(s.newTermMonths).toBe(Math.floor(s.remainingBalance / 4460));
+    expect(s.lastInstallment).toBe(4460);
   });
 
   it("Reduzir parcela: mantém o prazo conforme Planilha2!V e usa saldo com desconto de K", () => {
@@ -185,14 +186,13 @@ describe("exemplos oficiais Padrão e Planilha2", () => {
     adminRate: 0.07, reserveFund: 0.005, initialTerm: 75, remainingTerm: 53,
     reducedInstallmentRate: 0.3, embeddedBidRate: 0.5, insuranceRate: 0,
   };
-  it("Padrão!linha 4: 38 parcelas de 3.440 e 39ª de 860, quitação confirmada", () => {
+  it("Padrão!linha 4: V4 = 38,25 truncado para 38 parcelas de 3.440", () => {
     const s = ok({ ...grupo1075, credit: 400000, cashBidRate: 0.19, modality: "reduzir_prazo" });
     expect(s.creditWithFees).toBe(430000); // G4
     expect(s.remainingBalance).toBe(131580); // S4 = G4 - O4 - Q4 - K4
     expect(s.newInstallment).toBe(3440); // U4 = G4 * 0.8%
-    expect(s.newTermMonths).toBe(39); // V4 = 38.25; última parcela confirmada
-    expect(s.lastInstallment).toBe(860);
-    expect(38 * s.newInstallment + s.lastInstallment).toBe(131580);
+    expect(s.newTermMonths).toBe(38); // V4 = 38.25 → casas decimais desconsideradas
+    expect(s.lastInstallment).toBe(3440);
   });
   it("Planilha2!linha 4: 51 parcelas de 1.247,84 (valor exibido)", () => {
     const s = ok({ ...grupo1075, credit: 200000, cashBidRate: 0.2, modality: "reduzir_parcela" });
@@ -209,8 +209,8 @@ describe("exemplos oficiais Padrão e Planilha2", () => {
     expect(s.insurance).toBe(315); // J3
     expect(s.remainingBalance).toBe(508921.875); // S3 subtracts K3, not I3
     expect(s.newInstallment).toBe(6300); // U3
-    expect(s.newTermMonths).toBe(81);
-    expect(s.lastInstallment).toBe(4921.88);
+    expect(s.newTermMonths).toBe(80);
+    expect(s.lastInstallment).toBe(6300);
   });
   it("Planilha2!linha 3: nova parcela U3 = S3 / 118", () => {
     const s = ok({ credit: 700000, adminRate: 0.12, reserveFund: 0.005,
