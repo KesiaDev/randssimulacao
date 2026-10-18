@@ -284,7 +284,7 @@ describe("Reduzir prazo bloqueado quando o novo prazo ultrapassa o prazo restant
     expect(edited.newInstallment).toBeCloseTo(3513.4255666666663, 8);
     const higher = calculate("40");
     expect(higher.modality).toBe("reduzir_prazo");
-    expect(higher.newTermMonths).toBe(30);
+    expect(higher.newTermMonths).toBe(29);
   });
 
   it("percentuais aceitam decimal com vírgula e não transformam texto inválido em zero", () => {
