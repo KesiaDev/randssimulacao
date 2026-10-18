@@ -25,7 +25,9 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
 import { Route as AuthenticatedAdminGruposRouteImport } from './routes/_authenticated/admin.grupos'
 import { Route as AuthenticatedMauricioIndexRouteImport } from './routes/_authenticated/mauricio.index'
+import { Route as AuthenticatedMauricioCalendarioRouteImport } from './routes/_authenticated/mauricio.calendario'
 import { Route as AuthenticatedMauricioMetasRouteImport } from './routes/_authenticated/mauricio.metas'
+import { Route as AuthenticatedMauricioReservasRouteImport } from './routes/_authenticated/mauricio.reservas'
 import { Route as AuthenticatedPropostaIdRouteImport } from './routes/_authenticated/proposta.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -110,10 +112,22 @@ const AuthenticatedMauricioIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMauricioRoute,
   } as any)
+const AuthenticatedMauricioCalendarioRoute =
+  AuthenticatedMauricioCalendarioRouteImport.update({
+    id: '/calendario',
+    path: '/calendario',
+    getParentRoute: () => AuthenticatedMauricioRoute,
+  } as any)
 const AuthenticatedMauricioMetasRoute =
   AuthenticatedMauricioMetasRouteImport.update({
     id: '/metas',
     path: '/metas',
+    getParentRoute: () => AuthenticatedMauricioRoute,
+  } as any)
+const AuthenticatedMauricioReservasRoute =
+  AuthenticatedMauricioReservasRouteImport.update({
+    id: '/reservas',
+    path: '/reservas',
     getParentRoute: () => AuthenticatedMauricioRoute,
   } as any)
 const AuthenticatedPropostaIdRoute = AuthenticatedPropostaIdRouteImport.update({
@@ -136,7 +150,9 @@ export interface FileRoutesByFullPath {
   '/api/asaas-webhook': typeof ApiAsaasWebhookRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/grupos': typeof AuthenticatedAdminGruposRoute
+  '/mauricio/calendario': typeof AuthenticatedMauricioCalendarioRoute
   '/mauricio/metas': typeof AuthenticatedMauricioMetasRoute
+  '/mauricio/reservas': typeof AuthenticatedMauricioReservasRoute
   '/proposta/$id': typeof AuthenticatedPropostaIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/mauricio/': typeof AuthenticatedMauricioIndexRoute
@@ -153,7 +169,9 @@ export interface FileRoutesByTo {
   '/api/asaas-webhook': typeof ApiAsaasWebhookRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/grupos': typeof AuthenticatedAdminGruposRoute
+  '/mauricio/calendario': typeof AuthenticatedMauricioCalendarioRoute
   '/mauricio/metas': typeof AuthenticatedMauricioMetasRoute
+  '/mauricio/reservas': typeof AuthenticatedMauricioReservasRoute
   '/proposta/$id': typeof AuthenticatedPropostaIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/mauricio': typeof AuthenticatedMauricioIndexRoute
@@ -174,7 +192,9 @@ export interface FileRoutesById {
   '/api/asaas-webhook': typeof ApiAsaasWebhookRoute
   '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/_authenticated/admin/grupos': typeof AuthenticatedAdminGruposRoute
+  '/_authenticated/mauricio/calendario': typeof AuthenticatedMauricioCalendarioRoute
   '/_authenticated/mauricio/metas': typeof AuthenticatedMauricioMetasRoute
+  '/_authenticated/mauricio/reservas': typeof AuthenticatedMauricioReservasRoute
   '/_authenticated/proposta/$id': typeof AuthenticatedPropostaIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/mauricio/': typeof AuthenticatedMauricioIndexRoute
@@ -195,7 +215,9 @@ export interface FileRouteTypes {
     | '/api/asaas-webhook'
     | '/admin/equipe'
     | '/admin/grupos'
+    | '/mauricio/calendario'
     | '/mauricio/metas'
+    | '/mauricio/reservas'
     | '/proposta/$id'
     | '/admin/'
     | '/mauricio/'
@@ -212,7 +234,9 @@ export interface FileRouteTypes {
     | '/api/asaas-webhook'
     | '/admin/equipe'
     | '/admin/grupos'
+    | '/mauricio/calendario'
     | '/mauricio/metas'
+    | '/mauricio/reservas'
     | '/proposta/$id'
     | '/admin'
     | '/mauricio'
@@ -232,7 +256,9 @@ export interface FileRouteTypes {
     | '/api/asaas-webhook'
     | '/_authenticated/admin/equipe'
     | '/_authenticated/admin/grupos'
+    | '/_authenticated/mauricio/calendario'
     | '/_authenticated/mauricio/metas'
+    | '/_authenticated/mauricio/reservas'
     | '/_authenticated/proposta/$id'
     | '/_authenticated/admin/'
     | '/_authenticated/mauricio/'
@@ -361,11 +387,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMauricioIndexRouteImport
       parentRoute: typeof AuthenticatedMauricioRoute
     }
+    '/_authenticated/mauricio/calendario': {
+      id: '/_authenticated/mauricio/calendario'
+      path: '/calendario'
+      fullPath: '/mauricio/calendario'
+      preLoaderRoute: typeof AuthenticatedMauricioCalendarioRouteImport
+      parentRoute: typeof AuthenticatedMauricioRoute
+    }
     '/_authenticated/mauricio/metas': {
       id: '/_authenticated/mauricio/metas'
       path: '/metas'
       fullPath: '/mauricio/metas'
       preLoaderRoute: typeof AuthenticatedMauricioMetasRouteImport
+      parentRoute: typeof AuthenticatedMauricioRoute
+    }
+    '/_authenticated/mauricio/reservas': {
+      id: '/_authenticated/mauricio/reservas'
+      path: '/reservas'
+      fullPath: '/mauricio/reservas'
+      preLoaderRoute: typeof AuthenticatedMauricioReservasRouteImport
       parentRoute: typeof AuthenticatedMauricioRoute
     }
     '/_authenticated/proposta/$id': {
@@ -394,12 +434,16 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedMauricioRouteChildren {
+  AuthenticatedMauricioCalendarioRoute: typeof AuthenticatedMauricioCalendarioRoute
   AuthenticatedMauricioMetasRoute: typeof AuthenticatedMauricioMetasRoute
+  AuthenticatedMauricioReservasRoute: typeof AuthenticatedMauricioReservasRoute
   AuthenticatedMauricioIndexRoute: typeof AuthenticatedMauricioIndexRoute
 }
 
 const AuthenticatedMauricioRouteChildren: AuthenticatedMauricioRouteChildren = {
+  AuthenticatedMauricioCalendarioRoute: AuthenticatedMauricioCalendarioRoute,
   AuthenticatedMauricioMetasRoute: AuthenticatedMauricioMetasRoute,
+  AuthenticatedMauricioReservasRoute: AuthenticatedMauricioReservasRoute,
   AuthenticatedMauricioIndexRoute: AuthenticatedMauricioIndexRoute,
 }
 
