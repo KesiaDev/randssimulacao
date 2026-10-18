@@ -55,3 +55,5 @@
 - [x] Validar permissões e estabilidade da nova estrutura de licenças
 - [x] Adicionar campo de cliente e manter filtros de vendedor e data no histórico
 - [x] Ativar busca por cliente no banco conectado e validar resultados no histórico — função com _client confirmada no banco; busca parcial sem distinguir maiúsculas validada com proposta salva e filtro combinado de vendedor; proposta temporária removida.
+- [x] Sino menor e painel de notificações abrindo no topo da tela, como no celular — sino 36 px; painel encostado no topo (y=0) no computador e no celular, mesmo com a página rolada.
+- [x] Modalidade "Reduzir Parcela (sob aprovação)" em vez de apenas "Reduzir Parcela" — rótulo único consumido por tela e PDF; 39 testes do cálculo passaram.

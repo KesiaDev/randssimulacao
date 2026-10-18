@@ -299,3 +299,23 @@
   animation: lance-cta-pulse 1.6s ease-in-out infinite;
 }
 
+
+/* Painel de notificações do Maurício: abre no topo da tela, como no celular,
+   independentemente de onde o sino está ou de a página estar rolada. */
+[data-radix-popper-content-wrapper]:has([data-notification-shade]) {
+  transform: none !important;
+  left: auto !important;
+  right: 12px !important;
+  top: 0 !important;
+}
+
+@media (min-width: 640px) {
+  [data-radix-popper-content-wrapper]:has([data-notification-shade]) {
+    right: 20px !important;
+  }
+}
+
+[data-notification-shade] {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}

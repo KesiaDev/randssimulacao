@@ -147,7 +147,7 @@ export const LANCE_MODALITIES: Record<LanceModality, { label: string; descriptio
     description: "Padrão da empresa: quita o contrato o mais rápido possível.",
   },
   reduzir_parcela: {
-    label: "Reduzir parcela",
+    label: "Reduzir Parcela (sob aprovação)",
     description: "Alternativa para diminuir o compromisso mensal, mantendo o prazo.",
   },
 };
