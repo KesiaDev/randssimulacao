@@ -11,7 +11,14 @@ import { formatBRL, formatPct, MESES, REVENDAS } from "@/lib/mauricio";
 import { Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mauricio/metas")({
-  head: () => ({ meta: [{ title: "Metas e Resultados — Gestão Comercial" }] }),
+  head: () => ({ meta: [
+    { title: "Metas e Resultados por Revenda — Randon" },
+    { name: "description", content: "Resultados mensais e histórico anual de metas comerciais por revenda Randon." },
+    { property: "og:title", content: "Metas e Resultados — Randon" },
+    { property: "og:description", content: "Acompanhamento de metas e resultados comerciais por revenda." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: MetasPage,
 });
 
@@ -31,10 +38,6 @@ function MetasPage() {
     queryKey: ["m-metas-hist"],
     queryFn: async () =>
       (await supabase.from("mauricio_metas_anuais").select("*").order("revenda").order("ano")).data ?? [],
-  });
-  const { data: indicacao } = useQuery({
-    queryKey: ["m-indicacao"],
-    queryFn: async () => (await supabase.from("mauricio_indicacao").select("*").order("grupo")).data ?? [],
   });
 
   function valorMes(revenda: string, mes: number): number | null {
@@ -178,50 +181,6 @@ function MetasPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Programa de indicação de terceiros</CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs text-muted-foreground">
-                <th className="py-2 pr-3">Grupo</th>
-                <th className="px-2 py-2 text-right">Cotas</th>
-                <th className="px-2 py-2 text-right">Crédito</th>
-                <th className="px-2 py-2 text-right">Taxa</th>
-                <th className="px-2 py-2 text-right">Prazo</th>
-                <th className="px-2 py-2 text-right">Parc. integral</th>
-                <th className="px-2 py-2 text-right">Parc. 35%</th>
-                <th className="px-2 py-2 text-right">Bônus/cota</th>
-                <th className="px-2 py-2 text-right">Bônus total</th>
-                <th className="px-2 py-2">Obs</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(indicacao ?? []).map((p) => (
-                <tr key={p.id} className="border-b">
-                  <td className="py-2 pr-3 font-medium">
-                    {p.grupo}
-                    {!p.completo && (
-                      <Badge variant="destructive" className="ml-2 text-[10px]">incompleto</Badge>
-                    )}
-                  </td>
-                  <td className="px-2 py-2 text-right">{p.cotas ?? "—"}</td>
-                  <td className="px-2 py-2 text-right">{formatBRL(p.credito_total !== null ? Number(p.credito_total) : null)}</td>
-                  <td className="px-2 py-2 text-right">{p.taxa !== null ? `${(Number(p.taxa) * 100).toLocaleString("pt-BR")}%` : "—"}</td>
-                  <td className="px-2 py-2 text-right">{p.prazo ?? "—"}</td>
-                  <td className="px-2 py-2 text-right">{formatBRL(p.parcela_final_integral !== null ? Number(p.parcela_final_integral) : null)}</td>
-                  <td className="px-2 py-2 text-right">{formatBRL(p.parcela_final_35 !== null ? Number(p.parcela_final_35) : null)}</td>
-                  <td className="px-2 py-2 text-right">{formatBRL(p.bonus_cota !== null ? Number(p.bonus_cota) : null)}</td>
-                  <td className="px-2 py-2 text-right">{formatBRL(p.bonus_total !== null ? Number(p.bonus_total) : null)}</td>
-                  <td className="max-w-56 px-2 py-2 text-xs text-muted-foreground">{p.observacao ?? ""}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
     </div>
   );
 }
