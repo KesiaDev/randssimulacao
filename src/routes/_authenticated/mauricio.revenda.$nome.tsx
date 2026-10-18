@@ -11,7 +11,13 @@ import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE,
 import { ArrowLeft, Pencil, CalendarDays, AlertTriangle, Target, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mauricio/revenda/$nome")({
-  head: ({ params }) => ({ meta: [{ title: `${params.nome} — Gestão Comercial` }] }),
+  head: ({ params }) => ({ meta: [
+    { title: `${params.nome} — Gestão Comercial Randon` },
+    { name: "description", content: `Metas, resultados, reservas e visitas comerciais da revenda ${params.nome}.` },
+    { property: "og:title", content: `${params.nome} — Gestão Comercial Randon` },
+    { property: "og:description", content: `Acompanhamento comercial e histórico da revenda ${params.nome}.` },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: RevendaDetalhe,
 });
 

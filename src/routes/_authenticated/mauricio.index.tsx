@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE } from "@/lib/mauricio";
 import { CalendarDays, Target, TrendingUp, AlertTriangle } from "lucide-react";
 import { CommercialInsights } from "@/components/CommercialInsights";
+import { businessDate } from "@/lib/commercial-calendar";
 
 export const Route = createFileRoute("/_authenticated/mauricio/")({
   head: () => ({ meta: [
@@ -39,7 +40,8 @@ function MauricioDashboard() {
         await supabase
           .from("mauricio_eventos")
           .select("*")
-          .gte("data", new Date().toISOString().slice(0, 10))
+          .or(`data.gte.${businessDate()},data_fim.gte.${businessDate()}`)
+          .not("status", "in", "(cancelado,concluido)")
           .order("data")
           .limit(5)
       ).data ?? [],
