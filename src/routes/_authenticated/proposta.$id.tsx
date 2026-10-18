@@ -233,8 +233,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
               className={`rounded-lg border p-3 text-left transition-colors ${modality === option ? "border-primary bg-primary/5 ring-2 ring-primary" : "border-border hover:border-primary/40"}`}
             >
               <div className="flex items-center gap-2 font-semibold">
-                {LANCE_MODALITIES[option].label}
-                {option === DEFAULT_LANCE_MODALITY && <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-semibold uppercase text-primary-foreground">Recomendado</span>}
+                {LANCE_MODALITIES[option].label}{option === DEFAULT_LANCE_MODALITY && " (obrigatório)"}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{LANCE_MODALITIES[option].description}</p>
             </button>
@@ -259,8 +258,6 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
                 <Item label="Nova parcela" value={formatBRL(result.newInstallment)} />
                 <Item label="Novo prazo" value={`${result.newTermMonths} meses`} />
                 {result.lastInstallment !== result.newInstallment && <Item label="Última parcela" value={formatBRL(result.lastInstallment)} />}
-                <Item label="Meses reduzidos" value={`${result.monthsReduced} ${result.monthsReduced === 1 ? "mês" : "meses"}`} />
-                <Item label="Diferença na parcela" value={`${result.installmentDifference > 0 ? "+" : ""}${formatBRL(result.installmentDifference)}`} />
               </dl>
             </div>
 

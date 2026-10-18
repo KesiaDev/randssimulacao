@@ -337,8 +337,8 @@ export async function createProposalPdf(input: Input) {
           values: [formatBRL(lance.embeddedBidAmount), formatBRL(lance.cashBidAmount), formatBRL(lance.availableCredit)],
         },
         {
-          labels: ["NOVA PARCELA/COTA", "NOVO PRAZO", "MESES REDUZIDOS"],
-          values: [formatBRL(lance.newInstallment), `${lance.newTermMonths} meses`, `${lance.monthsReduced} ${lance.monthsReduced === 1 ? "mês" : "meses"}`],
+          labels: ["NOVA PARCELA/COTA", "NOVO PRAZO"],
+          values: [formatBRL(lance.newInstallment), `${lance.newTermMonths} meses`],
         },
       ];
       lanceRows.forEach(({ labels, values }, row) => {

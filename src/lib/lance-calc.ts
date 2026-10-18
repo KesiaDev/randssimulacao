@@ -143,7 +143,7 @@ export const DEFAULT_LANCE_MODALITY: LanceModality = "reduzir_prazo";
 export const LANCE_MODALITIES: Record<LanceModality, { label: string; description: string }> = {
   reduzir_prazo: {
     label: "Reduzir prazo",
-    description: "Recomendado pela empresa: quita o contrato o mais rápido possível.",
+    description: "Padrão da empresa: quita o contrato o mais rápido possível.",
   },
   reduzir_parcela: {
     label: "Reduzir parcela",
