@@ -1,7 +1,7 @@
 # Roadmap
 
 - [x] Analisar todas as abas de Propostas_Simulação.xlsx e reproduzir exemplos do Grupo 1075 — Padrão usa crédito de R$ 400 mil e espécie 19%; Planilha2 usa crédito de R$ 200 mil e espécie 20%; 101 testes existentes passaram sem alterações financeiras.
-- [ ] Corrigir simulação de lance conforme planilha oficial — aguarda confirmação da quitação dos 38,25 meses e se os dois exemplos com créditos/lances diferentes devem ser usados separadamente; não alterar proposta, autenticação ou banco.
+- [x] Corrigir simulação de lance conforme planilha oficial — saldo desconta parcela sem seguro conforme Padrão/Planilha2!S; exemplos separados confirmados; 38 × R$ 3.440 e 39ª de R$ 860; R$ 1.247,84 em 51 meses; 105 testes passaram, proposta real aberta sem gravações e PDF oficial conferido; proposta original, autenticação e banco preservados.
 
 - [x] Modernizar calendário do Maurício com agenda intuitiva, edição, exclusão permanente em todas as telas e avisos de compromissos — fluxo real criado/editado/excluído; ausência confirmada nas telas e no banco, leituras removidas em cascata; avisos na véspera e no dia; 17 testes passaram.
 
