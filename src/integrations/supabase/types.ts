@@ -348,6 +348,41 @@ export type Database = {
         }
         Relationships: []
       }
+      mauricio_evento_leituras: {
+        Row: {
+          data_evento: string
+          evento_id: string
+          id: string
+          lida_em: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          data_evento: string
+          evento_id: string
+          id?: string
+          lida_em?: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          data_evento?: string
+          evento_id?: string
+          id?: string
+          lida_em?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mauricio_evento_leituras_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "mauricio_eventos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mauricio_eventos: {
         Row: {
           cidade: string | null

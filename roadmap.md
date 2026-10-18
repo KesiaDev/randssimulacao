@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Modernizar calendário do Maurício com agenda intuitiva, edição, exclusão permanente em todas as telas e avisos de compromissos — fluxo real criado/editado/excluído; ausência confirmada nas telas e no banco, leituras removidas em cascata; avisos na véspera e no dia; 17 testes passaram.
+
 - [x] Incluir comparações mensais/anuais, projeções transparentes e oportunidades de melhoria na gestão comercial, preservando lacunas e histórico — filtros e cenários validados com acesso do Maurício; 11 testes passaram; sem projeção para cobertura incompleta.
 - [x] Retirar o programa de indicação de terceiros das telas de gestão comercial, preservando registros históricos — ausência conferida na tela de metas.
 
