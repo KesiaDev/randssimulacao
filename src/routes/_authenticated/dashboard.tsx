@@ -90,7 +90,7 @@ function Dashboard() {
               const credit = proposal.proposal_items.reduce((sum, item) => sum + Number(item.credit_value) * item.quantity, 0);
               const monthly = proposal.proposal_items.reduce((sum, item) => sum + Number(item.final_amount) * item.quantity, 0);
               return (
-                <Link key={proposal.id} to="/proposta/$id" params={{ id: proposal.id }} className="surface block p-4 transition-colors hover:border-primary/40 sm:p-5">
+                <Link key={proposal.id} to="/proposta/$id" params={{ id: proposal.id }} search={{ highlightLance: undefined }} className="surface block p-4 transition-colors hover:border-primary/40 sm:p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0"><div className="truncate font-semibold">{proposal.client_name || "Cliente Randon"}</div><div className="mt-1 text-xs text-muted-foreground">{formatDateTime(proposal.created_at)}</div></div>
                     <ShoppingCart className="h-4 w-4 shrink-0 text-primary" />

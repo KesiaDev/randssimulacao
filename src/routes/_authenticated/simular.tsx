@@ -163,7 +163,7 @@ function Simular() {
         const payload = { group_id: item.group.id, credit_range_id: item.range.id, administration_rate_id: item.rate.id, installment_type_id: item.type.id, group_code: item.group.code, credit_value: item.range.credit_value, administration_rate: item.rate.rate, reserve_fund: item.group.reserve_fund, installment_type_name: item.type.name, installment_multiplier: item.type.multiplier, initial_term: item.group.initial_term, remaining_term: item.group.remaining_term, contract_modality: item.modality, insurance_included: item.insurance, insurance_rate: item.insuranceRate, base_amount: item.result.totalBase, installment_amount: item.result.installment, insurance_amount: item.result.insurance, final_amount: item.result.finalAmount };
         const response = await supabase.rpc("update_legacy_simulation", { _simulation_id: legacySimulationId, _client_name: clientName, _item: payload });
         if (response.error) throw response.error;
-        await navigate({ to: "/proposta/$id", params: { id: legacySimulationId }, search: {} });
+        await navigate({ to: "/proposta/$id", params: { id: legacySimulationId }, search: { highlightLance: undefined } });
         toast.success("Simulação atualizada.");
         return;
       }
@@ -171,7 +171,7 @@ function Simular() {
         const payload = items.map((item, index) => ({ sort_order: index, quantity: item.quantity, group_id: item.group.id, credit_range_id: item.range.id, administration_rate_id: item.rate.id, installment_type_id: item.type.id, group_code: item.group.code, credit_value: item.range.credit_value, administration_rate: item.rate.rate, reserve_fund: item.group.reserve_fund, installment_type_name: item.type.name, installment_multiplier: item.type.multiplier, initial_term: item.group.initial_term, remaining_term: item.group.remaining_term, contract_modality: item.modality, insurance_included: item.insurance, insurance_rate: item.insuranceRate, base_amount: item.result.totalBase, installment_amount: item.result.installment, insurance_amount: item.result.insurance, final_amount: item.result.finalAmount }));
         const response = await supabase.rpc("replace_proposal_items", { _proposal_id: editProposalId, _client_name: clientName, _items: payload });
         if (response.error) throw response.error;
-        await navigate({ to: "/proposta/$id", params: { id: editProposalId }, search: {} });
+        await navigate({ to: "/proposta/$id", params: { id: editProposalId }, search: { highlightLance: undefined } });
         toast.success("Proposta atualizada.");
         return;
       }
