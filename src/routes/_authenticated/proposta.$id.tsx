@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useLocation, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Pencil, Share2, TrendingUp, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +66,25 @@ function Proposta() {
       return { proposal, items: [simulationToItem(simulationResult.data)], seller: sellerResult.data, legacy: true };
     },
   });
+
+  const location = useLocation();
+  const lanceHighlightDone = useRef(false);
+  useEffect(() => {
+    if (!data || lanceHighlightDone.current) return;
+    const state = (location.state ?? {}) as { highlightLance?: boolean };
+    if (!state.highlightLance || data.items.length === 0) return;
+    lanceHighlightDone.current = true;
+    const timer = window.setTimeout(() => {
+      const target = document.getElementById(`lance-cta-${data.items[0].id}`);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.classList.add("lance-cta-highlight");
+        window.setTimeout(() => target.classList.remove("lance-cta-highlight"), 6000);
+      }
+      window.history.replaceState({}, "");
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [data, location.state]);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando proposta…</p>;
   if (!data) return <p className="text-sm text-muted-foreground">Proposta não encontrada.</p>;
@@ -184,7 +203,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" id={`lance-cta-${item.id}`}>
           <TrendingUp /> Simular lance{alreadySaved && " · salva"}
         </Button>
       </DialogTrigger>
