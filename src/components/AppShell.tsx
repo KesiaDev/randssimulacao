@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
+  CalendarDays,
   Calculator,
   ClipboardList,
   KeyRound,
@@ -10,13 +11,17 @@ import {
   Moon,
   Settings2,
   Sun,
+  Target,
   Users,
   X,
+  Bookmark,
 } from "lucide-react";
 import { Brand } from "./Brand";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
+import { MAURICIO_USER_ID } from "@/lib/mauricio";
+import { MauricioNotifications } from "./MauricioNotifications";
 
 const sellerNav = [
   { to: "/dashboard", label: "Início", icon: LayoutDashboard },
@@ -30,13 +35,24 @@ const adminNav = [
   { to: "/admin/equipe", label: "Minha equipe", icon: Users },
 ] as const;
 
+const mauricioNav = [
+  { to: "/mauricio", label: "Gestão comercial", icon: LayoutDashboard },
+  { to: "/mauricio/metas", label: "Metas e resultados", icon: Target },
+  { to: "/mauricio/calendario", label: "Calendário", icon: CalendarDays },
+  { to: "/mauricio/reservas", label: "Reservas de cotas", icon: Bookmark },
+] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
-  const { profile, isAdmin, signOut } = useAuth();
+  const { profile, isAdmin, signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const items = [...sellerNav, ...(isAdmin ? adminNav : [])];
+  const items = [
+    ...sellerNav,
+    ...(isAdmin ? adminNav : []),
+    ...(user?.id === MAURICIO_USER_ID ? mauricioNav : []),
+  ];
 
   return (
     <div className="flex min-h-dvh bg-background">
@@ -72,6 +88,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-sidebar-border p-4">
+          <div className="mb-1 flex items-center gap-1">
+            <MauricioNotifications />
+          </div>
           <Button
             variant="ghost"
             onClick={toggleTheme}
@@ -119,9 +138,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="min-w-0"><Brand compact /></div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo noturno"}>
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center gap-1">
+            <MauricioNotifications />
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo noturno"}>
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+          </div>
         </header>
         <main className="min-w-0 flex-1 px-3 py-5 print:p-0 sm:px-6 sm:py-7 lg:px-8 lg:py-8 xl:px-10 xl:py-10">
           <div className="mx-auto w-full max-w-6xl">{children}</div>
