@@ -61,11 +61,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-sidebar-border px-5 py-5">
+        <div className="flex items-center justify-between gap-2 border-b border-sidebar-border px-5 py-4">
           <Brand variant="dark" />
-          <Button variant="ghost" size="icon" className="text-sidebar-foreground lg:hidden" onClick={() => setOpen(false)} aria-label="Fechar menu">
-            <X className="h-5 w-5 text-sidebar-foreground/70" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <MauricioNotifications tone="sidebar" />
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground lg:hidden" onClick={() => setOpen(false)} aria-label="Fechar menu">
+              <X className="h-5 w-5 text-sidebar-foreground/70" />
+            </Button>
+          </div>
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {items.map((item) => {
@@ -88,9 +91,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-sidebar-border p-4">
-          <div className="mb-1 flex items-center gap-1">
-            <MauricioNotifications />
-          </div>
           <Button
             variant="ghost"
             onClick={toggleTheme}
