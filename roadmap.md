@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Destacar o sino de notificações do Maurício com botão azul institucional e ícone branco maior; zerar os dois percentuais em toda abertura da simulação de lance, preservando lances salvos até ação explícita — 41 testes passaram e abertura, cálculo e reabertura conferidos em proposta autenticada sem gravar alterações.
+
 - [x] Retirar a linha que explica a conta da nova parcela (saldo ÷ prazo com carência) da tela de simulação de lance — telas mostram só o resultado, sem expor a fórmula
 
 - [x] Permitir editar percentuais de lance e recalcular automaticamente por Reduzir parcela quando Reduzir prazo estiver bloqueado: saldo devedor ÷ (prazo restante − 2 meses), sem exigir lance em espécie quando não houver — 39 testes passaram; edição autenticada com espécie vazia e 20% conferida, proposta temporária removida.
