@@ -230,17 +230,6 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
             </div>
 
             <div className="rounded-lg border border-border p-4">
-              <LabelText>Condição original · por cota</LabelText>
-              <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                <Item label="Crédito" value={formatBRL(Number(item.credit_value))} />
-                <Item label="Total de taxas" value={formatBRL(result.feesAmount)} />
-                <Item label="Parcela atual" value={formatBRL(result.currentInstallment)} />
-                <Item label="Prazo atual (após carência)" value={`${result.currentTermMonths} meses`} />
-                <Item label="Parcela mínima (0,8%)" value={formatBRL(result.minimumInstallment)} />
-              </dl>
-            </div>
-
-            <div className="rounded-lg border border-border p-4">
               <LabelText>Simulação · {LANCE_MODALITIES[modality].label} · por cota</LabelText>
               <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <Item label={`Lance embutido (${embeddedPct}%)`} value={formatBRL(result.embeddedBidAmount)} />
