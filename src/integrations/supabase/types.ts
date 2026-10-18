@@ -386,6 +386,7 @@ export type Database = {
           lance_embedded_rate: number | null
           proposal_id: string
           quantity: number
+          contract_modality: string
           remaining_term: number
           reserve_fund: number
           simulation_id: string | null
@@ -414,6 +415,7 @@ export type Database = {
           lance_embedded_rate?: number | null
           proposal_id: string
           quantity?: number
+          contract_modality?: string
           remaining_term: number
           reserve_fund: number
           simulation_id?: string | null
@@ -442,6 +444,7 @@ export type Database = {
           lance_embedded_rate?: number | null
           proposal_id?: string
           quantity?: number
+          contract_modality?: string
           remaining_term?: number
           reserve_fund?: number
           simulation_id?: string | null
@@ -570,6 +573,7 @@ export type Database = {
           insurance_amount: number
           insurance_included: boolean
           insurance_rate: number
+          contract_modality: string
           remaining_term: number
           reserve_fund: number
           seller_id: string
@@ -594,6 +598,7 @@ export type Database = {
           insurance_amount?: number
           insurance_included?: boolean
           insurance_rate?: number
+          contract_modality?: string
           remaining_term: number
           reserve_fund: number
           seller_id: string
@@ -618,6 +623,7 @@ export type Database = {
           insurance_amount?: number
           insurance_included?: boolean
           insurance_rate?: number
+          contract_modality?: string
           remaining_term?: number
           reserve_fund?: number
           seller_id?: string

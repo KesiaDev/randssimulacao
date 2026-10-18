@@ -8,6 +8,7 @@ import { useGroups } from "@/hooks/useConfig";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, formatDateTime, formatPercent } from "@/lib/format";
+import { formatContractModality } from "@/lib/calc";
 import { ChevronLeft, ChevronRight, Eye, Pencil, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,7 @@ type ProposalItem = {
   credit_value: number;
   final_amount: number;
   simulation_id: string | null;
+  contract_modality?: string | null;
 };
 
 type ProposalEntry = {
@@ -62,6 +64,7 @@ type SimulationEntry = {
   credit_value: number;
   administration_rate: number;
   installment_type_name: string;
+  contract_modality?: string | null;
   insurance_included: boolean;
   final_amount: number;
 };
@@ -244,7 +247,7 @@ function Historico() {
                       <div className="min-w-0">
                         <div className="truncate font-semibold">{proposal.client_name || "Cliente Randon"}</div>
                         <div className="mt-1 text-xs text-muted-foreground">
-                          {formatDateTime(proposal.created_at)} · {proposal.seller_name}
+                          {formatDateTime(proposal.created_at)} · {proposal.seller_name} · {[...new Set(proposal.items.map((item) => formatContractModality(item.contract_modality)))].join(" + ")}
                         </div>
                       </div>
                       <div className="shrink-0 text-sm font-semibold text-primary">
@@ -287,7 +290,7 @@ function Historico() {
                   <td data-label="Grupo" className="px-5 py-3">{simulation.group_code}</td>
                   <td data-label="Crédito" className="px-5 py-3 tabular">{formatBRL(Number(simulation.credit_value))}</td>
                   <td data-label="Taxa" className="px-5 py-3 tabular">{formatPercent(Number(simulation.administration_rate))}</td>
-                  <td data-label="Modalidade" className="px-5 py-3">{simulation.installment_type_name}</td>
+                  <td data-label="Modalidade" className="px-5 py-3">{simulation.installment_type_name} · {formatContractModality(simulation.contract_modality)}</td>
                   <td data-label="Seguro" className="px-5 py-3">{simulation.insurance_included ? "Incluído" : "Não"}</td>
                   <td data-label="Parcela final" className="px-5 py-3 font-medium tabular">{formatBRL(Number(simulation.final_amount))}</td>
                   <td data-label="Ação" className="px-5 py-3 text-right whitespace-nowrap">

@@ -162,6 +162,13 @@
       "when": 1791461752639,
       "tag": "0022_restore_history_client_filter",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792330000000,
+      "tag": "0023_add_contract_modality",
+      "breakpoints": true
     }
   ]
 }
