@@ -259,7 +259,7 @@ function Historico() {
                       <div><div className="text-xs text-muted-foreground">Parcela total/mês</div><div className="font-medium tabular">{formatBRL(monthlyTotal)}</div></div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
-                      <Button variant="outline" size="sm" asChild><Link to="/proposta/$id" params={{ id: proposal.id }} search={{ highlightLance: undefined }}><Eye /> Abrir</Link></Button>
+                      <Button variant="outline" size="sm" asChild><Link to="/proposta/$id" params={{ id: proposal.id }}><Eye /> Abrir</Link></Button>
                       <Button variant="outline" size="sm" asChild><Link to="/simular" search={{ edit: proposal.id, legacy: undefined }}><Pencil /> Editar</Link></Button>
                       <DeleteConfirm triggerId={triggerId} title="Excluir esta proposta?" description="A proposta, seus itens e as simulações vinculadas serão removidos definitivamente." onConfirm={() => void deleteProposal(proposal.id)} />
                     </div>
@@ -295,7 +295,7 @@ function Historico() {
                   <td data-label="Parcela final" className="px-5 py-3 font-medium tabular">{formatBRL(Number(simulation.final_amount))}</td>
                   <td data-label="Ação" className="px-5 py-3 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" asChild><Link to="/proposta/$id" params={{ id: simulation.id }} search={{ highlightLance: undefined }} aria-label="Abrir simulação"><Eye /></Link></Button>
+                      <Button variant="ghost" size="icon" asChild><Link to="/proposta/$id" params={{ id: simulation.id }} aria-label="Abrir simulação"><Eye /></Link></Button>
                       <Button variant="ghost" size="icon" asChild><Link to="/simular" search={{ edit: undefined, legacy: simulation.id }} aria-label="Editar simulação"><Pencil /></Link></Button>
                       <DeleteConfirm iconOnly title="Excluir esta simulação?" description="Esta simulação antiga será removida definitivamente." onConfirm={() => void deleteLegacySimulation(simulation.id)} />
                     </div>
