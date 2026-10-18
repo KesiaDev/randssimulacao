@@ -309,7 +309,8 @@ export async function createProposalPdf(input: Input) {
       grandAvailableTotal += lance.availableCredit * quantity;
       grandInstallmentTotal += lance.newInstallment * quantity;
 
-      const cardHeight = 58;
+      const hasFinalInstallment = lance.lastInstallment !== lance.newInstallment;
+      const cardHeight = hasFinalInstallment ? 69 : 58;
       const miniTotalHeight = 24;
       ensureSpace(cardHeight + (quantity > 1 ? miniTotalHeight + 4 : 0) + 8);
 
@@ -354,6 +355,13 @@ export async function createProposalPdf(input: Input) {
           pdf.text(values[column] ?? "", x, rowY + 5.5);
         });
       });
+
+      if (hasFinalInstallment) {
+        pdf.setTextColor(...gray);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.text(`Última parcela/cota: ${formatBRL(lance.lastInstallment)}`, margin + 9, y + 59);
+      }
 
       y += cardHeight + 4;
 
