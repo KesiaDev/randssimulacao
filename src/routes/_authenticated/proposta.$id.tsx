@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { calculateProposalTotals } from "@/lib/proposal-calc";
-import { DEFAULT_LANCE_MODALITY, LANCE_MODALITIES, isReduceTermBlocked, lanceInputFromItem, parseLancePercent, parseSavedLanceModality, simulateLance, type LanceModality } from "@/lib/lance-calc";
+import { DEFAULT_LANCE_MODALITY, LANCE_MODALITIES, isReduceTermBlocked, lanceInputFromItem, parseLancePercent, simulateLance, type LanceModality } from "@/lib/lance-calc";
+import { createLanceDraft } from "@/lib/lance-draft";
 import { formatContractModality, savedContractTerm } from "@/lib/calc";
 import { createProposalPdf } from "@/lib/proposal-pdf";
 import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/lib/format";
@@ -146,13 +147,9 @@ function Item({ label, value, light = false }: { label: string; value: string; l
 
 function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy: boolean; onSaved: () => void }) {
   const alreadySaved = item.lance_embedded_rate !== null && item.lance_cash_rate !== null;
-  const [embeddedPct, setEmbeddedPct] = useState(
-    alreadySaved ? String(Number(item.lance_embedded_rate) * 100) : "40",
-  );
-  const [cashPct, setCashPct] = useState(alreadySaved ? String(Number(item.lance_cash_rate) * 100) : "20");
-  const [modality, setModality] = useState<LanceModality>(
-    alreadySaved ? parseSavedLanceModality(item.lance_modality) : DEFAULT_LANCE_MODALITY,
-  );
+  const [embeddedPct, setEmbeddedPct] = useState(() => createLanceDraft().embeddedPct);
+  const [cashPct, setCashPct] = useState(() => createLanceDraft().cashPct);
+  const [modality, setModality] = useState<LanceModality>(() => createLanceDraft().modality);
   const [saving, setSaving] = useState(false);
 
   const lanceInput = useMemo(() => {
@@ -205,7 +202,13 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
   }
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => {
+      if (!open) return;
+      const draft = createLanceDraft();
+      setEmbeddedPct(draft.embeddedPct);
+      setCashPct(draft.cashPct);
+      setModality(draft.modality);
+    }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" id={`lance-cta-${item.id}`}>
           <TrendingUp /> Simular lance{alreadySaved && " · salva"}
