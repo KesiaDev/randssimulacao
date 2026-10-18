@@ -315,6 +315,323 @@ export type Database = {
           },
         ]
       }
+      mauricio_campanhas: {
+        Row: {
+          created_at: string
+          id: string
+          meta: number | null
+          nome: string
+          observacao: string | null
+          periodo: string | null
+          realizado: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meta?: number | null
+          nome: string
+          observacao?: string | null
+          periodo?: string | null
+          realizado?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meta?: number | null
+          nome?: string
+          observacao?: string | null
+          periodo?: string | null
+          realizado?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mauricio_eventos: {
+        Row: {
+          cidade: string | null
+          created_at: string
+          data: string
+          data_fim: string | null
+          estado: string | null
+          id: string
+          logistica: string | null
+          observacao: string | null
+          revenda: string | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          cidade?: string | null
+          created_at?: string
+          data: string
+          data_fim?: string | null
+          estado?: string | null
+          id?: string
+          logistica?: string | null
+          observacao?: string | null
+          revenda?: string | null
+          status?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          cidade?: string | null
+          created_at?: string
+          data?: string
+          data_fim?: string | null
+          estado?: string | null
+          id?: string
+          logistica?: string | null
+          observacao?: string | null
+          revenda?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mauricio_indicacao: {
+        Row: {
+          bonus_cota: number | null
+          bonus_total: number | null
+          completo: boolean
+          cotas: number | null
+          created_at: string
+          credito_total: number | null
+          grupo: number
+          id: string
+          observacao: string | null
+          parcela_35: number | null
+          parcela_final_35: number | null
+          parcela_final_integral: number | null
+          parcela_integral: number | null
+          prazo: number | null
+          seguro: number | null
+          taxa: number | null
+        }
+        Insert: {
+          bonus_cota?: number | null
+          bonus_total?: number | null
+          completo?: boolean
+          cotas?: number | null
+          created_at?: string
+          credito_total?: number | null
+          grupo: number
+          id?: string
+          observacao?: string | null
+          parcela_35?: number | null
+          parcela_final_35?: number | null
+          parcela_final_integral?: number | null
+          parcela_integral?: number | null
+          prazo?: number | null
+          seguro?: number | null
+          taxa?: number | null
+        }
+        Update: {
+          bonus_cota?: number | null
+          bonus_total?: number | null
+          completo?: boolean
+          cotas?: number | null
+          created_at?: string
+          credito_total?: number | null
+          grupo?: number
+          id?: string
+          observacao?: string | null
+          parcela_35?: number | null
+          parcela_final_35?: number | null
+          parcela_final_integral?: number | null
+          parcela_integral?: number | null
+          prazo?: number | null
+          seguro?: number | null
+          taxa?: number | null
+        }
+        Relationships: []
+      }
+      mauricio_metas_anuais: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          meta: number | null
+          observacao: string | null
+          realizado: number | null
+          revenda: string
+          updated_at: string
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          id?: string
+          meta?: number | null
+          observacao?: string | null
+          realizado?: number | null
+          revenda: string
+          updated_at?: string
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          meta?: number | null
+          observacao?: string | null
+          realizado?: number | null
+          revenda?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mauricio_notificacoes: {
+        Row: {
+          created_at: string
+          id: string
+          lida: boolean
+          lida_em: string | null
+          mensagem: string
+          reserva_id: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          lida_em?: string | null
+          mensagem: string
+          reserva_id: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          lida_em?: string | null
+          mensagem?: string
+          reserva_id?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mauricio_notificacoes_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "mauricio_reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mauricio_reservas: {
+        Row: {
+          cota: number
+          created_at: string
+          grupo: number
+          id: string
+          obs: string | null
+          revenda: string
+          status: string
+          updated_at: string
+          validade: string
+          vendedor: string | null
+        }
+        Insert: {
+          cota: number
+          created_at?: string
+          grupo: number
+          id?: string
+          obs?: string | null
+          revenda: string
+          status?: string
+          updated_at?: string
+          validade: string
+          vendedor?: string | null
+        }
+        Update: {
+          cota?: number
+          created_at?: string
+          grupo?: number
+          id?: string
+          obs?: string | null
+          revenda?: string
+          status?: string
+          updated_at?: string
+          validade?: string
+          vendedor?: string | null
+        }
+        Relationships: []
+      }
+      mauricio_resultados_mensais: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          mes: number
+          observacao: string | null
+          revenda: string
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          id?: string
+          mes: number
+          observacao?: string | null
+          revenda: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          mes?: number
+          observacao?: string | null
+          revenda?: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: []
+      }
+      mauricio_seguro: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          meta: number | null
+          observacao: string | null
+          realizado: number | null
+          revenda: string
+          updated_at: string
+        }
+        Insert: {
+          ano?: number
+          created_at?: string
+          id?: string
+          meta?: number | null
+          observacao?: string | null
+          realizado?: number | null
+          revenda: string
+          updated_at?: string
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          meta?: number | null
+          observacao?: string | null
+          realizado?: number | null
+          revenda?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active: boolean
@@ -367,6 +684,7 @@ export type Database = {
           administration_rate: number
           administration_rate_id: string | null
           base_amount: number
+          contract_modality: string
           created_at: string
           credit_range_id: string | null
           credit_value: number
@@ -395,6 +713,7 @@ export type Database = {
           administration_rate: number
           administration_rate_id?: string | null
           base_amount: number
+          contract_modality?: string
           created_at?: string
           credit_range_id?: string | null
           credit_value: number
@@ -423,6 +742,7 @@ export type Database = {
           administration_rate?: number
           administration_rate_id?: string | null
           base_amount?: number
+          contract_modality?: string
           created_at?: string
           credit_range_id?: string | null
           credit_value?: number
@@ -555,6 +875,7 @@ export type Database = {
           administration_rate_id: string | null
           base_amount: number
           client_name: string | null
+          contract_modality: string
           created_at: string
           credit_range_id: string | null
           credit_value: number
@@ -579,6 +900,7 @@ export type Database = {
           administration_rate_id?: string | null
           base_amount: number
           client_name?: string | null
+          contract_modality?: string
           created_at?: string
           credit_range_id?: string | null
           credit_value: number
@@ -603,6 +925,7 @@ export type Database = {
           administration_rate_id?: string | null
           base_amount?: number
           client_name?: string | null
+          contract_modality?: string
           created_at?: string
           credit_range_id?: string | null
           credit_value?: number
