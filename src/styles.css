@@ -289,3 +289,13 @@
   }
 }
 
+@keyframes lance-cta-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent); }
+  50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--primary) 10%, transparent); }
+}
+
+.lance-cta-highlight {
+  border-color: var(--primary) !important;
+  animation: lance-cta-pulse 1.6s ease-in-out infinite;
+}
+
