@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Permitir editar percentuais de lance e recalcular automaticamente por Reduzir parcela quando Reduzir prazo estiver bloqueado: saldo devedor ÷ (prazo restante − 2 meses), sem exigir lance em espécie quando não houver.
+- [x] Permitir editar percentuais de lance e recalcular automaticamente por Reduzir parcela quando Reduzir prazo estiver bloqueado: saldo devedor ÷ (prazo restante − 2 meses), sem exigir lance em espécie quando não houver — 39 testes passaram; edição autenticada com espécie vazia e 20% conferida, proposta temporária removida.
 
 - [x] Acrescentar filtro por grupo às reservas de cotas — acesso do Maurício validado: Grupo 1061 mostra 2 reservas, busca combinada funciona e Todos os grupos restaura 25 reservas; 32 testes financeiros passaram, sem alterar cálculos ou registros.
 
