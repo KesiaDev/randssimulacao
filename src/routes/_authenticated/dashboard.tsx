@@ -164,6 +164,7 @@ function Dashboard() {
                       <Link
                         to="/proposta/$id"
                         params={{ id: r.id }}
+                        search={{ highlightLance: undefined }}
                         className="text-xs text-primary hover:underline"
                       >
                         Proposta
