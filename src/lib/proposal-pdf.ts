@@ -1,6 +1,6 @@
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/lib/format";
-import { LANCE_MODALITIES, lanceInputFromItem, parseSavedLanceModality, simulateLance } from "@/lib/lance-calc";
+import { LANCE_MODALITIES, lanceInputFromItem, parseSavedLanceModality, resolveLanceModality, simulateLance } from "@/lib/lance-calc";
 import { formatContractModality } from "@/lib/calc";
 import randonLogo from "@/assets/randon-logo.png.asset.json";
 
@@ -296,10 +296,10 @@ export async function createProposalPdf(input: Input) {
     let grandInstallmentTotal = 0;
 
     itemsWithLance.forEach((item) => {
-      const modality = parseSavedLanceModality(item.lance_modality);
-      const simulated = simulateLance(
-        lanceInputFromItem(item, { embeddedBidRate: Number(item.lance_embedded_rate), cashBidRate: Number(item.lance_cash_rate) }, modality),
-      );
+      const lanceInput = lanceInputFromItem(item, { embeddedBidRate: Number(item.lance_embedded_rate), cashBidRate: Number(item.lance_cash_rate) }, parseSavedLanceModality(item.lance_modality));
+      // Se o novo prazo passou a ultrapassar o prazo restante, vale Reduzir parcela.
+      const modality = resolveLanceModality(lanceInput, lanceInput.modality);
+      const simulated = simulateLance({ ...lanceInput, modality });
       // Lance salvo que deixou de ser válido (ex.: prazo do grupo esgotado) não entra no PDF.
       if (!simulated.ok) return;
       const lance = simulated.simulation;

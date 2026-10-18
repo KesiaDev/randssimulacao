@@ -96,7 +96,8 @@ export function calculateLance(input: LanceInput): LanceResult {
   const cashBidAmount = creditWithFees * cashBidRate;
 
   const availableCredit = credit - embeddedBidAmount;
-  const remainingBalance = creditWithFees - embeddedBidAmount - cashBidAmount - installmentBeforeInsurance;
+  const remainingBalance =
+    creditWithFees - embeddedBidAmount - cashBidAmount - installmentBeforeInsurance;
 
   const postContemplationTermMonths = remainingTerm - gracePeriodMonths;
   const postContemplationInstallment =
@@ -194,8 +195,12 @@ export interface LanceSimulation extends LanceResult {
   installmentDifference: number;
 }
 
+/** Erro que torna Reduzir prazo indisponível e obriga Reduzir parcela. */
+export const TERM_EXCEEDS_REMAINING = "prazo_excede_restante";
+
 export type LanceSimulationResult =
-  { ok: true; simulation: LanceSimulation } | { ok: false; error: string };
+  | { ok: true; simulation: LanceSimulation }
+  | { ok: false; error: string; code?: typeof TERM_EXCEEDS_REMAINING };
 
 const isNonNegative = (value: number) => Number.isFinite(value) && value >= 0;
 
@@ -261,8 +266,9 @@ export function simulateLance(input: LanceSimulationInput): LanceSimulationResul
     if (newTermMonths > currentTermMonths) {
       return {
         ok: false,
+        code: TERM_EXCEEDS_REMAINING,
         error:
-          "A parcela mínima de 0,8% não quita o saldo dentro do prazo restante. Use Reduzir parcela.",
+          "O novo prazo ultrapassa o prazo restante do grupo; a simulação deve ser feita por Reduzir parcela.",
       };
     }
     if (newTermMonths < 1) {
@@ -290,6 +296,26 @@ export function simulateLance(input: LanceSimulationInput): LanceSimulationResul
       installmentDifference: newInstallment - currentInstallment,
     },
   };
+}
+
+/**
+ * Reduzir prazo fica indisponível quando o novo prazo calculado ultrapassa
+ * o prazo restante do grupo (após a carência). Nesse caso a simulação é
+ * obrigatoriamente por Reduzir parcela.
+ */
+export function isReduceTermBlocked(input: Omit<LanceSimulationInput, "modality">): boolean {
+  const result = simulateLance({ ...input, modality: "reduzir_prazo" });
+  return !result.ok && result.code === TERM_EXCEEDS_REMAINING;
+}
+
+/** Modalidade que vale para o lance: a pedida, exceto quando Reduzir prazo está bloqueado. */
+export function resolveLanceModality(
+  input: Omit<LanceSimulationInput, "modality">,
+  requested: LanceModality,
+): LanceModality {
+  return requested === "reduzir_prazo" && isReduceTermBlocked(input)
+    ? "reduzir_parcela"
+    : requested;
 }
 
 /** Dados de um item salvo da proposta (snapshot), sem consultar a configuração atual do grupo. */

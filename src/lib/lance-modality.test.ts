@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   calculateLance,
   DEFAULT_LANCE_MODALITY,
+  isReduceTermBlocked,
   lanceInputFromItem,
   minimumReferenceInstallment,
   parseSavedLanceModality,
+  resolveLanceModality,
+  TERM_EXCEEDS_REMAINING,
   simulateLance,
   type LanceSimulation,
   type LanceSimulationInput,
@@ -75,9 +78,18 @@ describe("modalidade do lance", () => {
   });
 
   it("Reduzir prazo: Grupo 1081 → 165.391,67 / 4.460 = 37 parcelas, sobra desconsiderada", () => {
-    const s = ok({ credit: 500000, adminRate: 0.1, reserveFund: 0.015, initialTerm: 120,
-      remainingTerm: 120, reducedInstallmentRate: 1, embeddedBidRate: 0.5, cashBidRate: 0.2,
-      insuranceRate: 0, modality: "reduzir_prazo" });
+    const s = ok({
+      credit: 500000,
+      adminRate: 0.1,
+      reserveFund: 0.015,
+      initialTerm: 120,
+      remainingTerm: 120,
+      reducedInstallmentRate: 1,
+      embeddedBidRate: 0.5,
+      cashBidRate: 0.2,
+      insuranceRate: 0,
+      modality: "reduzir_prazo",
+    });
     expect(s.newInstallment).toBe(4460);
     expect(s.newTermMonths).toBe(Math.floor(s.remainingBalance / 4460));
     expect(s.lastInstallment).toBe(4460);
@@ -183,8 +195,13 @@ describe("compatibilidade com simulações existentes", () => {
 /** Exemplos literais de Propostas_Simulação.xlsx; não são a mesma cota. */
 describe("exemplos oficiais Padrão e Planilha2", () => {
   const grupo1075 = {
-    adminRate: 0.07, reserveFund: 0.005, initialTerm: 75, remainingTerm: 53,
-    reducedInstallmentRate: 0.3, embeddedBidRate: 0.5, insuranceRate: 0,
+    adminRate: 0.07,
+    reserveFund: 0.005,
+    initialTerm: 75,
+    remainingTerm: 53,
+    reducedInstallmentRate: 0.3,
+    embeddedBidRate: 0.5,
+    insuranceRate: 0,
   };
   it("Padrão!linha 4: V4 = 38,25 truncado para 38 parcelas de 3.440", () => {
     const s = ok({ ...grupo1075, credit: 400000, cashBidRate: 0.19, modality: "reduzir_prazo" });
@@ -203,9 +220,18 @@ describe("exemplos oficiais Padrão e Planilha2", () => {
     expect(Math.round(s.newInstallment * 100)).toBe(124784);
   });
   it("Padrão!linha 3: seguro não reduz saldo S3; parcela U3 = 6.300", () => {
-    const s = ok({ credit: 700000, adminRate: 0.12, reserveFund: 0.005,
-      initialTerm: 120, remainingTerm: 120, reducedInstallmentRate: 0.45,
-      embeddedBidRate: 0.35, cashBidRate: 0, insuranceRate: 0.0004, modality: "reduzir_prazo" });
+    const s = ok({
+      credit: 700000,
+      adminRate: 0.12,
+      reserveFund: 0.005,
+      initialTerm: 120,
+      remainingTerm: 120,
+      reducedInstallmentRate: 0.45,
+      embeddedBidRate: 0.35,
+      cashBidRate: 0,
+      insuranceRate: 0.0004,
+      modality: "reduzir_prazo",
+    });
     expect(s.insurance).toBe(315); // J3
     expect(s.remainingBalance).toBe(508921.875); // S3 subtracts K3, not I3
     expect(s.newInstallment).toBe(6300); // U3
@@ -213,12 +239,54 @@ describe("exemplos oficiais Padrão e Planilha2", () => {
     expect(s.lastInstallment).toBe(6300);
   });
   it("Planilha2!linha 3: nova parcela U3 = S3 / 118", () => {
-    const s = ok({ credit: 700000, adminRate: 0.12, reserveFund: 0.005,
-      initialTerm: 120, remainingTerm: 120, reducedInstallmentRate: 0.45,
-      embeddedBidRate: 0.35, cashBidRate: 0, insuranceRate: 0.0004, modality: "reduzir_parcela" });
+    const s = ok({
+      credit: 700000,
+      adminRate: 0.12,
+      reserveFund: 0.005,
+      initialTerm: 120,
+      remainingTerm: 120,
+      reducedInstallmentRate: 0.45,
+      embeddedBidRate: 0.35,
+      cashBidRate: 0,
+      insuranceRate: 0.0004,
+      modality: "reduzir_parcela",
+    });
     expect(s.remainingBalance).toBe(508921.875); // S3
     expect(s.newTermMonths).toBe(118); // V3
     expect(s.newInstallment).toBeCloseTo(4312.8972457627115, 10); // U3
     expect(Math.round(s.newInstallment * 100)).toBe(431290);
+  });
+});
+
+describe("Reduzir prazo bloqueado quando o novo prazo ultrapassa o prazo restante", () => {
+  // Lance pequeno: o saldo ÷ parcela mínima passa do prazo restante do grupo (caso do Grupo 920).
+  const SMALL_LANCE = { ...GROUP_1075, embeddedBidRate: 0, cashBidRate: 0.01 };
+
+  it("marca o erro com código próprio", () => {
+    const result = simulateLance({ ...SMALL_LANCE, modality: "reduzir_prazo" });
+    expect(result.ok).toBe(false);
+    expect(!result.ok && result.code).toBe(TERM_EXCEEDS_REMAINING);
+  });
+
+  it("bloqueia Reduzir prazo e obriga Reduzir parcela", () => {
+    expect(isReduceTermBlocked(SMALL_LANCE)).toBe(true);
+    expect(resolveLanceModality(SMALL_LANCE, "reduzir_prazo")).toBe("reduzir_parcela");
+    expect(simulateLance({ ...SMALL_LANCE, modality: "reduzir_parcela" }).ok).toBe(true);
+  });
+
+  it("mantém Reduzir prazo quando o novo prazo cabe no prazo restante", () => {
+    expect(isReduceTermBlocked(GROUP_1075)).toBe(false);
+    expect(resolveLanceModality(GROUP_1075, "reduzir_prazo")).toBe("reduzir_prazo");
+  });
+
+  it("outros erros de validação não bloqueiam Reduzir prazo", () => {
+    expect(isReduceTermBlocked({ ...GROUP_1075, embeddedBidRate: 0, cashBidRate: 0 })).toBe(false);
+  });
+
+  it("aumentar o lance libera Reduzir prazo de novo", () => {
+    expect(isReduceTermBlocked(SMALL_LANCE)).toBe(true);
+    expect(isReduceTermBlocked({ ...SMALL_LANCE, cashBidRate: 0.15, embeddedBidRate: 0.5 })).toBe(
+      false,
+    );
   });
 });
