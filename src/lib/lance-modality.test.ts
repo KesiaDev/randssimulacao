@@ -6,6 +6,7 @@ import {
   lanceInputFromItem,
   minimumReferenceInstallment,
   parseSavedLanceModality,
+  parseLancePercent,
   resolveLanceModality,
   TERM_EXCEEDS_REMAINING,
   simulateLance,
@@ -259,6 +260,37 @@ describe("exemplos oficiais Padrão e Planilha2", () => {
 });
 
 describe("Reduzir prazo bloqueado quando o novo prazo ultrapassa o prazo restante", () => {
+  it("Grupo 915: editar espécie vazia, 20% e 40% recalcula com 35 − 2 meses quando bloqueado", () => {
+    const item = {
+      credit_value: 229136.45, administration_rate: 0.14, reserve_fund: 0.01,
+      initial_term: 100, remaining_term: 35, installment_multiplier: 1,
+      insurance_rate: 0, final_amount: 2635.069175,
+    };
+    const calculate = (cash: string) => {
+      const input = lanceInputFromItem(item, {
+        embeddedBidRate: parseLancePercent("35"), cashBidRate: parseLancePercent(cash),
+      }, DEFAULT_LANCE_MODALITY);
+      const modality = resolveLanceModality(input, DEFAULT_LANCE_MODALITY);
+      return ok({ ...input, modality });
+    };
+    const empty = calculate("");
+    expect(empty.modality).toBe("reduzir_parcela");
+    expect(empty.cashBidAmount).toBe(0);
+    expect(empty.newTermMonths).toBe(33);
+    expect(empty.newInstallment).toBeCloseTo(5110.437187878788, 8);
+    const edited = calculate("20");
+    expect(edited.modality).toBe("reduzir_parcela");
+    expect(edited.newTermMonths).toBe(33);
+    expect(edited.newInstallment).toBeCloseTo(3513.4255666666663, 8);
+    const higher = calculate("40");
+    expect(higher.modality).toBe("reduzir_prazo");
+    expect(higher.newTermMonths).toBe(29);
+  });
+
+  it("percentuais aceitam decimal com vírgula e não transformam texto inválido em zero", () => {
+    expect(parseLancePercent("16,5")).toBe(0.165);
+    expect(parseLancePercent("inválido")).toBeNaN();
+  });
   // Lance pequeno: o saldo ÷ parcela mínima passa do prazo restante do grupo (caso do Grupo 920).
   const SMALL_LANCE = { ...GROUP_1075, embeddedBidRate: 0, cashBidRate: 0.01 };
 

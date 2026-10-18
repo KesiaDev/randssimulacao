@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Permitir editar percentuais de lance e recalcular automaticamente por Reduzir parcela quando Reduzir prazo estiver bloqueado: saldo devedor ÷ (prazo restante − 2 meses), sem exigir lance em espécie quando não houver — 39 testes passaram; edição autenticada com espécie vazia e 20% conferida, proposta temporária removida.
+
 - [x] Acrescentar filtro por grupo às reservas de cotas — acesso do Maurício validado: Grupo 1061 mostra 2 reservas, busca combinada funciona e Todos os grupos restaura 25 reservas; 32 testes financeiros passaram, sem alterar cálculos ou registros.
 
 - [x] Analisar todas as abas de Propostas_Simulação.xlsx e reproduzir exemplos do Grupo 1075 — Padrão usa crédito de R$ 400 mil e espécie 19%; Planilha2 usa crédito de R$ 200 mil e espécie 20%; 101 testes existentes passaram sem alterações financeiras.

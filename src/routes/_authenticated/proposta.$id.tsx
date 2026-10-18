@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { calculateProposalTotals } from "@/lib/proposal-calc";
-import { DEFAULT_LANCE_MODALITY, LANCE_MODALITIES, isReduceTermBlocked, lanceInputFromItem, parseSavedLanceModality, simulateLance, type LanceModality } from "@/lib/lance-calc";
+import { DEFAULT_LANCE_MODALITY, LANCE_MODALITIES, isReduceTermBlocked, lanceInputFromItem, parseLancePercent, parseSavedLanceModality, simulateLance, type LanceModality } from "@/lib/lance-calc";
 import { formatContractModality, savedContractTerm } from "@/lib/calc";
 import { createProposalPdf } from "@/lib/proposal-pdf";
 import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/lib/format";
@@ -155,14 +155,9 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
   );
   const [saving, setSaving] = useState(false);
 
-  const parsePct = (value: string) => {
-    const n = Number(value.replace(",", "."));
-    return Number.isFinite(n) ? n / 100 : NaN;
-  };
-
   const lanceInput = useMemo(() => {
-    const embeddedBidRate = embeddedPct.trim() === "" ? NaN : parsePct(embeddedPct);
-    const cashBidRate = cashPct.trim() === "" ? NaN : parsePct(cashPct);
+    const embeddedBidRate = parseLancePercent(embeddedPct);
+    const cashBidRate = parseLancePercent(cashPct);
     if (![embeddedBidRate, cashBidRate].every(Number.isFinite)) return null;
     return lanceInputFromItem(item, { embeddedBidRate, cashBidRate }, DEFAULT_LANCE_MODALITY);
   }, [embeddedPct, cashPct, item]);
@@ -183,7 +178,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
     setSaving(true);
     const { error } = await supabase
       .from("proposal_items")
-      .update({ lance_embedded_rate: parsePct(embeddedPct), lance_cash_rate: parsePct(cashPct), lance_modality: effectiveModality })
+      .update({ lance_embedded_rate: parseLancePercent(embeddedPct), lance_cash_rate: parseLancePercent(cashPct), lance_modality: effectiveModality })
       .eq("id", item.id);
     setSaving(false);
     if (error) {
@@ -222,19 +217,20 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
         </DialogHeader>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>% Lance embutido</Label>
-            <Input value={embeddedPct} onChange={(e) => setEmbeddedPct(e.target.value)} />
+            <Label htmlFor={`embedded-${item.id}`}>% Lance embutido</Label>
+            <Input id={`embedded-${item.id}`} inputMode="decimal" placeholder="0" value={embeddedPct} onChange={(e) => setEmbeddedPct(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>% Lance em espécie</Label>
-            <Input value={cashPct} onChange={(e) => setCashPct(e.target.value)} />
+            <Label htmlFor={`cash-${item.id}`}>% Lance em espécie</Label>
+            <Input id={`cash-${item.id}`} inputMode="decimal" placeholder="0" value={cashPct} onChange={(e) => setCashPct(e.target.value)} />
           </div>
         </div>
         <div role="radiogroup" aria-label="Modalidade do lance" className="grid gap-2 sm:grid-cols-2">
           {(Object.keys(LANCE_MODALITIES) as LanceModality[]).map((option) => {
             const disabled = option === "reduzir_prazo" && reduceTermBlocked;
             return (
-            <button
+            <Button
+              variant="outline"
               key={option}
               type="button"
               role="radio"
@@ -242,16 +238,21 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
               aria-disabled={disabled}
               disabled={disabled}
               onClick={() => setModality(option)}
-              className={`rounded-lg border p-3 text-left transition-colors ${disabled ? "cursor-not-allowed border-border bg-muted opacity-60" : effectiveModality === option ? "border-primary bg-primary/5 ring-2 ring-primary" : "border-border hover:border-primary/40"}`}
+              className={`h-auto flex-col items-start whitespace-normal rounded-lg border p-3 text-left transition-colors ${disabled ? "cursor-not-allowed border-border bg-muted opacity-60" : effectiveModality === option ? "border-primary bg-primary/5 ring-2 ring-primary" : "border-border hover:border-primary/40"}`}
             >
               <div className="flex items-center gap-2 font-semibold">
-                {LANCE_MODALITIES[option].label}{option === DEFAULT_LANCE_MODALITY && " (obrigatório)"}
+                {LANCE_MODALITIES[option].label}{option === "reduzir_parcela" && reduceTermBlocked && " (obrigatório)"}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{disabled ? "Indisponível: o novo prazo ultrapassa o prazo restante do grupo." : LANCE_MODALITIES[option].description}</p>
-            </button>
+            </Button>
             );
           })}
         </div>
+        {reduceTermBlocked && result && (
+          <p className="text-sm text-muted-foreground">
+            Nova parcela: {formatBRL(result.remainingBalance)} ÷ ({item.remaining_term} meses − 2 de carência) = {formatBRL(result.newInstallment)}.
+          </p>
+        )}
         {result ? (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
@@ -264,8 +265,8 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
             <div className="rounded-lg border border-border p-4">
               <LabelText>Simulação · {LANCE_MODALITIES[effectiveModality].label} · por cota</LabelText>
               <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                <Item label={`Lance embutido (${embeddedPct}%)`} value={formatBRL(result.embeddedBidAmount)} />
-                <Item label={`Lance em espécie (${cashPct}%)`} value={formatBRL(result.cashBidAmount)} />
+                <Item label={`Lance embutido (${formatPercent(parseLancePercent(embeddedPct))})`} value={formatBRL(result.embeddedBidAmount)} />
+                <Item label={`Lance em espécie (${formatPercent(parseLancePercent(cashPct))})`} value={formatBRL(result.cashBidAmount)} />
                 <Item label="Valor do lance" value={formatBRL(result.bidTotalAmount)} />
                 <Item label="Crédito disponível" value={formatBRL(result.availableCredit)} />
                 <Item label="Nova parcela" value={formatBRL(result.newInstallment)} />
