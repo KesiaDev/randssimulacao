@@ -24,15 +24,6 @@ function MauricioDashboard() {
     queryFn: async () =>
       (await supabase.from("mauricio_resultados_mensais").select("*").eq("ano", ANO)).data ?? [],
   });
-  const { data: seguros } = useQuery({
-    queryKey: ["m-seguro", ANO],
-    queryFn: async () =>
-      (await supabase.from("mauricio_seguro").select("*").eq("ano", ANO)).data ?? [],
-  });
-  const { data: campanhas } = useQuery({
-    queryKey: ["m-campanhas"],
-    queryFn: async () => (await supabase.from("mauricio_campanhas").select("*")).data ?? [],
-  });
   const { data: eventos } = useQuery({
     queryKey: ["m-eventos-proximos"],
     queryFn: async () =>
