@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,10 +9,18 @@ import { MAURICIO_USER_ID } from "@/lib/mauricio";
 import { syncReservaNotifications } from "@/lib/mauricio.functions";
 import { useAppointmentReminders } from "@/hooks/useAppointmentReminders";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
-export function MauricioNotifications() {
+type Measurable = { getBoundingClientRect(): DOMRect };
+
+/**
+ * Painel de avisos do Maurício. Abre sempre no topo da tela, como as
+ * notificações de celular: a âncora é um ponto invisível fixo na borda
+ * superior da janela, então o painel desce de cima independentemente de onde
+ * o sino esteja ou de quanto a página esteja rolada.
+ */
+export function MauricioNotifications({ tone = "header" }: { tone?: "header" | "sidebar" }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const syncFn = useServerFn(syncReservaNotifications);
@@ -27,6 +35,16 @@ export function MauricioNotifications() {
     void syncFn().then(() => qc.invalidateQueries({ queryKey: ["m-notificacoes"] })).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autorizado]);
+
+  const anchor = useMemo<Measurable>(() => ({
+    getBoundingClientRect: () => {
+      const w = window.innerWidth;
+      const pad = w >= 640 ? 20 : 12;
+      return new DOMRect(w - pad, 0, 0, 0);
+    },
+  }), []);
+  const anchorRef = useRef<Measurable | null>(anchor);
+
   if (!autorizado) return null;
   const naoLidas = (notificacoes ?? []).filter(n => !n.lida).length + reminders.filter(r => !r.read).length;
   async function readAppointments(items = reminders) {
@@ -52,12 +70,35 @@ export function MauricioNotifications() {
       await readAppointments(); await qc.invalidateQueries({ queryKey: ["m-notificacoes"] });
     } catch { toast.error("Não foi possível marcar todos os avisos como lidos."); }
   }
-  return <Popover><PopoverTrigger asChild><Button size="icon" className="relative size-11 shrink-0 border border-primary-foreground/20 shadow-sm [&_svg]:size-6" aria-label="Notificações" title="Compromissos e reservas"><Bell strokeWidth={2.25} />{naoLidas > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-destructive px-1 text-[11px] font-bold text-destructive-foreground">{naoLidas}</span>}</Button></PopoverTrigger><PopoverContent className="w-[min(24rem,calc(100vw-2rem))] p-0" align="end"><div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3"><p className="text-sm font-semibold">Notificações</p>{naoLidas > 0 && <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => void marcarTodas()}>Marcar todas como lidas</Button>}</div><div className="max-h-96 overflow-y-auto">
-    {reminderError && <p className="p-4 text-sm text-destructive">Não foi possível carregar os avisos da agenda.</p>}
-    {reminders.length > 0 && <p className="bg-muted/50 px-4 py-2 text-xs font-semibold text-primary">Compromissos · hoje e amanhã</p>}
-    {reminders.map(r => <div key={r.event.id} className={`border-b px-4 py-3 ${r.read ? "opacity-60" : ""}`}><Button variant="ghost" onClick={() => void markAppointment(r.event.id)} className="h-auto w-full justify-start whitespace-normal px-0 text-left"><CalendarDays className="shrink-0 text-primary" /><span className="min-w-0"><span className="block text-xs font-semibold text-primary">{r.type === "hoje" ? "Hoje" : "Amanhã"} · {r.date.split("-").reverse().join("/")}</span><span className="block break-words">Maurício, {r.event.titulo}{r.event.revenda ? ` — ${r.event.revenda}` : ""}.</span>{r.event.logistica && <span className="mt-1 block text-xs text-muted-foreground">{r.event.logistica}</span>}<span className="block text-xs text-muted-foreground">{r.read ? "Lida" : "Não lida"}</span></span></Button><Button variant="link" size="sm" asChild className="mt-1 px-0"><Link to="/mauricio/calendario">Abrir calendário →</Link></Button></div>)}
-    {(notificacoes ?? []).length > 0 && <p className="bg-muted/50 px-4 py-2 text-xs font-semibold">Reservas de cotas</p>}
-    {(notificacoes ?? []).map(n => <Button key={n.id} variant="ghost" onClick={() => void marcarLida(n.id)} className={`block h-auto w-full whitespace-normal rounded-none border-b px-4 py-3 text-left text-sm ${n.lida ? "opacity-60" : ""}`}><span className="block">{n.mensagem}</span><span className="mt-1 block text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString("pt-BR")}{!n.lida && " · não lida"}</span></Button>)}
-    {reminders.length === 0 && (notificacoes ?? []).length === 0 && <p className="p-4 text-sm text-muted-foreground">Nenhuma notificação.</p>}
-  </div></PopoverContent></Popover>;
+
+  const sino = tone === "sidebar"
+    ? "size-9 shrink-0 border border-sidebar-border bg-sidebar-accent/70 text-sidebar-foreground shadow-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+    : "size-9 shrink-0 border border-border bg-card text-foreground shadow-none hover:bg-muted";
+
+  return <Popover>
+    <PopoverAnchor virtualRef={anchorRef} className="hidden" />
+    <PopoverTrigger asChild>
+      <Button size="icon" className={`relative ${sino} [&_svg]:size-[18px]`} aria-label="Notificações" title="Compromissos e reservas">
+        <Bell strokeWidth={2} />
+        {naoLidas > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-destructive px-1 text-[10px] font-bold leading-none text-destructive-foreground">{naoLidas}</span>}
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent
+      align="end" side="bottom" sideOffset={10}
+      className="w-[min(26rem,calc(100vw-1.5rem))] rounded-b-2xl border-x border-b p-0 shadow-2xl data-[state=open]:slide-in-from-top-8 data-[state=open]:duration-200 data-[state=closed]:duration-150"
+    >
+      <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b bg-popover px-4 py-3">
+        <p className="text-sm font-semibold">Notificações</p>
+        {naoLidas > 0 && <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => void marcarTodas()}>Marcar todas como lidas</Button>}
+      </div>
+      <div className="max-h-[70vh] overflow-y-auto">
+        {reminderError && <p className="p-4 text-sm text-destructive">Não foi possível carregar os avisos da agenda.</p>}
+        {reminders.length > 0 && <p className="bg-muted/50 px-4 py-2 text-xs font-semibold text-primary">Compromissos · hoje e amanhã</p>}
+        {reminders.map(r => <div key={r.event.id} className={`border-b px-4 py-3 ${r.read ? "opacity-60" : ""}`}><Button variant="ghost" onClick={() => void markAppointment(r.event.id)} className="h-auto w-full justify-start whitespace-normal px-0 text-left"><CalendarDays className="shrink-0 text-primary" /><span className="min-w-0"><span className="block text-xs font-semibold text-primary">{r.type === "hoje" ? "Hoje" : "Amanhã"} · {r.date.split("-").reverse().join("/")}</span><span className="block break-words">Maurício, {r.event.titulo}{r.event.revenda ? ` — ${r.event.revenda}` : ""}.</span>{r.event.logistica && <span className="mt-1 block text-xs text-muted-foreground">{r.event.logistica}</span>}<span className="block text-xs text-muted-foreground">{r.read ? "Lida" : "Não lida"}</span></span></Button><Button variant="link" size="sm" asChild className="mt-1 px-0"><Link to="/mauricio/calendario">Abrir calendário →</Link></Button></div>)}
+        {(notificacoes ?? []).length > 0 && <p className="bg-muted/50 px-4 py-2 text-xs font-semibold">Reservas de cotas</p>}
+        {(notificacoes ?? []).map(n => <Button key={n.id} variant="ghost" onClick={() => void marcarLida(n.id)} className={`block h-auto w-full whitespace-normal rounded-none border-b px-4 py-3 text-left text-sm ${n.lida ? "opacity-60" : ""}`}><span className="block">{n.mensagem}</span><span className="mt-1 block text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString("pt-BR")}{!n.lida && " · não lida"}</span></Button>)}
+        {reminders.length === 0 && (notificacoes ?? []).length === 0 && <p className="p-4 text-sm text-muted-foreground">Nenhuma notificação.</p>}
+      </div>
+    </PopoverContent>
+  </Popover>;
 }
