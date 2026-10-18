@@ -2,15 +2,12 @@ import { describe, expect, it } from "vitest";
 import { calculateLance, rate } from "./lance-calc";
 
 /**
- * Fonte de verdade: planilha "Proposta Marlon simulação lance.xlsx",
- * abas "Mascarello" (Grupo 1075) e "Cortina" (Grupo 940) — exceto o saldo
- * devedor e tudo que depende dele (parcela pós-contemplação, custo
- * efetivo), que foram recalculados conforme correção do Mauricio
- * (05/10/2026): o saldo devedor desconta a parcela inicial inteira, não
- * só o seguro.
+ * Regressões de parâmetros anteriores, com saldo corrigido pela fórmula
+ * Propostas_Simulação.xlsx, Padrão/Planilha2!S3:S4 (desconta K, sem seguro).
+ * Mascarello/Cortina possuem outra fórmula de saldo e não definem as modalidades.
  */
 describe("motor de cálculo de lance vs planilha", () => {
-  it("Grupo 1075 (aba Mascarello)", () => {
+  it("Grupo 1075: parâmetros anteriores, saldo conforme Padrão!S4", () => {
     const r = calculateLance({
       credit: 400000,
       adminRate: 0.1,
@@ -31,14 +28,14 @@ describe("motor de cálculo de lance vs planilha", () => {
     expect(r.embeddedBidAmount).toBeCloseTo(221000, 6);
     expect(r.cashBidAmount).toBeCloseTo(66300, 6);
     expect(r.availableCredit).toBeCloseTo(179000, 6);
-    expect(r.remainingBalance).toBeCloseTo(152460.53333333333, 6);
+    expect(r.remainingBalance).toBeCloseTo(152637.33333333334, 6);
     expect(r.postContemplationTermMonths).toBe(56);
-    expect(r.postContemplationInstallment).toBeCloseTo(2722.5095238095237, 6);
+    expect(r.postContemplationInstallment).toBeCloseTo(2725.666666666667, 6);
     expect(r.newMoney).toBeCloseTo(110460.53333333333, 6);
-    expect(r.effectiveMonthlyCostRate).toBeCloseTo(0.01203192255135422, 8);
+    expect(r.effectiveMonthlyCostRate).toBeCloseTo(0.01207811470190351, 8);
   });
 
-  it("Grupo 940 (aba Cortina)", () => {
+  it("Grupo 940: parâmetros anteriores, saldo conforme Planilha2!S4", () => {
     const r = calculateLance({
       credit: 220000,
       adminRate: 0.1,
@@ -59,11 +56,11 @@ describe("motor de cálculo de lance vs planilha", () => {
     expect(r.embeddedBidAmount).toBeCloseTo(85085, 6);
     expect(r.cashBidAmount).toBeCloseTo(60775, 6);
     expect(r.availableCredit).toBeCloseTo(134915, 6);
-    expect(r.remainingBalance).toBeCloseTo(95985.14095238096, 6);
+    expect(r.remainingBalance).toBeCloseTo(96082.38095238096, 6);
     expect(r.postContemplationTermMonths).toBe(82);
-    expect(r.postContemplationInstallment).toBeCloseTo(1170.55049941928, 6);
+    expect(r.postContemplationInstallment).toBeCloseTo(1171.7363530778166, 6);
     expect(r.newMoney).toBeCloseTo(72885.140952380956, 6);
-    expect(r.effectiveMonthlyCostRate).toBeCloseTo(0.006984321561935898, 8);
+    expect(r.effectiveMonthlyCostRate).toBeCloseTo(0.007011429562540154, 8);
   });
 
   it("Grupo 1061 sem seguro (insuranceRate 0 não pode cair no padrão 0,04%)", () => {
@@ -92,7 +89,7 @@ describe("motor de cálculo de lance vs planilha", () => {
   });
 
   it("RATE reproduz a função financeira do Excel", () => {
-    expect(rate(56, -2722.5095238095237, 110460.53333333333)).toBeCloseTo(0.01203192255135422, 8);
-    expect(rate(82, -1170.55049941928, 72885.140952380956)).toBeCloseTo(0.006984321561935898, 8);
+    expect(rate(56, -2725.666666666667, 110460.53333333333)).toBeCloseTo(0.01207811470190351, 8);
+    expect(rate(82, -1171.7363530778166, 72885.140952380956)).toBeCloseTo(0.007011429562540154, 8);
   });
 });
