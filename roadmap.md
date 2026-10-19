@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Subir a tela automaticamente ao clicar em "Adicionar outro grupo" na montagem de proposta, levando o vendedor de volta à escolha do grupo — conferido em proposta autenticada: rolagem 1399 → 0 e passo "Grupo" visível.
+
+
 - [x] Destacar o sino de notificações do Maurício com botão azul institucional e ícone branco maior; zerar os dois percentuais em toda abertura da simulação de lance, preservando lances salvos até ação explícita — 41 testes passaram e abertura, cálculo e reabertura conferidos em proposta autenticada sem gravar alterações.
 
 - [x] Retirar a linha que explica a conta da nova parcela (saldo ÷ prazo com carência) da tela de simulação de lance — telas mostram só o resultado, sem expor a fórmula
