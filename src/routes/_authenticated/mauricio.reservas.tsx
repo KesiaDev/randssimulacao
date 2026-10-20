@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE, REVENDAS, type ReservaStatus } from "@/lib/mauricio";
 import { syncReservaNotifications } from "@/lib/mauricio.functions";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mauricio/reservas")({
   head: () => ({ meta: [
@@ -113,6 +113,21 @@ function ReservasPage() {
       setEditando(null);
       void qc.invalidateQueries({ queryKey: ["m-reservas"] });
     }
+  }
+
+  async function excluir(r: Reserva) {
+    if (!window.confirm(`Excluir permanentemente a reserva da cota ${r.cota} do grupo ${r.grupo}? Esta ação não pode ser desfeita.`)) return;
+    const { data, error } = await supabase.from("mauricio_reservas").delete().eq("id", r.id).select("id");
+    if (error || !data?.length) {
+      toast.error(error?.message ?? "Não foi possível excluir a reserva");
+      return;
+    }
+    toast.success("Reserva excluída");
+    setEditando(null);
+    void qc.invalidateQueries({ queryKey: ["m-reservas"] });
+    void qc.invalidateQueries({ queryKey: ["m-reservas-todas"] });
+    void qc.invalidateQueries({ queryKey: ["m-rev-reservas"] });
+    void qc.invalidateQueries({ queryKey: ["mauricio-notificacoes"] });
   }
 
   return (
@@ -273,6 +288,15 @@ function ReservasPage() {
             {editando && editando.status !== "ativa" && (
               <Button variant="outline" className="w-full" onClick={() => void mudarStatus(editando, "ativa")}>
                 Reativar reserva
+              </Button>
+            )}
+            {editando && (
+              <Button
+                variant="ghost"
+                className="w-full text-destructive hover:text-destructive"
+                onClick={() => void excluir(editando)}
+              >
+                <Trash2 className="h-4 w-4" /> Excluir reserva permanentemente
               </Button>
             )}
           </div>
