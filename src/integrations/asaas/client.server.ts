@@ -84,7 +84,17 @@ export async function createCardInstallmentCharge(input: {
   installmentCount: number;
   description: string;
 }): Promise<AsaasInstallmentPayment> {
-  const dueDate = new Date().toISOString().slice(0, 10);
+  // O Asaas recebe uma data civil: emissão em São Paulo + dois dias corridos.
+  const parts = new Intl.DateTimeFormat("en", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const due = new Date(`${part("year")}-${part("month")}-${part("day")}T12:00:00Z`);
+  due.setUTCDate(due.getUTCDate() + 2);
+  const dueDate = due.toISOString().slice(0, 10);
   return asaasFetch<AsaasInstallmentPayment>("/payments", {
     method: "POST",
     body: JSON.stringify({
