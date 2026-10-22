@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Pencil, Share2, TrendingUp, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { canEditProposal } from "@/lib/dealer-manager";
 import { Brand } from "@/components/Brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,8 +48,9 @@ function simulationToItem(sim: SimulationRow): ItemRow {
 function Proposta() {
   const { id } = useParams({ from: "/_authenticated/proposta/$id" });
   const queryClient = useQueryClient();
+  const { user, isAdmin, isDealerManager } = useAuth();
   const { data, isLoading } = useQuery({
-    queryKey: ["proposal", id],
+    queryKey: ["proposal", id, user?.id],
     queryFn: async () => {
       const proposalResult = await supabase.from("proposals").select("*").eq("id", id).maybeSingle();
       if (proposalResult.error) throw proposalResult.error;
@@ -57,14 +60,16 @@ function Proposta() {
           supabase.from("profiles").select("name, email, phone").eq("id", proposalResult.data.seller_id).maybeSingle(),
         ]);
         if (itemsResult.error) throw itemsResult.error;
-        return { proposal: proposalResult.data, items: itemsResult.data ?? [], seller: sellerResult.data, legacy: false };
+        const contact = isDealerManager ? await supabase.rpc("get_dealer_manager_seller_contact", { _seller_id: proposalResult.data.seller_id }) : null;
+        return { proposal: proposalResult.data, items: itemsResult.data ?? [], seller: (contact?.data as { name: string; email: string; phone: string | null } | null) ?? sellerResult.data, legacy: false };
       }
       const simulationResult = await supabase.from("simulations").select("*").eq("id", id).maybeSingle();
       if (simulationResult.error) throw simulationResult.error;
       if (!simulationResult.data) return null;
       const sellerResult = await supabase.from("profiles").select("name, email, phone").eq("id", simulationResult.data.seller_id).maybeSingle();
       const proposal: ProposalRow = { id: simulationResult.data.id, seller_id: simulationResult.data.seller_id, client_name: simulationResult.data.client_name, status: "finalized", created_at: simulationResult.data.created_at, updated_at: simulationResult.data.created_at };
-      return { proposal, items: [simulationToItem(simulationResult.data)], seller: sellerResult.data, legacy: true };
+      const contact = isDealerManager ? await supabase.rpc("get_dealer_manager_seller_contact", { _seller_id: simulationResult.data.seller_id }) : null;
+      return { proposal, items: [simulationToItem(simulationResult.data)], seller: (contact?.data as { name: string; email: string; phone: string | null } | null) ?? sellerResult.data, legacy: true };
     },
   });
 
@@ -91,6 +96,7 @@ function Proposta() {
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando proposta…</p>;
   if (!data) return <p className="text-sm text-muted-foreground">Proposta não encontrada.</p>;
   const { proposal, items, seller, legacy } = data;
+  const editable = canEditProposal(user?.id, proposal.seller_id, isAdmin);
   const imageIndex = [...proposal.id].reduce((total, char) => total + char.charCodeAt(0), 0) % proposalImages.length;
   const proposalImage = proposalImages[imageIndex] ?? graneleiro;
   const totals = calculateProposalTotals(items.map((item) => ({ quantity: item.quantity, credit: Number(item.credit_value), result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / savedContractTerm(item), installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } })));
@@ -128,14 +134,14 @@ function Proposta() {
       toast.error("Não foi possível compartilhar o PDF.");
     }
   }
-  async function updateQuantity(itemId: string, value: number) { if (legacy) return; const quantity = Math.min(999, Math.max(1, Math.trunc(value || 1))); const response = await supabase.from("proposal_items").update({ quantity }).eq("id", itemId); if (response.error) { toast.error("Não foi possível atualizar a quantidade."); return; } await queryClient.invalidateQueries({ queryKey: ["proposal", id] }); }
+  async function updateQuantity(itemId: string, value: number) { if (legacy || !editable) return; const quantity = Math.min(999, Math.max(1, Math.trunc(value || 1))); const response = await supabase.from("proposal_items").update({ quantity }).eq("id", itemId); if (response.error) { toast.error("Não foi possível atualizar a quantidade."); return; } await queryClient.invalidateQueries({ queryKey: ["proposal", id] }); }
 
   return <div className="space-y-6">
-    <div className="no-print grid gap-3 sm:flex sm:items-center sm:justify-between"><Button variant="ghost" size="sm" asChild><Link to="/historico" search={{ page: 1, group: "", seller: "", date: "", credit: "" }}><ArrowLeft/> Voltar</Link></Button><div className="grid min-w-0 grid-cols-2 gap-2 sm:flex"><Button variant="outline" asChild className="min-w-0 px-2 sm:px-4"><Link to="/simular" search={legacy ? { edit: undefined, legacy: id } : { edit: id, legacy: undefined }}><Pencil/> Editar</Link></Button><Button variant="outline" className="min-w-0 px-2 sm:px-4" onClick={() => void share()}><Share2/> Compartilhar</Button><Button className="min-w-0 px-2 sm:px-4" onClick={() => void downloadPdf()}><Download/> Baixar PDF</Button><AlertDialog><AlertDialogTrigger asChild><Button variant="outline" className="min-w-0 px-2 sm:px-4"><Trash2/> Excluir</Button></AlertDialogTrigger><AlertDialogContent className="w-[calc(100%-2rem)] rounded-lg"><AlertDialogHeader><AlertDialogTitle>Excluir esta {legacy ? "simulação" : "proposta"}?</AlertDialogTitle><AlertDialogDescription>Esta ação é definitiva e removerá os dados deste registro.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={async () => { const response = legacy ? await supabase.rpc("delete_legacy_simulation", { _simulation_id: id }) : await supabase.rpc("delete_saved_proposal", { _proposal_id: id }); if (response.error) { toast.error("Não foi possível excluir."); return; } toast.success("Registro excluído."); window.location.href = "/historico"; }}>Excluir definitivamente</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div></div>
+    <div className="no-print grid gap-3 sm:flex sm:items-center sm:justify-between"><Button variant="ghost" size="sm" asChild><Link to="/historico" search={{ page: 1, group: "", seller: "", date: "", credit: "" }}><ArrowLeft/> Voltar</Link></Button><div className="grid min-w-0 grid-cols-2 gap-2 sm:flex">{editable && <Button variant="outline" asChild className="min-w-0 px-2 sm:px-4"><Link to="/simular" search={legacy ? { edit: undefined, legacy: id } : { edit: id, legacy: undefined }}><Pencil/> Editar</Link></Button>}<Button variant="outline" className="min-w-0 px-2 sm:px-4" onClick={() => void share()}><Share2/> Compartilhar</Button><Button className="min-w-0 px-2 sm:px-4" onClick={() => void downloadPdf()}><Download/> Baixar PDF</Button>{editable && <AlertDialog><AlertDialogTrigger asChild><Button variant="outline" className="min-w-0 px-2 sm:px-4"><Trash2/> Excluir</Button></AlertDialogTrigger><AlertDialogContent className="w-[calc(100%-2rem)] rounded-lg"><AlertDialogHeader><AlertDialogTitle>Excluir esta {legacy ? "simulação" : "proposta"}?</AlertDialogTitle><AlertDialogDescription>Esta ação é definitiva e removerá os dados deste registro.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={async () => { const response = legacy ? await supabase.rpc("delete_legacy_simulation", { _simulation_id: id }) : await supabase.rpc("delete_saved_proposal", { _proposal_id: id }); if (response.error) { toast.error("Não foi possível excluir."); return; } toast.success("Registro excluído."); window.location.href = "/historico"; }}>Excluir definitivamente</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>}</div></div>
     <article className="proposal-sheet surface mx-auto max-w-4xl overflow-hidden">
       <div className="relative min-h-64 overflow-hidden sm:min-h-72"><img src={proposalImage.url} alt="Implemento rodoviário Randon" className="absolute inset-0 h-full w-full object-cover"/><div className="proposal-cover-shade absolute inset-0"/><header className="relative flex min-h-64 flex-col justify-between p-5 text-primary-foreground sm:min-h-72 sm:p-10"><Brand variant="dark"/><div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><div><p className="text-xs font-semibold uppercase text-primary-foreground/75">Proposta comercial</p><h1 className="mt-2 max-w-xl text-2xl font-semibold sm:text-4xl">Planejamento inteligente para renovar ou ampliar sua frota.</h1></div><div className="text-xs text-primary-foreground/80 sm:text-right">Proposta personalizada<div>{formatDate(proposal.created_at)}</div></div></div></header></div>
       <div className="px-4 py-6 sm:px-10 sm:py-8"><div className="mb-7 grid gap-5 border-b border-border pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><div><LabelText>Preparada para</LabelText><div className="mt-1 text-2xl font-semibold">{proposal.client_name || "Cliente Randon"}</div></div><div className="sm:text-right"><LabelText>Composição</LabelText><div className="mt-1 text-xl font-semibold text-primary">{totals.quantity} {totals.quantity === 1 ? "cota" : "cotas"} · {items.length} {items.length === 1 ? "item" : "itens"}</div></div></div>
-        <div className="space-y-4">{items.map((item, index) => <section key={item.id} className="proposal-item rounded-lg border border-border p-4 sm:p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><LabelText>Item {index + 1}</LabelText><h2 className="mt-1 text-xl font-semibold">Grupo {item.group_code}</h2><p className="mt-1 text-sm text-muted-foreground">{formatContractModality(item.contract_modality)} · {formatInstallmentType(item.installment_type_name, item.installment_multiplier)} · Taxa {formatPercent(Number(item.administration_rate))} · FR {formatPercent(Number(item.reserve_fund))} · {item.insurance_included ? "Com seguro" : "Sem seguro"}</p></div>{!legacy && <div className="no-print w-28 space-y-1"><label htmlFor={`proposal-quantity-${item.id}`} className="text-xs text-muted-foreground">Quantidade</label><Input id={`proposal-quantity-${item.id}`} type="number" min={1} max={999} defaultValue={item.quantity} onBlur={(event) => void updateQuantity(item.id, Number(event.target.value))}/></div>}<div className="hidden print:block"><LabelText>Quantidade</LabelText><div className="font-semibold">{item.quantity}</div></div><div className="no-print"><LanceSimuladorDialog item={item} legacy={legacy} onSaved={() => void queryClient.invalidateQueries({ queryKey: ["proposal", id] })}/></div></div><dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4"><Item label="Crédito/cota" value={formatBRL(Number(item.credit_value))}/><Item label="Quantidade" value={`${item.quantity} ${item.quantity === 1 ? "cota" : "cotas"}`}/><Item label="Crédito total" value={formatBRL(Number(item.credit_value) * item.quantity)}/><Item label="Crédito com taxa total" value={formatBRL(Number(item.base_amount) * item.quantity)}/><Item label="Parcela/cota" value={formatBRL(Number(item.final_amount))}/><Item label="Prazo" value={`${item.initial_term} meses · ${item.remaining_term} restantes`}/><Item label="Seguro/cota" value={item.insurance_included ? formatBRL(Number(item.insurance_amount)) : "Não incluído"}/><Item label="Parcela total" value={`${formatBRL(Number(item.final_amount) * item.quantity)}/mês`}/></dl></section>)}</div>
+        <div className="space-y-4">{items.map((item, index) => <section key={item.id} className="proposal-item rounded-lg border border-border p-4 sm:p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><LabelText>Item {index + 1}</LabelText><h2 className="mt-1 text-xl font-semibold">Grupo {item.group_code}</h2><p className="mt-1 text-sm text-muted-foreground">{formatContractModality(item.contract_modality)} · {formatInstallmentType(item.installment_type_name, item.installment_multiplier)} · Taxa {formatPercent(Number(item.administration_rate))} · FR {formatPercent(Number(item.reserve_fund))} · {item.insurance_included ? "Com seguro" : "Sem seguro"}</p></div>{!legacy && editable && <div className="no-print w-28 space-y-1"><label htmlFor={`proposal-quantity-${item.id}`} className="text-xs text-muted-foreground">Quantidade</label><Input id={`proposal-quantity-${item.id}`} type="number" min={1} max={999} defaultValue={item.quantity} onBlur={(event) => void updateQuantity(item.id, Number(event.target.value))}/></div>}<div className="hidden print:block"><LabelText>Quantidade</LabelText><div className="font-semibold">{item.quantity}</div></div><div className="no-print"><LanceSimuladorDialog item={item} legacy={legacy} readOnly={!editable} onSaved={() => void queryClient.invalidateQueries({ queryKey: ["proposal", id] })}/></div></div><dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4"><Item label="Crédito/cota" value={formatBRL(Number(item.credit_value))}/><Item label="Quantidade" value={`${item.quantity} ${item.quantity === 1 ? "cota" : "cotas"}`}/><Item label="Crédito total" value={formatBRL(Number(item.credit_value) * item.quantity)}/><Item label="Crédito com taxa total" value={formatBRL(Number(item.base_amount) * item.quantity)}/><Item label="Parcela/cota" value={formatBRL(Number(item.final_amount))}/><Item label="Prazo" value={`${item.initial_term} meses · ${item.remaining_term} restantes`}/><Item label="Seguro/cota" value={item.insurance_included ? formatBRL(Number(item.insurance_amount)) : "Não incluído"}/><Item label="Parcela total" value={`${formatBRL(Number(item.final_amount) * item.quantity)}/mês`}/></dl></section>)}</div>
         <div className="proposal-highlight mt-7 rounded-lg p-5 text-primary-foreground sm:p-7"><LabelText light>Total da proposta</LabelText><div className="mt-4 grid gap-5 sm:grid-cols-4"><Item label="Quantidade total" value={`${totals.quantity} ${totals.quantity === 1 ? "cota" : "cotas"}`} light/><Item label="Crédito total" value={formatBRL(totals.credit)} light/><Item label="Crédito com taxa total" value={formatBRL(totals.creditWithFees)} light/><Item label="Parcela total/mês" value={formatBRL(totals.finalAmount)} light/></div>{totals.insurance > 0 && <div className="mt-4 text-sm text-primary-foreground/75">Seguro total incluído: {formatBRL(totals.insurance)}/mês</div>}</div>
         <div className="mt-8 grid gap-4 border-t border-border pt-6 text-sm sm:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] sm:items-end"><div><LabelText>Consultor</LabelText><div className="font-medium">{seller?.name || seller?.email || "—"}</div>{seller?.phone && <div className="text-muted-foreground">{seller.phone}</div>}</div><p className="text-xs leading-relaxed text-muted-foreground sm:text-right">Esta proposta é informativa. Valores sujeitos às condições, disponibilidade e regras vigentes dos grupos.</p></div>
       </div>
@@ -145,7 +151,7 @@ function Proposta() {
 function LabelText({ children, light = false }: { children: React.ReactNode; light?: boolean }) { return <div className={`text-[11px] font-semibold uppercase ${light ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{children}</div>; }
 function Item({ label, value, light = false }: { label: string; value: string; light?: boolean }) { return <div className="min-w-0"><dt className={`text-[11px] uppercase ${light ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{label}</dt><dd className="mt-1 break-words text-base font-medium tabular">{value}</dd></div>; }
 
-function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy: boolean; onSaved: () => void }) {
+function LanceSimuladorDialog({ item, legacy, readOnly, onSaved }: { item: ItemRow; legacy: boolean; readOnly: boolean; onSaved: () => void }) {
   const alreadySaved = item.lance_embedded_rate !== null && item.lance_cash_rate !== null;
   const [embeddedPct, setEmbeddedPct] = useState(() => createLanceDraft().embeddedPct);
   const [cashPct, setCashPct] = useState(() => createLanceDraft().cashPct);
@@ -171,7 +177,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
   const result = simulation.ok ? simulation.simulation : null;
 
   async function saveLance() {
-    if (!result) return;
+    if (!result || readOnly) return;
     setSaving(true);
     const { error } = await supabase
       .from("proposal_items")
@@ -187,6 +193,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
   }
 
   async function removeSavedLance() {
+    if (readOnly) return;
     setSaving(true);
     const { error } = await supabase
       .from("proposal_items")
@@ -289,7 +296,7 @@ function LanceSimuladorDialog({ item, legacy, onSaved }: { item: ItemRow; legacy
           <p className="text-sm text-destructive">{simulation.ok ? "" : simulation.error}</p>
         )}
 
-        {legacy ? (
+        {readOnly ? null : legacy ? (
           <p className="text-xs text-muted-foreground">
             Simulações antigas não podem ser salvas — crie uma proposta nova para guardar esse lance.
           </p>
