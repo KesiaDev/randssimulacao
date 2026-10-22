@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 const percent = (value: number | null) => value === null ? "Sem base comparável" : `${value > 0 ? "+" : ""}${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 export function CommercialInsights({ currentYear }: { currentYear: number }) {
-  const { user } = useAuth();
+  const { user, isDealerManager } = useAuth();
   const [year, setYear] = useState(currentYear);
   const [cutoff, setCutoff] = useState(9);
   const [dealer, setDealer] = useState("all");
@@ -47,7 +47,7 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <div className="space-y-1"><span className="text-xs font-medium">Ano de análise</span><Select value={String(year)} onValueChange={v => setYear(Number(v))}><SelectTrigger aria-label="Ano de análise"><SelectValue /></SelectTrigger><SelectContent>{years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent></Select></div>
       <div className="space-y-1"><span className="text-xs font-medium">Resultados até</span><Select value={String(cutoff)} onValueChange={v => setCutoff(Number(v))}><SelectTrigger aria-label="Resultados até"><SelectValue /></SelectTrigger><SelectContent>{MESES.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent></Select></div>
-      <div className="space-y-1"><span className="text-xs font-medium">Revenda</span><Select value={dealer} onValueChange={setDealer}><SelectTrigger aria-label="Revenda da análise"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todas as revendas</SelectItem>{dealers.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select></div>
+      <div className="space-y-1"><span className="text-xs font-medium">Revenda</span><Select value={dealer} onValueChange={setDealer}><SelectTrigger aria-label="Revenda da análise"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">{isDealerManager ? "Minhas revendas" : "Todas as revendas"}</SelectItem>{dealers.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select></div>
       <div className="space-y-1"><span className="text-xs font-medium">Cenário de ritmo futuro</span><Select value={scenario} onValueChange={setScenario}><SelectTrigger aria-label="Cenário de ritmo futuro"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cautious">Cauteloso · −10%</SelectItem><SelectItem value="base">Manter ritmo recente</SelectItem><SelectItem value="growth">Expansão · +10%</SelectItem></SelectContent></Select></div>
     </div>
     <p className="text-xs text-muted-foreground">Projeção ilustrativa: acumulado de janeiro ao mês escolhido + média dos últimos três meses desse período × meses restantes. Os cenários alteram apenas o ritmo futuro em 10%; não incluem sazonalidade ou reajustes. Mês ausente impede a projeção; zero registrado é preservado.</p>

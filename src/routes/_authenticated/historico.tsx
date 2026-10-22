@@ -120,7 +120,7 @@ function Historico() {
         ...(search.credit ? { _credit: search.credit } : {}),
       };
       const { data, error } = isDealerManager && !isAdmin
-        ? await supabase.rpc("get_dealer_manager_history", { ...filters, _page_size: undefined })
+        ? await supabase.rpc("get_dealer_manager_history", { _page: search.page, _client: search.client ?? "", _seller: search.seller, ...(search.date ? { _date: search.date } : {}), _group: search.group, _credit: search.credit })
         : await supabase.rpc("get_history_page", filters);
       if (error) throw error;
       return data as unknown as HistoryPage;
