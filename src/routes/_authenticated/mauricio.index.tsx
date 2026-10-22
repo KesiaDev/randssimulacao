@@ -7,6 +7,7 @@ import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE 
 import { CalendarDays, Target, TrendingUp, AlertTriangle } from "lucide-react";
 import { CommercialInsights } from "@/components/CommercialInsights";
 import { businessDate } from "@/lib/commercial-calendar";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/mauricio/")({
   head: () => ({ meta: [
@@ -23,18 +24,19 @@ export const Route = createFileRoute("/_authenticated/mauricio/")({
 const ANO = 2026;
 
 function MauricioDashboard() {
+  const { isDealerManager, user, managedDealers } = useAuth();
   const { data: metas } = useQuery({
-    queryKey: ["m-metas", ANO],
+    queryKey: ["m-metas", ANO, user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_metas_anuais").select("*").eq("ano", ANO)).data ?? [],
   });
   const { data: mensais } = useQuery({
-    queryKey: ["m-mensais", ANO],
+    queryKey: ["m-mensais", ANO, user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_resultados_mensais").select("*").eq("ano", ANO)).data ?? [],
   });
   const { data: eventos } = useQuery({
-    queryKey: ["m-eventos-proximos"],
+    queryKey: ["m-eventos-proximos", user?.id],
     queryFn: async () =>
       (
         await supabase
@@ -47,7 +49,7 @@ function MauricioDashboard() {
       ).data ?? [],
   });
   const { data: reservas } = useQuery({
-    queryKey: ["m-reservas"],
+    queryKey: ["m-reservas", user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_reservas").select("*").eq("status", "ativa")).data ?? [],
   });
@@ -73,7 +75,7 @@ function MauricioDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Gestão Comercial</h1>
+        <h1 className="text-2xl font-bold">{isDealerManager ? `Resultados · ${managedDealers.map(d => d.name).join(" · ")}` : "Gestão Comercial"}</h1>
         <p className="text-sm text-muted-foreground">Visão geral de metas, resultados, visitas e reservas — {ANO}</p>
       </div>
 
@@ -182,9 +184,9 @@ function MauricioDashboard() {
                 </span>
               </div>
             ))}
-            <Link to="/mauricio/calendario" className="block text-sm font-medium text-primary hover:underline">
+            {!isDealerManager && <Link to="/mauricio/calendario" className="block text-sm font-medium text-primary hover:underline">
               Abrir calendário completo →
-            </Link>
+            </Link>}
           </CardContent>
         </Card>
 
@@ -213,9 +215,9 @@ function MauricioDashboard() {
                 </span>
               </div>
             ))}
-            <Link to="/mauricio/reservas" className="block text-sm font-medium text-primary hover:underline">
+            {!isDealerManager && <Link to="/mauricio/reservas" className="block text-sm font-medium text-primary hover:underline">
               Ver todas as reservas →
-            </Link>
+            </Link>}
           </CardContent>
         </Card>
       </div>
