@@ -11,6 +11,7 @@ import { formatBRL, formatDateTime, formatPercent } from "@/lib/format";
 import { formatContractModality } from "@/lib/calc";
 import { ChevronLeft, ChevronRight, Eye, Pencil, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { canEditProposal } from "@/lib/dealer-manager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -102,11 +103,11 @@ function Historico() {
   const queryClient = useQueryClient();
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDealerManager, user } = useAuth();
   const { data: groups } = useGroups(false);
 
   const { data, isFetching, isError } = useQuery({
-    queryKey: ["history-page", search],
+    queryKey: ["history-page", user?.id, isDealerManager, search],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const filters = {
@@ -118,7 +119,9 @@ function Historico() {
         ...(search.date ? { _date: search.date } : {}),
         ...(search.credit ? { _credit: search.credit } : {}),
       };
-      const { data, error } = await supabase.rpc("get_history_page", filters);
+      const { data, error } = isDealerManager && !isAdmin
+        ? await supabase.rpc("get_dealer_manager_history", { ...filters, _page_size: undefined })
+        : await supabase.rpc("get_history_page", filters);
       if (error) throw error;
       return data as unknown as HistoryPage;
     },
@@ -173,7 +176,7 @@ function Historico() {
       <div>
         <h1 className="text-2xl font-semibold sm:text-3xl">Histórico de simulações</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {isAdmin ? "Todas as simulações da equipe." : "Suas simulações."}
+          {isAdmin ? "Todas as simulações da equipe." : isDealerManager ? "Propostas e simulações da sua revenda." : "Suas simulações."}
         </p>
       </div>
 
@@ -240,7 +243,7 @@ function Historico() {
               return (
                 <SwipeToDelete
                   key={proposal.id}
-                  onSwipeLeft={() => document.getElementById(triggerId)?.click()}
+                  onSwipeLeft={() => { if (canEditProposal(user?.id, proposal.seller_id, isAdmin)) document.getElementById(triggerId)?.click(); }}
                 >
                   <article className="surface p-4 transition-colors hover:border-primary/40 sm:p-5">
                     <div className="flex justify-between gap-3">
@@ -260,8 +263,8 @@ function Historico() {
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
                       <Button variant="outline" size="sm" asChild><Link to="/proposta/$id" params={{ id: proposal.id }}><Eye /> Abrir</Link></Button>
-                      <Button variant="outline" size="sm" asChild><Link to="/simular" search={{ edit: proposal.id, legacy: undefined }}><Pencil /> Editar</Link></Button>
-                      <DeleteConfirm triggerId={triggerId} title="Excluir esta proposta?" description="A proposta, seus itens e as simulações vinculadas serão removidos definitivamente." onConfirm={() => void deleteProposal(proposal.id)} />
+                      {canEditProposal(user?.id, proposal.seller_id, isAdmin) && <><Button variant="outline" size="sm" asChild><Link to="/simular" search={{ edit: proposal.id, legacy: undefined }}><Pencil /> Editar</Link></Button>
+                      <DeleteConfirm triggerId={triggerId} title="Excluir esta proposta?" description="A proposta, seus itens e as simulações vinculadas serão removidos definitivamente." onConfirm={() => void deleteProposal(proposal.id)} /></>}
                     </div>
                   </article>
                 </SwipeToDelete>
@@ -296,8 +299,8 @@ function Historico() {
                   <td data-label="Ação" className="px-5 py-3 text-right whitespace-nowrap">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" asChild><Link to="/proposta/$id" params={{ id: simulation.id }} aria-label="Abrir simulação"><Eye /></Link></Button>
-                      <Button variant="ghost" size="icon" asChild><Link to="/simular" search={{ edit: undefined, legacy: simulation.id }} aria-label="Editar simulação"><Pencil /></Link></Button>
-                      <DeleteConfirm iconOnly title="Excluir esta simulação?" description="Esta simulação antiga será removida definitivamente." onConfirm={() => void deleteLegacySimulation(simulation.id)} />
+                      {canEditProposal(user?.id, simulation.seller_id, isAdmin) && <><Button variant="ghost" size="icon" asChild><Link to="/simular" search={{ edit: undefined, legacy: simulation.id }} aria-label="Editar simulação"><Pencil /></Link></Button>
+                      <DeleteConfirm iconOnly title="Excluir esta simulação?" description="Esta simulação antiga será removida definitivamente." onConfirm={() => void deleteLegacySimulation(simulation.id)} /></>}
                     </div>
                   </td>
                 </tr>

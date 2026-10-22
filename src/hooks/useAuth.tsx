@@ -26,6 +26,8 @@ interface AuthContextValue {
   profile: Profile | null;
   role: Role | null;
   isAdmin: boolean;
+  managedDealers: Array<{ id: string; name: string }>;
+  isDealerManager: boolean;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -37,12 +39,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<Role | null>(null);
+  const [managedDealers, setManagedDealers] = useState<Array<{ id: string; name: string }>>([]);
   const checkSessionFn = useServerFn(checkSession);
 
   async function loadContext(current: Session | null) {
     if (!current) {
       setProfile(null);
       setRole(null);
+      setManagedDealers([]);
       return;
     }
     await supabase.rpc("ensure_profile", {
@@ -59,6 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile((p as Profile) ?? null);
     const list = (roles ?? []).map((r) => r.role as Role);
     setRole(list.includes("admin") ? "admin" : (list[0] ?? "seller"));
+    const { data: dealerships, error: managerError } = await supabase.rpc("get_dealer_manager_context");
+    setManagedDealers(managerError ? [] : (dealerships as Array<{ id: string; name: string }>) ?? []);
   }
 
   useEffect(() => {
@@ -113,6 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       role,
       isAdmin: role === "admin",
+      managedDealers,
+      isDealerManager: managedDealers.length > 0,
       refresh: async () => {
         const { data } = await supabase.auth.getSession();
         await loadContext(data.session);
@@ -122,9 +130,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.auth.signOut();
         setProfile(null);
         setRole(null);
+        setManagedDealers([]);
       },
     }),
-    [loading, session, profile, role],
+    [loading, session, profile, role, managedDealers],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

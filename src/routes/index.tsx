@@ -13,6 +13,8 @@ export const Route = createFileRoute("/")({
           "Acesse o simulador interno de consórcios da Randon Consórcios e monte propostas em poucos passos.",
       },
       { property: "og:title", content: "Simulador de Consórcios — Randon Consórcios" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Plataforma interna de simulação de consórcios da Randon Consórcios / Rands.",
