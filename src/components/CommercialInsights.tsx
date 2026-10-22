@@ -6,16 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { commercialInsight } from "@/lib/commercial-insights";
 import { formatBRL, formatPct, MESES } from "@/lib/mauricio";
 import { ChartNoAxesCombined, TrendingUp } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const percent = (value: number | null) => value === null ? "Sem base comparável" : `${value > 0 ? "+" : ""}${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 export function CommercialInsights({ currentYear }: { currentYear: number }) {
+  const { user } = useAuth();
   const [year, setYear] = useState(currentYear);
   const [cutoff, setCutoff] = useState(9);
   const [dealer, setDealer] = useState("all");
   const [scenario, setScenario] = useState("base");
   const annualQuery = useQuery({
-    queryKey: ["m-strategy-annual", currentYear],
+    queryKey: ["m-strategy-annual", currentYear, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase.from("mauricio_metas_anuais").select("ano,revenda,meta,realizado").gte("ano", currentYear - 3).lte("ano", currentYear).order("ano");
       if (error) throw error;
@@ -23,7 +25,7 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
     },
   });
   const monthlyQuery = useQuery({
-    queryKey: ["m-strategy-monthly", year],
+    queryKey: ["m-strategy-monthly", year, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase.from("mauricio_resultados_mensais").select("ano,mes,revenda,valor").gte("ano", year - 1).lte("ano", year);
       if (error) throw error;

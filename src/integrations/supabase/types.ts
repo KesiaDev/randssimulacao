@@ -108,6 +108,39 @@ export type Database = {
           },
         ]
       }
+      dealer_managers: {
+        Row: {
+          created_at: string
+          dealer_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dealer_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dealer_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dealer_managers_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dealer_managers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dealers: {
         Row: {
           active: boolean
@@ -1054,6 +1087,23 @@ export type Database = {
       }
       ensure_profile: { Args: { _name?: string }; Returns: undefined }
       get_admin_overview: { Args: { _top_sellers?: number }; Returns: Json }
+      get_dealer_manager_context: { Args: never; Returns: Json }
+      get_dealer_manager_history: {
+        Args: {
+          _client?: string
+          _credit?: string
+          _date?: string
+          _group?: string
+          _page?: number
+          _seller?: string
+        }
+        Returns: Json
+      }
+      get_dealer_manager_seller_contact: {
+        Args: { _seller_id: string }
+        Returns: Json
+      }
+      get_dealer_manager_team: { Args: { _page?: number }; Returns: Json }
       get_history_page:
         | {
             Args: {
@@ -1087,6 +1137,12 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      managed_dealer_ids: { Args: never; Returns: string[] }
+      manager_can_read_revenda: { Args: { _revenda: string }; Returns: boolean }
+      manager_can_read_seller: {
+        Args: { _seller_id: string }
         Returns: boolean
       }
       replace_proposal_items: {

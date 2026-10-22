@@ -43,7 +43,7 @@ const mauricioNav = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { profile, isAdmin, signOut, user } = useAuth();
+  const { profile, isAdmin, isDealerManager, signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -52,6 +52,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     ...sellerNav,
     ...(isAdmin ? adminNav : []),
     ...(user?.id === MAURICIO_USER_ID ? mauricioNav : []),
+    ...(isDealerManager ? [
+      { to: "/gerencia" as const, label: "Minha revenda", icon: Users },
+      { to: "/mauricio" as const, label: "Resultados da revenda", icon: Target },
+    ] : []),
   ];
 
   return (
@@ -102,7 +106,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mb-3 truncate text-xs text-sidebar-foreground/60">
             {profile?.name || profile?.email}
             <div className="mt-0.5 uppercase tracking-[0.12em]">
-              {isAdmin ? "Administrador" : "Vendedor"}
+              {isAdmin ? "Administrador" : isDealerManager ? "Gerente de revenda" : "Vendedor"}
             </div>
           </div>
           <Button

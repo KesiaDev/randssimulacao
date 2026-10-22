@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE, MESES } from "@/lib/mauricio";
 import { ArrowLeft, Pencil, CalendarDays, AlertTriangle, Target, TrendingUp } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/mauricio/revenda/$nome")({
   head: ({ params }) => ({ meta: [
@@ -25,27 +26,28 @@ const ANO = 2026;
 
 function RevendaDetalhe() {
   const { nome } = Route.useParams();
+  const { user, isDealerManager } = useAuth();
   const qc = useQueryClient();
   const [editando, setEditando] = useState<number | null>(null);
   const [valorEdicao, setValorEdicao] = useState("");
 
   const { data: anuais } = useQuery({
-    queryKey: ["m-rev-anuais", nome],
+    queryKey: ["m-rev-anuais", nome, user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_metas_anuais").select("*").eq("revenda", nome).order("ano")).data ?? [],
   });
   const { data: mensais } = useQuery({
-    queryKey: ["m-rev-mensais", nome, ANO],
+    queryKey: ["m-rev-mensais", nome, ANO, user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_resultados_mensais").select("*").eq("revenda", nome).eq("ano", ANO)).data ?? [],
   });
   const { data: reservas } = useQuery({
-    queryKey: ["m-rev-reservas", nome],
+    queryKey: ["m-rev-reservas", nome, user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_reservas").select("*").eq("revenda", nome).order("validade")).data ?? [],
   });
   const { data: eventos } = useQuery({
-    queryKey: ["m-rev-eventos", nome],
+    queryKey: ["m-rev-eventos", nome, user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_eventos").select("*").eq("revenda", nome).order("data", { ascending: false }).limit(10))
         .data ?? [],
@@ -61,6 +63,7 @@ function RevendaDetalhe() {
   }
 
   async function salvarMensal(mes: number) {
+    if (isDealerManager) return;
     const num = valorEdicao.trim() === "" ? null : Number(valorEdicao.replace(",", "."));
     if (num !== null && Number.isNaN(num)) {
       toast.error("Valor inválido");
@@ -170,14 +173,15 @@ function RevendaDetalhe() {
                 ) : (
                   <button
                     className="group inline-flex items-center gap-1"
+                    disabled={isDealerManager}
                     onClick={() => {
                       setEditando(mes);
                       setValorEdicao(v !== null ? String(v) : "");
                     }}
-                    title="Editar valor do mês"
+                    title={isDealerManager ? "Resultado registrado" : "Editar valor do mês"}
                   >
                     <span className="w-28 text-right text-xs font-medium">{v !== null ? formatBRL(v) : "—"}</span>
-                    <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                    {!isDealerManager && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
                   </button>
                 )}
               </div>
@@ -274,9 +278,9 @@ function RevendaDetalhe() {
               <span className="text-xs font-medium">{e.data.split("-").reverse().join("/")}</span>
             </div>
           ))}
-          <Link to="/mauricio/calendario" className="block text-sm font-medium text-primary hover:underline">
+          {!isDealerManager && <Link to="/mauricio/calendario" className="block text-sm font-medium text-primary hover:underline">
             Abrir calendário completo →
-          </Link>
+          </Link>}
         </CardContent>
       </Card>
     </div>

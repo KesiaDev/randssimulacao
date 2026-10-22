@@ -17,6 +17,7 @@ import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedContaRouteImport } from './routes/_authenticated/conta'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedGerenciaRouteImport } from './routes/_authenticated/gerencia'
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
 import { Route as AuthenticatedMauricioRouteImport } from './routes/_authenticated/mauricio'
 import { Route as AuthenticatedSimularRouteImport } from './routes/_authenticated/simular'
@@ -68,6 +69,11 @@ const AuthenticatedContaRoute = AuthenticatedContaRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGerenciaRoute = AuthenticatedGerenciaRouteImport.update({
+  id: '/gerencia',
+  path: '/gerencia',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHistoricoRoute = AuthenticatedHistoricoRouteImport.update({
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/conta': typeof AuthenticatedContaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/gerencia': typeof AuthenticatedGerenciaRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/mauricio': typeof AuthenticatedMauricioRouteWithChildren
   '/simular': typeof AuthenticatedSimularRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/conta': typeof AuthenticatedContaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/gerencia': typeof AuthenticatedGerenciaRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/simular': typeof AuthenticatedSimularRoute
   '/api/asaas-webhook': typeof ApiAsaasWebhookRoute
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/conta': typeof AuthenticatedContaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/gerencia': typeof AuthenticatedGerenciaRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
   '/_authenticated/mauricio': typeof AuthenticatedMauricioRouteWithChildren
   '/_authenticated/simular': typeof AuthenticatedSimularRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/conta'
     | '/dashboard'
+    | '/gerencia'
     | '/historico'
     | '/mauricio'
     | '/simular'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/conta'
     | '/dashboard'
+    | '/gerencia'
     | '/historico'
     | '/simular'
     | '/api/asaas-webhook'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/conta'
     | '/_authenticated/dashboard'
+    | '/_authenticated/gerencia'
     | '/_authenticated/historico'
     | '/_authenticated/mauricio'
     | '/_authenticated/simular'
@@ -342,6 +354,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gerencia': {
+      id: '/_authenticated/gerencia'
+      path: '/gerencia'
+      fullPath: '/gerencia'
+      preLoaderRoute: typeof AuthenticatedGerenciaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/historico': {
@@ -478,6 +497,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedContaRoute: typeof AuthenticatedContaRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGerenciaRoute: typeof AuthenticatedGerenciaRoute
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
   AuthenticatedMauricioRoute: typeof AuthenticatedMauricioRouteWithChildren
   AuthenticatedSimularRoute: typeof AuthenticatedSimularRoute
@@ -488,6 +508,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedContaRoute: AuthenticatedContaRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGerenciaRoute: AuthenticatedGerenciaRoute,
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,
   AuthenticatedMauricioRoute: AuthenticatedMauricioRouteWithChildren,
   AuthenticatedSimularRoute: AuthenticatedSimularRoute,
