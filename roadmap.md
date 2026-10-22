@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Dar a Luis Santana gestão restrita à Multieixo: equipe, propostas e resultados comerciais, com isolamento de outras revendas e testes de autorização.
 
 - [x] Subir a tela automaticamente ao clicar em "Adicionar outro grupo" na montagem de proposta, levando o vendedor de volta à escolha do grupo — conferido em proposta autenticada: rolagem 1399 → 0 e passo "Grupo" visível.
 
