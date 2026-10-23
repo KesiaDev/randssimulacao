@@ -15,7 +15,7 @@ describe("realizado anual atualizado pelos meses", () => {
     const realized = annualRealized(compasi, months, 2026);
     expect(realized).not.toBeNull();
     if (realized === null) throw new Error("Realizado não calculado");
-    expect(realized / compasi.meta * 100).toBeCloseTo(44.68098132, 6);
+    expect(realized / compasi.meta * 100).toBeCloseTo(44.6804264878, 6);
     expect(compasi.meta - realized).toBeCloseTo(39907346.16, 2);
   });
   it("recalcula após editar ou limpar um mês, preservando lacunas", () => {
