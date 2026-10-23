@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Pencil, Share2, TrendingUp, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useIsMultieixo } from "@/hooks/useAuth";
 import { canEditProposal } from "@/lib/dealer-manager";
 import { Brand } from "@/components/Brand";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ function Proposta() {
   const { id } = useParams({ from: "/_authenticated/proposta/$id" });
   const queryClient = useQueryClient();
   const { user, isAdmin, isDealerManager } = useAuth();
+  const multieixo = useIsMultieixo();
   const { data, isLoading } = useQuery({
     queryKey: ["proposal", id, user?.id],
     queryFn: async () => {
@@ -103,7 +104,7 @@ function Proposta() {
 
   async function makePdf() {
     const orderedImages = [...proposalImages.slice(imageIndex), ...proposalImages.slice(0, imageIndex)];
-    return createProposalPdf({ id: proposal.id, clientName: proposal.client_name, createdAt: proposal.created_at, sellerName: seller?.name || seller?.email || "Equipe Randon", sellerPhone: seller?.phone ?? null, imageUrls: orderedImages.map((image) => image.url), items });
+    return createProposalPdf({ id: proposal.id, clientName: proposal.client_name, createdAt: proposal.created_at, sellerName: seller?.name || seller?.email || "Equipe Randon", sellerPhone: seller?.phone ?? null, imageUrls: orderedImages.map((image) => image.url), multieixo, items });
   }
   function savePdf(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
