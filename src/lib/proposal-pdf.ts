@@ -183,7 +183,6 @@ export async function createProposalPdf(input: Input) {
   let totalQuantity = 0;
   let totalCredit = 0;
   let totalMonthly = 0;
-  let totalInsurance = 0;
   input.items.forEach((item, index) => {
     const isLastItem = index === input.items.length - 1;
     // Keep the closing item, totals and consultant together when they do not fit.
@@ -192,8 +191,8 @@ export async function createProposalPdf(input: Input) {
     totalQuantity += quantity;
     totalCredit += Number(item.credit_value) * quantity;
     totalMonthly += Number(item.final_amount) * quantity;
-    totalInsurance += Number(item.insurance_amount) * quantity;
     pdf.setFillColor(255, 255, 255);
+
     pdf.setDrawColor(...line);
     pdf.roundedRect(margin, y, contentWidth, 60, 2, 2, "FD");
     pdf.setFillColor(...blue);
@@ -232,7 +231,7 @@ export async function createProposalPdf(input: Input) {
     y += 65;
   });
 
-  const totalsHeight = totalInsurance > 0 ? 42 : 38;
+  const totalsHeight = 38;
   ensureSpace(totalsHeight + 24);
   pdf.setFillColor(...blue);
   pdf.roundedRect(margin, y, contentWidth, totalsHeight, 2, 2, "F");
@@ -251,14 +250,8 @@ export async function createProposalPdf(input: Input) {
     pdf.setFontSize(11.5);
     pdf.text(values[column] ?? "", x, y + 30);
   });
-  if (totalInsurance > 0) {
-    pdf.setTextColor(210, 229, 248);
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(7.2);
-    pdf.text(`Seguro incluído no total mensal: ${formatBRL(totalInsurance)}`, margin + 8, y + 39);
-  }
-
   y += totalsHeight + 8;
+
   pdf.setTextColor(...gray);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(7.5);
