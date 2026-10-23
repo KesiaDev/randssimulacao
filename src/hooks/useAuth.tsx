@@ -17,6 +17,7 @@ export interface Profile {
   phone: string | null;
   active: boolean;
   self_registered: boolean;
+  dealer_name?: string | null;
 }
 
 interface AuthContextValue {
@@ -55,12 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [{ data: p }, { data: roles }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, name, email, phone, active, self_registered")
+        .select("id, name, email, phone, active, self_registered, dealers(name)")
         .eq("id", current.user.id)
         .maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", current.user.id),
     ]);
-    setProfile((p as Profile) ?? null);
+    const raw = p as (Profile & { dealers?: { name: string } | null }) | null;
+    setProfile(raw ? { ...raw, dealer_name: raw.dealers?.name ?? null } : null);
     const list = (roles ?? []).map((r) => r.role as Role);
     setRole(list.includes("admin") ? "admin" : (list[0] ?? "seller"));
     const { data: dealerships, error: managerError } = await supabase.rpc("get_dealer_manager_context");
@@ -143,4 +145,14 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth precisa estar dentro de AuthProvider");
   return ctx;
+}
+
+export function isMultieixoDealer(name: string | null | undefined) {
+  return !!name && name.toLowerCase().includes("multieixo");
+}
+
+export function useIsMultieixo() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) return false;
+  return isMultieixoDealer(ctx.profile?.dealer_name) || ctx.managedDealers.some((d) => isMultieixoDealer(d.name));
 }
