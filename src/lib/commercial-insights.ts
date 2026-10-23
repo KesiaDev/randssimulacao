@@ -1,6 +1,14 @@
 export type AnnualResult = { ano: number; revenda: string; meta: number | null; realizado: number | null };
 export type MonthlyResult = { ano: number; mes: number; revenda: string; valor: number | null };
 
+// Current-year totals use recorded months, not the stale imported annual snapshot.
+// Closed-year snapshots remain untouched; missing months are not recorded zeros.
+export function annualRealized(annual: AnnualResult, rows: MonthlyResult[], currentYear: number): number | null {
+  if (annual.ano !== currentYear) return annual.realizado;
+  const recorded = rows.filter(r => r.ano === annual.ano && r.revenda === annual.revenda && r.valor !== null);
+  return recorded.length ? recorded.reduce((sum, row) => sum + (row.valor ?? 0), 0) : annual.realizado;
+}
+
 export function changePercent(current: number | null, previous: number | null): number | null {
   return current === null || previous === null || previous === 0 ? null : (current - previous) / previous * 100;
 }

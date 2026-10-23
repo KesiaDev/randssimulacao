@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { commercialInsight } from "@/lib/commercial-insights";
+import { annualRealized, commercialInsight } from "@/lib/commercial-insights";
 import { formatBRL, formatPct, MESES } from "@/lib/mauricio";
 import { ChartNoAxesCombined, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,9 +25,9 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
     },
   });
   const monthlyQuery = useQuery({
-    queryKey: ["m-strategy-monthly", year, user?.id],
+    queryKey: ["m-strategy-monthly", currentYear, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mauricio_resultados_mensais").select("ano,mes,revenda,valor").gte("ano", year - 1).lte("ano", year);
+      const { data, error } = await supabase.from("mauricio_resultados_mensais").select("ano,mes,revenda,valor").gte("ano", currentYear - 4).lte("ano", currentYear);
       if (error) throw error;
       return data;
     },
@@ -37,7 +37,8 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
   const years = [...new Set([currentYear, ...annual.map(r => r.ano)])].sort((a, b) => b - a);
   const dealers = [...new Set(annual.map(r => r.revenda))].sort();
   const selected = annual.filter(r => r.ano === year && (dealer === "all" || r.revenda === dealer));
-  const history = annual.filter(r => dealer === "all" || r.revenda === dealer);
+  const history = annual.filter(r => dealer === "all" || r.revenda === dealer)
+    .map(r => ({ ...r, realizado: annualRealized(r, monthly, currentYear) }));
 
   return <section className="space-y-5 border-t pt-6" aria-labelledby="strategic-title">
     <div className="space-y-1">

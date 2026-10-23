@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatBRL, formatPct, MESES, REVENDAS } from "@/lib/mauricio";
 import { Pencil } from "lucide-react";
+import { annualRealized } from "@/lib/commercial-insights";
 
 export const Route = createFileRoute("/_authenticated/mauricio/metas")({
   head: () => ({ meta: [
@@ -42,7 +43,7 @@ function MetasPage() {
 
   function valorMes(revenda: string, mes: number): number | null {
     const row = (mensais ?? []).find((m) => m.revenda === revenda && m.mes === mes);
-    return row ? Number(row.valor) : null;
+    return row?.valor ?? null;
   }
 
   function totalMes(mes: number): number | null {
@@ -64,6 +65,8 @@ function MetasPage() {
       toast.success("Valor atualizado");
       setEditando(null);
       void qc.invalidateQueries({ queryKey: ["m-mensais"] });
+      void qc.invalidateQueries({ queryKey: ["m-rev-mensais"] });
+      void qc.invalidateQueries({ queryKey: ["m-strategy-monthly"] });
     }
   }
 
@@ -170,9 +173,9 @@ function MetasPage() {
                   <td className="py-2 pr-4 font-medium">{m.revenda}</td>
                   <td className="px-2 py-2">{m.ano}</td>
                   <td className="px-2 py-2 text-right">{formatBRL(Number(m.meta))}</td>
-                  <td className="px-2 py-2 text-right">{formatBRL(m.realizado !== null ? Number(m.realizado) : null)}</td>
+                  <td className="px-2 py-2 text-right">{formatBRL(annualRealized(m, mensais ?? [], ANO))}</td>
                   <td className="px-2 py-2 text-right">
-                    <Badge variant="secondary">{formatPct(Number(m.meta), m.realizado !== null ? Number(m.realizado) : null)}</Badge>
+                    <Badge variant="secondary">{formatPct(m.meta, annualRealized(m, mensais ?? [], ANO))}</Badge>
                   </td>
                 </tr>
               ))}

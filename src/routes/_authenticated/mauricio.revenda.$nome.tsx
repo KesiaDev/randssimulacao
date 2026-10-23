@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE, MESES } from "@/lib/mauricio";
 import { ArrowLeft, Pencil, CalendarDays, AlertTriangle, Target, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { annualRealized } from "@/lib/commercial-insights";
 
 export const Route = createFileRoute("/_authenticated/mauricio/revenda/$nome")({
   head: ({ params }) => ({ meta: [
@@ -54,12 +55,12 @@ function RevendaDetalhe() {
   });
 
   const anoAtual = (anuais ?? []).find((m) => m.ano === ANO);
-  const meta = anoAtual ? Number(anoAtual.meta) : null;
-  const realizado = anoAtual && anoAtual.realizado !== null ? Number(anoAtual.realizado) : null;
+  const meta = anoAtual?.meta ?? null;
+  const realizado = anoAtual ? annualRealized(anoAtual, mensais ?? [], ANO) : null;
 
   function valorMes(mes: number): number | null {
     const row = (mensais ?? []).find((m) => m.mes === mes);
-    return row ? Number(row.valor) : null;
+    return row?.valor ?? null;
   }
 
   async function salvarMensal(mes: number) {
@@ -77,6 +78,8 @@ function RevendaDetalhe() {
       toast.success("Valor atualizado");
       setEditando(null);
       void qc.invalidateQueries({ queryKey: ["m-rev-mensais"] });
+      void qc.invalidateQueries({ queryKey: ["m-mensais"] });
+      void qc.invalidateQueries({ queryKey: ["m-strategy-monthly"] });
     }
   }
 
@@ -138,7 +141,7 @@ function RevendaDetalhe() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Falta para a meta</CardTitle>
           </CardHeader>
           <CardContent className="text-2xl font-bold">
-            {meta !== null && realizado !== null && meta - realizado > 0 ? formatBRL(meta - realizado) : formatBRL(0)}
+            {formatBRL(meta !== null && realizado !== null ? Math.max(0, meta - realizado) : null)}
           </CardContent>
         </Card>
       </div>
@@ -210,9 +213,9 @@ function RevendaDetalhe() {
                   <tr key={m.id} className="border-b">
                     <td className="py-2 pr-4 font-medium">{m.ano}</td>
                     <td className="px-2 py-2 text-right">{formatBRL(Number(m.meta))}</td>
-                    <td className="px-2 py-2 text-right">{formatBRL(m.realizado !== null ? Number(m.realizado) : null)}</td>
+                    <td className="px-2 py-2 text-right">{formatBRL(annualRealized(m, mensais ?? [], ANO))}</td>
                     <td className="px-2 py-2 text-right">
-                      <Badge variant="secondary">{formatPct(Number(m.meta), m.realizado !== null ? Number(m.realizado) : null)}</Badge>
+                      <Badge variant="secondary">{formatPct(m.meta, annualRealized(m, mensais ?? [], ANO))}</Badge>
                     </td>
                   </tr>
                 ))}
