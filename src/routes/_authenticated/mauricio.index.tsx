@@ -8,6 +8,7 @@ import { CalendarDays, Target, TrendingUp, AlertTriangle } from "lucide-react";
 import { CommercialInsights } from "@/components/CommercialInsights";
 import { businessDate } from "@/lib/commercial-calendar";
 import { useAuth } from "@/hooks/useAuth";
+import { annualRealized } from "@/lib/commercial-insights";
 
 export const Route = createFileRoute("/_authenticated/mauricio/")({
   head: () => ({ meta: [
@@ -55,8 +56,9 @@ function MauricioDashboard() {
   });
 
   const metaTotal = (metas ?? []).reduce((s, m) => s + (Number(m.meta) || 0), 0);
-  const realizadoTotal = (metas ?? []).reduce((s, m) => s + (Number(m.realizado) || 0), 0);
-  const falta = metaTotal - realizadoTotal;
+  const realizados = (metas ?? []).map(m => annualRealized(m, mensais ?? [], ANO)).filter((v): v is number => v !== null);
+  const realizadoTotal = realizados.length ? realizados.reduce((s, v) => s + v, 0) : null;
+  const falta = realizadoTotal === null ? null : Math.max(0, metaTotal - realizadoTotal);
 
   const reservasAtencao = (reservas ?? [])
     .map((r) => ({ ...r, efetivo: reservaStatusEfetivo(r.status, r.validade) }))
@@ -106,7 +108,7 @@ function MauricioDashboard() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Falta para a meta</CardTitle>
           </CardHeader>
-          <CardContent className="text-2xl font-bold">{formatBRL(falta > 0 ? falta : 0)}</CardContent>
+          <CardContent className="text-2xl font-bold">{formatBRL(falta)}</CardContent>
         </Card>
       </div>
 
@@ -152,10 +154,10 @@ function MauricioDashboard() {
                 <div>
                   <p className="font-medium text-primary">{m.revenda}</p>
                   <p className="text-xs text-muted-foreground">
-                    Meta {formatBRL(Number(m.meta))} · Realizado {formatBRL(Number(m.realizado))}
+                    Meta {formatBRL(m.meta)} · Realizado {formatBRL(annualRealized(m, mensais ?? [], ANO))}
                   </p>
                 </div>
-                <Badge variant="secondary">{formatPct(Number(m.meta), Number(m.realizado))}</Badge>
+                <Badge variant="secondary">{formatPct(m.meta, annualRealized(m, mensais ?? [], ANO))}</Badge>
               </Link>
             ))}
           </CardContent>
