@@ -3,10 +3,10 @@ import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/l
 import { LANCE_MODALITIES, lanceInputFromItem, parseSavedLanceModality, resolveLanceModality, simulateLance } from "@/lib/lance-calc";
 import { formatContractModality } from "@/lib/calc";
 import randonLogo from "@/assets/randon-logo.png.asset.json";
-import multieixoLogo from "@/assets/randon-multieixo-logo.png.asset.json";
+
 
 type ItemRow = Database["public"]["Tables"]["proposal_items"]["Row"];
-type Input = { id: string; clientName: string | null; createdAt: string; sellerName: string; sellerPhone?: string | null; imageUrls: string[]; multieixo?: boolean; items: ItemRow[] };
+type Input = { id: string; clientName: string | null; createdAt: string; sellerName: string; sellerPhone?: string | null; imageUrls: string[]; items: ItemRow[] };
 
 type LoadedImage = { dataUrl: string; width: number; height: number; format: "JPEG" | "PNG" };
 
@@ -91,7 +91,7 @@ export async function createProposalPdf(input: Input) {
   const line = [218, 224, 232] as const;
   let y = 0;
 
-  const logo = await loadImage(input.multieixo ? multieixoLogo.url : randonLogo.url).catch(() => null);
+  const logo = await loadImage(randonLogo.url).catch(() => null);
   const whiteLogo = await whiteImageDataUrl(logo).catch(() => null);
   const heroes = await Promise.all(input.imageUrls.map((url) => loadImage(url).catch(() => null)));
   const coverPhotos = await Promise.all(heroes.map(async (photo, index) => {
