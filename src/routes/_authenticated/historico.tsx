@@ -4,7 +4,9 @@ import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-quer
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useGroups } from "@/hooks/useConfig";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+import { historyRangeError } from "@/lib/history-range";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBRL, formatDateTime, formatPercent } from "@/lib/format";
@@ -26,14 +28,14 @@ import {
 
 const PAGE_SIZE = 10;
 
-type HistorySearch = {
-  page: number;
-  group: string;
-  seller: string;
-  date: string;
-  credit: string;
-  client?: string;
-};
+const historySearchSchema = z.object({
+  page: fallback(z.number().int(), 1).default(1),
+  seller: fallback(z.string(), "").default(""),
+  client: fallback(z.string(), "").default(""),
+  from: fallback(z.string(), "").default(""),
+  to: fallback(z.string(), "").default(""),
+});
+type HistorySearch = z.infer<typeof historySearchSchema>;
 
 type ProposalItem = {
   quantity: number;
@@ -78,14 +80,7 @@ type HistoryPage = {
 };
 
 export const Route = createFileRoute("/_authenticated/historico")({
-  validateSearch: (search): HistorySearch => ({
-    page: Math.max(1, Number(search["page"]) || 1),
-    group: typeof search["group"] === "string" ? search["group"] : "",
-    seller: typeof search["seller"] === "string" ? search["seller"] : "",
-    date: typeof search["date"] === "string" ? search["date"] : "",
-    credit: typeof search["credit"] === "string" ? search["credit"] : "",
-    client: typeof search["client"] === "string" ? search["client"] : "",
-  }),
+  validateSearch: zodValidator(historySearchSchema),
   head: () => ({
     meta: [
       { title: "Histórico de simulações — Randon Consórcios" },
@@ -104,31 +99,31 @@ function Historico() {
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
   const { isAdmin, isDealerManager, user } = useAuth();
-  const { data: groups } = useGroups(false);
+  const page = Math.max(1, search.page);
+  const rangeError = historyRangeError(search.from, search.to);
 
   const { data, isFetching, isError } = useQuery({
     queryKey: ["history-page", user?.id, isDealerManager, search],
     placeholderData: keepPreviousData,
+    enabled: !rangeError,
     queryFn: async () => {
       const filters = {
-        ...(search.client ? { _client: search.client } : {}),
-        _page: search.page,
-        _page_size: PAGE_SIZE,
-        ...(search.group ? { _group: search.group } : {}),
-        ...(search.seller ? { _seller: search.seller } : {}),
-        ...(search.date ? { _date: search.date } : {}),
-        ...(search.credit ? { _credit: search.credit } : {}),
+        _client: search.client,
+        _page: page,
+        _seller: search.seller,
+        ...(search.from ? { _from: search.from } : {}),
+        ...(search.to ? { _to: search.to } : {}),
       };
       const { data, error } = isDealerManager && !isAdmin
-        ? await supabase.rpc("get_dealer_manager_history", { _page: search.page, _client: search.client ?? "", _seller: search.seller, ...(search.date ? { _date: search.date } : {}), _group: search.group, _credit: search.credit })
-        : await supabase.rpc("get_history_page", filters);
+        ? await supabase.rpc("get_dealer_manager_history_range", filters)
+        : await supabase.rpc("get_history_range", { ...filters, _page_size: PAGE_SIZE });
       if (error) throw error;
       return data as unknown as HistoryPage;
     },
   });
 
-  const entries = data?.entries ?? [];
-  const total = data?.total ?? 0;
+  const entries = rangeError ? [] : data?.entries ?? [];
+  const total = rangeError ? 0 : data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const proposals = entries.filter((entry): entry is ProposalEntry => entry.kind === "proposal");
   const simulations = entries.filter((entry): entry is SimulationEntry => entry.kind === "simulation");
@@ -154,6 +149,7 @@ function Historico() {
       queryClient.invalidateQueries({ queryKey: ["history-page"] }),
       queryClient.invalidateQueries({ queryKey: ["my-proposals"] }),
       queryClient.invalidateQueries({ queryKey: ["my-simulations"] }),
+      queryClient.invalidateQueries({ queryKey: ["admin-overview"] }),
     ]);
     toast.success("Proposta excluída.");
   }
@@ -167,6 +163,7 @@ function Historico() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["history-page"] }),
       queryClient.invalidateQueries({ queryKey: ["my-simulations"] }),
+      queryClient.invalidateQueries({ queryKey: ["admin-overview"] }),
     ]);
     toast.success("Simulação excluída.");
   }
@@ -180,23 +177,10 @@ function Historico() {
         </p>
       </div>
 
-      <div className="grid gap-4 border-y border-border py-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 border-y border-border py-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
           <Label htmlFor="history-client">Cliente</Label>
           <Input id="history-client" value={search.client ?? ""} onChange={(event) => updateFilter("client", event.target.value)} placeholder="Nome do cliente" />
-        </div>
-        <div className="space-y-2">
-          <Label>Grupo</Label>
-          <select
-            className="h-9 w-full rounded-md border border-input bg-card px-3 text-sm"
-            value={search.group}
-            onChange={(event) => updateFilter("group", event.target.value)}
-          >
-            <option value="">Todos</option>
-            {(groups ?? []).map((group) => (
-              <option key={group.id} value={group.code}>{group.name}</option>
-            ))}
-          </select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="history-seller">Vendedor</Label>
@@ -208,16 +192,12 @@ function Historico() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="history-date">Data</Label>
-          <Input id="history-date" type="date" value={search.date} onChange={(event) => updateFilter("date", event.target.value)} />
+          <Label htmlFor="history-from">De</Label>
+          <Input id="history-from" type="date" value={search.from} onChange={(event) => updateFilter("from", event.target.value)} aria-invalid={Boolean(rangeError)} />
         </div>
         <div className="space-y-2">
-          <Label>Faixa de crédito</Label>
-          <Input
-            value={search.credit}
-            onChange={(event) => updateFilter("credit", event.target.value)}
-            placeholder="293305"
-          />
+          <Label htmlFor="history-to">Até</Label>
+          <Input id="history-to" type="date" value={search.to} onChange={(event) => updateFilter("to", event.target.value)} aria-invalid={Boolean(rangeError)} />
         </div>
       </div>
 
@@ -226,6 +206,7 @@ function Historico() {
         {isFetching && <span>Atualizando…</span>}
       </div>
 
+      {rangeError && <p role="alert" className="text-sm text-destructive">{rangeError}</p>}
       {isError && <p role="alert" className="text-sm text-destructive">Não foi possível consultar o histórico com estes filtros. Tente novamente em instantes.</p>}
 
       {proposals.length > 0 && (
@@ -310,7 +291,7 @@ function Historico() {
         </div>
       )}
 
-      {!isError && entries.length === 0 && (
+      {!isError && !rangeError && entries.length === 0 && (
         <div className="surface px-5 py-10 text-center text-sm text-muted-foreground">
           Nenhuma simulação encontrada com os filtros atuais.
         </div>
