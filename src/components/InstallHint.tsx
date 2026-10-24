@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Smartphone, X } from "lucide-react";
+import { Check, Monitor, Smartphone, X } from "lucide-react";
 
 // Aviso discreto, mostrado uma única vez na tela de entrada, ensinando cada
 // pessoa a levar a plataforma para a tela inicial do aparelho. Se a pessoa
@@ -31,9 +31,10 @@ function detectPlatform(): Platform {
   return "desktop";
 }
 
-const COPY: Record<Platform, { title: string; steps: string[] }> = {
+const COPY: Record<Platform, { title: string; desc: string; steps: string[] }> = {
   android: {
     title: "Leve a plataforma para a sua tela inicial",
+    desc: "Em poucos toques você abre a plataforma pelo ícone, em tela cheia, como um aplicativo.",
     steps: [
       "Toque nos três pontinhos do Chrome",
       "Escolha “Adicionar à tela inicial”",
@@ -42,6 +43,7 @@ const COPY: Record<Platform, { title: string; steps: string[] }> = {
   },
   ios: {
     title: "Leve a plataforma para a sua Tela de Início",
+    desc: "Em poucos toques você abre a plataforma pelo ícone, em tela cheia, como um aplicativo.",
     steps: [
       "Toque no ícone Compartilhar do Safari",
       "Escolha “Adicionar à Tela de Início”",
@@ -50,6 +52,7 @@ const COPY: Record<Platform, { title: string; steps: string[] }> = {
   },
   desktop: {
     title: "Instale a plataforma no seu computador",
+    desc: "Em poucos cliques você abre a plataforma pelo ícone, em tela cheia, como um programa.",
     steps: [
       "Procure o ícone de instalação na barra de endereço",
       "Clique em “Instalar”",
@@ -84,18 +87,17 @@ export function InstallHint() {
   if (!visible) return null;
 
   const copy = COPY[platform];
+  const Icon = platform === "desktop" ? Monitor : Smartphone;
 
   return (
     <section className="mt-6 rounded-xl border border-primary/25 bg-primary/5 p-4">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Smartphone className="h-4 w-4" aria-hidden />
+          <Icon className="h-4 w-4" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold leading-snug">{copy.title}</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Em poucos toques você abre a plataforma pelo ícone, em tela cheia, como um aplicativo.
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{copy.desc}</p>
           <ol className="mt-3 space-y-2">
             {copy.steps.map((step, index) => (
               <li key={step} className="flex items-start gap-2 text-xs">
