@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MESES } from "@/lib/mauricio";
 import {
   Bar,
   BarChart,
@@ -27,6 +30,12 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 interface AdminOverview {
+  ano: number;
+  propostas_ano: number;
+  ticket_medio: number | null;
+  credito_proposto: number | null;
+  propostas_mensais: Array<{ mes: number; total: number; ticket_medio: number | null }>;
+  volume_vendedores: Array<{ name: string; total: number }>;
   total_vendedores: number;
   vendedores_ativos: number;
   grupos_ativos: number;
@@ -45,10 +54,18 @@ interface AdminOverview {
 }
 
 function AdminHome() {
-  const { data } = useQuery({
-    queryKey: ["admin-overview"],
+  const [currentYear, setCurrentYear] = useState(2026);
+  const [year, setYear] = useState(2026);
+  useEffect(() => {
+    const nowYear = Number(new Intl.DateTimeFormat("en", { timeZone: "America/Sao_Paulo", year: "numeric" }).format(new Date()));
+    setCurrentYear(nowYear);
+    setYear(nowYear);
+  }, []);
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["admin-overview", year],
     queryFn: async () => {
-      const { data: overview, error } = await supabase.rpc("get_admin_overview", {
+      const { data: overview, error } = await supabase.rpc("get_admin_dashboard", {
+        _year: year,
         _top_sellers: 20,
       });
       if (error) throw error;
@@ -57,7 +74,8 @@ function AdminHome() {
   });
 
   const sims = data?.ultimas ?? [];
-  const bySeller = data?.por_vendedor ?? [];
+  const bySeller = data?.volume_vendedores ?? [];
+  const byMonth = (data?.propostas_mensais ?? []).map(item => ({ name: MESES[item.mes - 1] ?? "", total: Number(item.total) }));
   const byCredit = (data?.por_credito ?? []).map((item) => ({
     name: formatBRL(Number(item.credit_value)),
     total: Number(item.total),
@@ -72,6 +90,9 @@ function AdminHome() {
         </p>
       </div>
 
+      {isPending && <p role="status" className="text-sm text-muted-foreground">Carregando indicadores…</p>}
+      {isError && <p role="alert" className="text-sm text-destructive">Não foi possível carregar os indicadores da Administração.</p>}
+
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <Stat label="Vendedores" value={Number(data?.total_vendedores ?? 0)} />
         <Stat label="Vendedores ativos" value={Number(data?.vendedores_ativos ?? 0)} />
@@ -80,10 +101,22 @@ function AdminHome() {
         <Stat label="Grupos ativos" value={Number(data?.grupos_ativos ?? 0)} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Chart title="Simulações por vendedor" data={bySeller} />
-        <Chart title="Simulações por faixa de crédito" data={byCredit} />
-      </div>
+      <section className="space-y-4 border-y border-border py-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Produção comercial · {year}</h2>
+          <div className="w-32"><Select value={String(year)} onValueChange={value => setYear(Number(value))}><SelectTrigger aria-label="Ano dos indicadores"><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: 5 }, (_, i) => currentYear - i).map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent></Select></div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Stat label="Propostas no ano" value={data ? Number(data.propostas_ano) : "—"} />
+          <Stat label="Ticket médio · crédito por proposta" value={data?.ticket_medio == null ? "—" : formatBRL(Number(data.ticket_medio))} />
+          <Stat label="Crédito total proposto" value={data?.credito_proposto == null ? "—" : formatBRL(Number(data.credito_proposto))} />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Chart title={`Propostas por mês · ${year}`} data={byMonth} />
+          <Chart title={`Volume de simulações por vendedor · ${year}`} data={bySeller} horizontal />
+        </div>
+      </section>
+      <Chart title="Simulações por faixa de crédito · mês atual" data={byCredit} />
 
       <section className="sm:surface overflow-hidden">
         <header className="border-b border-border px-5 py-4">
@@ -127,29 +160,29 @@ function AdminHome() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="surface min-w-0 p-4 sm:p-5">
       <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
-      <div className="mt-2 text-2xl font-semibold tabular">{value}</div>
+      <div className="mt-2 break-words text-xl font-semibold tabular sm:text-2xl">{value}</div>
     </div>
   );
 }
 
-function Chart({ title, data }: { title: string; data: Array<{ name: string; total: number }> }) {
+function Chart({ title, data, horizontal = false }: { title: string; data: Array<{ name: string; total: number }>; horizontal?: boolean }) {
   return (
     <div className="surface min-w-0 overflow-hidden p-4 sm:p-5">
       <h3 className="text-sm font-semibold">{title}</h3>
-      <div className="mt-4 h-64 min-w-0">
+      <div className={`mt-4 min-w-0 ${horizontal ? "h-[640px]" : "h-64"}`}>
         {data.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sem dados ainda.</p>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ left: -24, right: 4, bottom: 12 }}>
+            <BarChart data={data} layout={horizontal ? "vertical" : "horizontal"} margin={{ left: horizontal ? 0 : -24, right: 16, bottom: 12 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} interval="preserveStartEnd" angle={-12} dy={8} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-              <Tooltip />
+              <XAxis type={horizontal ? "number" : "category"} dataKey={horizontal ? undefined : "name"} allowDecimals={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+              <YAxis type={horizontal ? "category" : "number"} dataKey={horizontal ? "name" : undefined} width={horizontal ? 130 : 60} allowDecimals={false} tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(value: number) => [value, "Quantidade"]} />
               <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
