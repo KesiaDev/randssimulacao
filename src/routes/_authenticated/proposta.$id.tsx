@@ -67,7 +67,7 @@ function Proposta() {
       if (simulationResult.error) throw simulationResult.error;
       if (!simulationResult.data) return null;
       const sellerResult = await supabase.from("profiles").select("name, email, phone").eq("id", simulationResult.data.seller_id).maybeSingle();
-      const proposal: ProposalRow = { id: simulationResult.data.id, seller_id: simulationResult.data.seller_id, client_name: simulationResult.data.client_name, status: "finalized", created_at: simulationResult.data.created_at, updated_at: simulationResult.data.created_at };
+      const proposal: ProposalRow = { id: simulationResult.data.id, seller_id: simulationResult.data.seller_id, client_name: simulationResult.data.client_name, qualification: simulationResult.data.qualification, status: "finalized", created_at: simulationResult.data.created_at, updated_at: simulationResult.data.created_at };
       const contact = isDealerManager ? await supabase.rpc("get_dealer_manager_seller_contact", { _seller_id: simulationResult.data.seller_id }) : null;
       return { proposal, items: [simulationToItem(simulationResult.data)], seller: (contact?.data as { name: string; email: string; phone: string | null } | null) ?? sellerResult.data, legacy: true };
     },
