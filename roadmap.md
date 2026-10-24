@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Simplificar histórico para cliente, vendedor e período De/Até; incluir propostas mensais, ticket médio e volume por vendedor na Administração, com consultas paginadas e permissões preservadas.
 - [x] Corrigir agregação mensal no realizado anual, percentual e saldo da meta em todas as telas comerciais — 15 testes passaram; sessão do Maurício confirmou Compasi R$ 32.232.302,84, 44,7% e saldo R$ 39.907.346,16 após salvar novamente outubro de R$ 330.000 e recarregar; histórico preservado.
 - [x] Dar a Luis Santana acesso de gerência restrito à Multieixo: consulta da equipe, propostas/PDFs e resultados comerciais, sem alterar dados dos demais vendedores ou ver outras revendas — conta real validada, 10 membros, filtros do histórico, bloqueio de administração global e revenda externa, proteção de escrita e PDF conferidos.
 

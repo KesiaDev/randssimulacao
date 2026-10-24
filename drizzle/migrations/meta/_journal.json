@@ -197,6 +197,13 @@
       "when": 1792696348360,
       "tag": "0027_dealer_scoped_management",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1792852494892,
+      "tag": "0028_history_range_and_admin_activity",
+      "breakpoints": true
     }
   ]
 }

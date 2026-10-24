@@ -1086,6 +1086,10 @@ export type Database = {
         Returns: undefined
       }
       ensure_profile: { Args: { _name?: string }; Returns: undefined }
+      get_admin_dashboard: {
+        Args: { _top_sellers?: number; _year?: number }
+        Returns: Json
+      }
       get_admin_overview: { Args: { _top_sellers?: number }; Returns: Json }
       get_dealer_manager_context: { Args: never; Returns: Json }
       get_dealer_manager_history: {
@@ -1096,6 +1100,16 @@ export type Database = {
           _group?: string
           _page?: number
           _seller?: string
+        }
+        Returns: Json
+      }
+      get_dealer_manager_history_range: {
+        Args: {
+          _client?: string
+          _from?: string
+          _page?: number
+          _seller?: string
+          _to?: string
         }
         Returns: Json
       }
@@ -1128,6 +1142,17 @@ export type Database = {
             }
             Returns: Json
           }
+      get_history_range: {
+        Args: {
+          _client?: string
+          _from?: string
+          _page?: number
+          _page_size?: number
+          _seller?: string
+          _to?: string
+        }
+        Returns: Json
+      }
       group_visible_to_user: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean

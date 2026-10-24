@@ -13,6 +13,7 @@
 - The admin overview must use the database summary RPC instead of loading complete simulation and profile tables, keeping dashboard reads bounded as data grows.
 - Seller revenda visibility is the union of the primary profile revenda and admin-managed extra assignments, so all restricted configuration uses one access rule.
 - History filters run inside the paginated database RPC before counting and limiting results, preserving RLS and bounded page reads.
+- History date ranges use inclusive São Paulo civil dates through dedicated range RPCs; legacy RPC signatures remain available for deployed clients. Admin activity is summarized in an admin-verified RPC, counting proposal headers once and averaging total item credit including quantities, while simulation volume counts saved simulation rows.
 - Proposal screen and PDF share installment-label formatting from the saved item snapshot, so displayed percentages remain consistent without querying current group settings.
 - Commercial strategic indicators use a pure calculation module and bounded year-range reads under existing RLS; projections require complete monthly coverage and year-over-year comparisons use matched months, keeping imported annual history independent.
 - Current-year commercial realized totals derive from recorded monthly results through the shared pure calculation module on every commercial surface; use the imported annual snapshot only when no monthly values exist, preserve closed-year history, and invalidate all monthly query families after edits so totals cannot stay stale.
