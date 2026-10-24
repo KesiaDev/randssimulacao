@@ -154,6 +154,14 @@ function Historico() {
       const { error } = await supabase.rpc("set_history_qualification", { _id: entry.id, _kind: entry.kind, _qualification: value });
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["history-page"] });
+      queryClient.setQueryData<HistoryPage>(["history-page", user?.id, isDealerManager, search], (current) => {
+        if (!current) return current;
+        const filteredOut = search.qualification !== "" && search.qualification !== value;
+        return {
+          total: Math.max(0, current.total - (filteredOut && current.entries.some((item) => item.id === entry.id) ? 1 : 0)),
+          entries: current.entries.flatMap((item) => item.id !== entry.id ? [item] : filteredOut ? [] : [{ ...item, qualification: value }]),
+        };
+      });
       toast.success("Qualificação salva.");
     } catch {
       toast.error("Não foi possível salvar a qualificação. Tente novamente.");
