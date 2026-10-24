@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { claimSession } from "@/lib/session.functions";
 import { SESSION_TOKEN_STORAGE_KEY } from "@/lib/session-token";
 import { Brand } from "@/components/Brand";
+import { InstallHint } from "@/components/InstallHint";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -185,7 +187,10 @@ function AuthPage() {
             .
           </p>
 
+          <InstallHint />
+
           <div className="mt-10 space-y-1.5 text-xs text-muted-foreground">
+
             <p>Ferramenta interna de simulação · Randon Consórcios / Rands</p>
             <p className="text-muted-foreground/70">
               Desenvolvido por <span className="font-semibold text-muted-foreground">NandiDev</span>
