@@ -180,8 +180,8 @@ function Chart({ title, data, horizontal = false }: { title: string; data: Array
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} layout={horizontal ? "vertical" : "horizontal"} margin={{ left: horizontal ? 0 : -24, right: 16, bottom: 12 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-              <XAxis type={horizontal ? "number" : "category"} dataKey={horizontal ? undefined : "name"} allowDecimals={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-              <YAxis type={horizontal ? "category" : "number"} dataKey={horizontal ? "name" : undefined} width={horizontal ? 130 : 60} allowDecimals={false} tick={{ fontSize: 11 }} />
+              <XAxis type={horizontal ? "number" : "category"} {...(horizontal ? {} : { dataKey: "name" })} allowDecimals={false} tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+              <YAxis type={horizontal ? "category" : "number"} {...(horizontal ? { dataKey: "name" } : {})} width={horizontal ? 130 : 60} allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(value: number) => [value, "Quantidade"]} />
               <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
             </BarChart>

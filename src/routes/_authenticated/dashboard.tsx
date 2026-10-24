@@ -12,6 +12,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { title: "Painel do vendedor — Randon Consórcios" },
       { name: "description", content: "Acompanhe suas simulações e crie novas propostas." },
       { property: "og:title", content: "Painel do vendedor — Randon Consórcios" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content: "Acompanhe suas simulações e crie novas propostas.",
@@ -82,7 +84,7 @@ function Dashboard() {
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Propostas recentes</h2>
-            <Link to="/historico" search={{ page: 1, group: "", seller: "", date: "", credit: "" }} className="text-xs text-primary hover:underline">Ver todas</Link>
+            <Link to="/historico" search={{ page: 1, client: "", seller: "", from: "", to: "" }} className="text-xs text-primary hover:underline">Ver todas</Link>
           </div>
           <div className="grid gap-3 lg:grid-cols-2">
             {(proposals ?? []).map((proposal) => {
@@ -121,7 +123,7 @@ function Dashboard() {
       <section className="sm:surface overflow-hidden">
         <header className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="text-sm font-semibold">Simulações recentes</h2>
-          <Link to="/historico" search={{ page: 1, group: "", seller: "", date: "", credit: "" }} className="text-xs text-primary hover:underline">
+          <Link to="/historico" search={{ page: 1, client: "", seller: "", from: "", to: "" }} className="text-xs text-primary hover:underline">
             Ver histórico
           </Link>
         </header>
