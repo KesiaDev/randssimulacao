@@ -888,6 +888,7 @@ export type Database = {
           client_name: string | null
           created_at: string
           id: string
+          qualification: string
           seller_id: string
           status: string
           updated_at: string
@@ -896,6 +897,7 @@ export type Database = {
           client_name?: string | null
           created_at?: string
           id?: string
+          qualification?: string
           seller_id: string
           status?: string
           updated_at?: string
@@ -904,6 +906,7 @@ export type Database = {
           client_name?: string | null
           created_at?: string
           id?: string
+          qualification?: string
           seller_id?: string
           status?: string
           updated_at?: string
@@ -962,6 +965,7 @@ export type Database = {
           insurance_amount: number
           insurance_included: boolean
           insurance_rate: number
+          qualification: string
           remaining_term: number
           reserve_fund: number
           seller_id: string
@@ -987,6 +991,7 @@ export type Database = {
           insurance_amount?: number
           insurance_included?: boolean
           insurance_rate?: number
+          qualification?: string
           remaining_term: number
           reserve_fund: number
           seller_id: string
@@ -1012,6 +1017,7 @@ export type Database = {
           insurance_amount?: number
           insurance_included?: boolean
           insurance_rate?: number
+          qualification?: string
           remaining_term?: number
           reserve_fund?: number
           seller_id?: string
@@ -1153,6 +1159,29 @@ export type Database = {
         }
         Returns: Json
       }
+      get_qualified_dealer_history: {
+        Args: {
+          _client?: string
+          _from?: string
+          _page?: number
+          _qualification?: string
+          _seller?: string
+          _to?: string
+        }
+        Returns: Json
+      }
+      get_qualified_history: {
+        Args: {
+          _client?: string
+          _from?: string
+          _page?: number
+          _page_size?: number
+          _qualification?: string
+          _seller?: string
+          _to?: string
+        }
+        Returns: Json
+      }
       group_visible_to_user: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
@@ -1172,6 +1201,10 @@ export type Database = {
       }
       replace_proposal_items: {
         Args: { _client_name: string; _items: Json; _proposal_id: string }
+        Returns: undefined
+      }
+      set_history_qualification: {
+        Args: { _id: string; _kind: string; _qualification: string }
         Returns: undefined
       }
       update_legacy_simulation: {

@@ -14,6 +14,9 @@ import { formatContractModality } from "@/lib/calc";
 import { ChevronLeft, ChevronRight, Eye, Pencil, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { canEditProposal } from "@/lib/dealer-manager";
+import { QualificationPicker } from "@/components/QualificationPicker";
+import { QUALIFICATIONS, type Qualification } from "@/lib/proposal-qualification";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +37,7 @@ const historySearchSchema = z.object({
   client: fallback(z.string(), "").default(""),
   from: fallback(z.string(), "").default(""),
   to: fallback(z.string(), "").default(""),
+  qualification: fallback(z.enum(["", "unqualified", "hot", "warm", "cold", "won", "lost"]), "").default(""),
 });
 type HistorySearch = z.infer<typeof historySearchSchema>;
 
@@ -47,6 +51,7 @@ type ProposalItem = {
 };
 
 type ProposalEntry = {
+  qualification: Qualification;
   kind: "proposal";
   id: string;
   seller_id: string;
@@ -57,6 +62,7 @@ type ProposalEntry = {
 };
 
 type SimulationEntry = {
+  qualification: Qualification;
   kind: "simulation";
   id: string;
   seller_id: string;
@@ -101,6 +107,7 @@ function Historico() {
   const { isAdmin, isDealerManager, user } = useAuth();
   const page = Math.max(1, search.page);
   const rangeError = historyRangeError(search.from, search.to);
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   const { data, isFetching, isError } = useQuery({
     queryKey: ["history-page", user?.id, isDealerManager, search],
@@ -111,12 +118,13 @@ function Historico() {
         _client: search.client,
         _page: page,
         _seller: search.seller,
+        _qualification: search.qualification,
         ...(search.from ? { _from: search.from } : {}),
         ...(search.to ? { _to: search.to } : {}),
       };
       const { data, error } = isDealerManager && !isAdmin
-        ? await supabase.rpc("get_dealer_manager_history_range", filters)
-        : await supabase.rpc("get_history_range", { ...filters, _page_size: PAGE_SIZE });
+        ? await supabase.rpc("get_qualified_dealer_history", filters)
+        : await supabase.rpc("get_qualified_history", { ...filters, _page_size: PAGE_SIZE });
       if (error) throw error;
       return data as unknown as HistoryPage;
     },
@@ -137,6 +145,29 @@ function Historico() {
 
   function goToPage(page: number) {
     void navigate({ search: (previous) => ({ ...previous, page }) });
+  }
+
+  async function saveQualification(entry: HistoryEntry, value: Qualification) {
+    if (savingId || !canEditProposal(user?.id, entry.seller_id, isAdmin)) return;
+    setSavingId(entry.id);
+    try {
+      const { error } = await supabase.rpc("set_history_qualification", { _id: entry.id, _kind: entry.kind, _qualification: value });
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["history-page"] });
+      queryClient.setQueryData<HistoryPage>(["history-page", user?.id, isDealerManager, search], (current) => {
+        if (!current) return current;
+        const filteredOut = search.qualification !== "" && search.qualification !== value;
+        return {
+          total: Math.max(0, current.total - (filteredOut && current.entries.some((item) => item.id === entry.id) ? 1 : 0)),
+          entries: current.entries.flatMap((item) => item.id !== entry.id ? [item] : filteredOut ? [] : [{ ...item, qualification: value }]),
+        };
+      });
+      toast.success("Qualificação salva.");
+    } catch {
+      toast.error("Não foi possível salvar a qualificação. Tente novamente.");
+    } finally {
+      setSavingId(null);
+    }
   }
 
   async function deleteProposal(id: string) {
@@ -177,7 +208,7 @@ function Historico() {
         </p>
       </div>
 
-      <div className="grid gap-4 border-y border-border py-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 border-y border-border py-4 sm:grid-cols-2 xl:grid-cols-5">
         <div className="space-y-2">
           <Label htmlFor="history-client">Cliente</Label>
           <Input id="history-client" value={search.client ?? ""} onChange={(event) => updateFilter("client", event.target.value)} placeholder="Nome do cliente" />
@@ -198,6 +229,16 @@ function Historico() {
         <div className="space-y-2">
           <Label htmlFor="history-to">Até</Label>
           <Input id="history-to" type="date" value={search.to} onChange={(event) => updateFilter("to", event.target.value)} aria-invalid={Boolean(rangeError)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="history-qualification">Qualificação</Label>
+          <Select value={search.qualification || "all"} onValueChange={(value) => updateFilter("qualification", value === "all" ? "" : value)}>
+            <SelectTrigger id="history-qualification" className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as qualificações</SelectItem>
+              {QUALIFICATIONS.map((option) => <SelectItem key={option.value} value={option.value}>{option.symbol} {option.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -243,6 +284,7 @@ function Historico() {
                       <div><div className="text-xs text-muted-foreground">Parcela total/mês</div><div className="font-medium tabular">{formatBRL(monthlyTotal)}</div></div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
+                      <QualificationPicker value={proposal.qualification} label={`Qualificação de ${proposal.client_name || "Cliente Randon"}`} disabled={savingId !== null} {...(canEditProposal(user?.id, proposal.seller_id, isAdmin) ? { onChange: (value: Qualification) => void saveQualification(proposal, value) } : {})} />
                       <Button variant="outline" size="sm" asChild><Link to="/proposta/$id" params={{ id: proposal.id }}><Eye /> Abrir</Link></Button>
                       {canEditProposal(user?.id, proposal.seller_id, isAdmin) && <><Button variant="outline" size="sm" asChild><Link to="/simular" search={{ edit: proposal.id, legacy: undefined }}><Pencil /> Editar</Link></Button>
                       <DeleteConfirm triggerId={triggerId} title="Excluir esta proposta?" description="A proposta, seus itens e as simulações vinculadas serão removidos definitivamente." onConfirm={() => void deleteProposal(proposal.id)} /></>}
@@ -278,7 +320,8 @@ function Historico() {
                   <td data-label="Seguro" className="px-5 py-3">{simulation.insurance_included ? "Incluído" : "Não"}</td>
                   <td data-label="Parcela final" className="px-5 py-3 font-medium tabular">{formatBRL(Number(simulation.final_amount))}</td>
                   <td data-label="Ação" className="px-5 py-3 text-right whitespace-nowrap">
-                    <div className="flex justify-end gap-1">
+                    <div className="flex flex-wrap justify-end gap-1">
+                      <QualificationPicker value={simulation.qualification} label={`Qualificação de ${simulation.client_name || "simulação"}`} disabled={savingId !== null} {...(canEditProposal(user?.id, simulation.seller_id, isAdmin) ? { onChange: (value: Qualification) => void saveQualification(simulation, value) } : {})} />
                       <Button variant="ghost" size="icon" asChild><Link to="/proposta/$id" params={{ id: simulation.id }} aria-label="Abrir simulação"><Eye /></Link></Button>
                       {canEditProposal(user?.id, simulation.seller_id, isAdmin) && <><Button variant="ghost" size="icon" asChild><Link to="/simular" search={{ edit: undefined, legacy: simulation.id }} aria-label="Editar simulação"><Pencil /></Link></Button>
                       <DeleteConfirm iconOnly title="Excluir esta simulação?" description="Esta simulação antiga será removida definitivamente." onConfirm={() => void deleteLegacySimulation(simulation.id)} /></>}
