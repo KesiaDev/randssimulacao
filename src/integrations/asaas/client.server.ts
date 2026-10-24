@@ -51,10 +51,21 @@ export async function findOrCreateAsaasCustomer(input: {
   phone?: string | null;
 }): Promise<AsaasCustomer> {
   const digits = input.cpfCnpj.replace(/\D/g, "");
+  // O Asaas só libera notificação por WhatsApp/SMS quando o número está em
+  // `mobilePhone` (Celular) — em `phone` ele vira telefone fixo.
+  const mobilePhone = input.phone?.replace(/\D/g, "") || undefined;
   const existing = await asaasFetch<{ data: AsaasCustomer[] }>(
     `/customers?cpfCnpj=${encodeURIComponent(digits)}`,
   );
-  if (existing.data[0]) return existing.data[0];
+  if (existing.data[0]) {
+    if (mobilePhone) {
+      await asaasFetch(`/customers/${existing.data[0].id}`, {
+        method: "POST",
+        body: JSON.stringify({ mobilePhone }),
+      });
+    }
+    return existing.data[0];
+  }
 
   return asaasFetch<AsaasCustomer>("/customers", {
     method: "POST",
@@ -62,7 +73,7 @@ export async function findOrCreateAsaasCustomer(input: {
       name: input.name,
       email: input.email,
       cpfCnpj: digits,
-      phone: input.phone || undefined,
+      mobilePhone,
     }),
   });
 }
