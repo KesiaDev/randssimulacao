@@ -36,7 +36,7 @@ interface AdminOverview {
   ticket_medio: number | null;
   credito_proposto: number | null;
   credito_proposto_mes: number | null;
-  qualificacoes: Array<{ qualification: string; total: number }>;
+  qualificacoes: Array<{ qualification: string; total: number; credito: number }>;
   propostas_mensais: Array<{ mes: number; total: number; ticket_medio: number | null }>;
   volume_vendedores: Array<{ name: string; total: number }>;
   total_vendedores: number;
@@ -129,22 +129,28 @@ function AdminHome() {
           <p className="text-xs text-muted-foreground">Clique em uma situação para abrir o histórico filtrado.</p>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
-          {QUALIFICATIONS.map((option) => (
-            <Link
-              key={option.value}
-              to="/historico"
-              search={{ page: 1, seller: "", client: "", from: `${year}-01-01`, to: `${year}-12-31`, qualification: option.value }}
-              className="surface min-w-0 p-4 transition-colors hover:border-primary/50"
-            >
-              <div className="flex items-start gap-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                <span aria-hidden>{option.symbol}</span>
-                <span className="leading-tight">{option.label}</span>
-              </div>
-              <div className="mt-2 text-xl font-semibold tabular sm:text-2xl">
-                {data ? Number(data.qualificacoes.find((q) => q.qualification === option.value)?.total ?? 0) : "—"}
-              </div>
-            </Link>
-          ))}
+          {QUALIFICATIONS.map((option) => {
+            const entry = data?.qualificacoes.find((q) => q.qualification === option.value);
+            return (
+              <Link
+                key={option.value}
+                to="/historico"
+                search={{ page: 1, seller: "", client: "", from: `${year}-01-01`, to: `${year}-12-31`, qualification: option.value }}
+                className="surface min-w-0 p-4 transition-colors hover:border-primary/50"
+              >
+                <div className="flex items-start gap-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                  <span aria-hidden>{option.symbol}</span>
+                  <span className="leading-tight">{option.label}</span>
+                </div>
+                <div className="mt-2 text-xl font-semibold tabular sm:text-2xl">
+                  {data ? Number(entry?.total ?? 0) : "—"}
+                </div>
+                <div className="mt-1 break-words text-xs font-medium tabular text-muted-foreground sm:text-sm">
+                  {data ? formatBRL(Number(entry?.credito ?? 0)) : "—"}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
