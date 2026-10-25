@@ -34,6 +34,7 @@ interface AdminOverview {
   propostas_ano: number;
   ticket_medio: number | null;
   credito_proposto: number | null;
+  credito_proposto_mes: number | null;
   propostas_mensais: Array<{ mes: number; total: number; ticket_medio: number | null }>;
   volume_vendedores: Array<{ name: string; total: number }>;
   total_vendedores: number;
@@ -56,10 +57,13 @@ interface AdminOverview {
 function AdminHome() {
   const [currentYear, setCurrentYear] = useState(2026);
   const [year, setYear] = useState(2026);
+  const [monthLabel, setMonthLabel] = useState("");
   useEffect(() => {
     const nowYear = Number(new Intl.DateTimeFormat("en", { timeZone: "America/Sao_Paulo", year: "numeric" }).format(new Date()));
     setCurrentYear(nowYear);
     setYear(nowYear);
+    const month = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", month: "long" }).format(new Date());
+    setMonthLabel(month.charAt(0).toUpperCase() + month.slice(1));
   }, []);
   const { data, isPending, isError } = useQuery({
     queryKey: ["admin-overview", year],
@@ -109,7 +113,7 @@ function AdminHome() {
         <div className="grid gap-4 sm:grid-cols-3">
           <Stat label="Propostas no ano" value={data ? Number(data.propostas_ano) : "—"} />
           <Stat label="Ticket médio · crédito por proposta" value={data?.ticket_medio == null ? "—" : formatBRL(Number(data.ticket_medio))} />
-          <Stat label="Crédito total proposto" value={data?.credito_proposto == null ? "—" : formatBRL(Number(data.credito_proposto))} />
+          <Stat label={monthLabel ? `Total proposto no mês · ${monthLabel}` : "Total proposto no mês"} value={data?.credito_proposto_mes == null ? "—" : formatBRL(Number(data.credito_proposto_mes))} />
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
           <Chart title={`Propostas por mês · ${year}`} data={byMonth} />
