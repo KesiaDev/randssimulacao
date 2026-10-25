@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MESES } from "@/lib/mauricio";
+import { QUALIFICATIONS } from "@/lib/proposal-qualification";
 import {
   Bar,
   BarChart,
@@ -35,6 +36,7 @@ interface AdminOverview {
   ticket_medio: number | null;
   credito_proposto: number | null;
   credito_proposto_mes: number | null;
+  qualificacoes: Array<{ qualification: string; total: number }>;
   propostas_mensais: Array<{ mes: number; total: number; ticket_medio: number | null }>;
   volume_vendedores: Array<{ name: string; total: number }>;
   total_vendedores: number;
@@ -120,6 +122,32 @@ function AdminHome() {
           <Chart title={`Volume de simulações por vendedor · ${year}`} data={bySeller} horizontal />
         </div>
       </section>
+
+      <section className="space-y-4 border-b border-border pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Qualificação comercial · {year}</h2>
+          <p className="text-xs text-muted-foreground">Clique em uma situação para abrir o histórico filtrado.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
+          {QUALIFICATIONS.map((option) => (
+            <Link
+              key={option.value}
+              to="/historico"
+              search={{ page: 1, seller: "", client: "", from: `${year}-01-01`, to: `${year}-12-31`, qualification: option.value }}
+              className="surface min-w-0 p-4 transition-colors hover:border-primary/50"
+            >
+              <div className="flex items-start gap-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                <span aria-hidden>{option.symbol}</span>
+                <span className="leading-tight">{option.label}</span>
+              </div>
+              <div className="mt-2 text-xl font-semibold tabular sm:text-2xl">
+                {data ? Number(data.qualificacoes.find((q) => q.qualification === option.value)?.total ?? 0) : "—"}
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <Chart title="Simulações por faixa de crédito · mês atual" data={byCredit} />
 
       <section className="sm:surface overflow-hidden">

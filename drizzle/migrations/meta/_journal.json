@@ -218,6 +218,13 @@
       "when": 1792886493971,
       "tag": "0030_admin_month_credit_total",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1792886701485,
+      "tag": "0031_admin_qualification_counts",
+      "breakpoints": true
     }
   ]
 }
