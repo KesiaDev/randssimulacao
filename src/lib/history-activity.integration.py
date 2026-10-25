@@ -35,6 +35,13 @@ async def main():
   assert sum(m['total'] for m in data['propostas_mensais'])==data['propostas_ano']
   assert [m['mes'] for m in data['propostas_mensais']]==list(range(1,13))
   assert len(data['volume_vendedores'])<=20
+  mes_atual=int(page.evaluate("() => new Intl.DateTimeFormat('en',{timeZone:'America/Sao_Paulo',month:'numeric'}).format(new Date())"))
+  mes=[m for m in data['propostas_mensais'] if m['mes']==mes_atual][0]
+  assert data['credito_proposto_mes'] is not None
+  assert abs((mes['ticket_medio'] or 0)*mes['total']-data['credito_proposto_mes'])<0.01, (mes, data['credito_proposto_mes'])
+  await page.get_by_text('Total proposto no mês',exact=False).first.wait_for()
+  assert await page.get_by_text('Crédito total proposto',exact=True).count()==0
+  print('current-month proposed credit matches the month row and is shown on screen')
   await page.get_by_text('Ticket médio · crédito por proposta',exact=True).wait_for()
   await page.screenshot(path='/tmp/browser/history-admin/admin.png')
   print('admin proposal totals, monthly counts and average credit are internally consistent')
