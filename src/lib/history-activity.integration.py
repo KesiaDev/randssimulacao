@@ -42,6 +42,11 @@ async def main():
   await page.get_by_text('Total proposto no mês',exact=False).first.wait_for()
   assert await page.get_by_text('Crédito total proposto',exact=True).count()==0
   print('current-month proposed credit matches the month row and is shown on screen')
+  quals={q['qualification']:q['total'] for q in data['qualificacoes']}
+  assert set(quals)=={'unqualified','hot','warm','cold','won','lost'}
+  assert sum(quals.values())>=data['propostas_ano']
+  await page.get_by_text('Qualificação comercial',exact=False).first.wait_for()
+  print('qualification cards:',quals)
   await page.get_by_text('Ticket médio · crédito por proposta',exact=True).wait_for()
   await page.screenshot(path='/tmp/browser/history-admin/admin.png')
   print('admin proposal totals, monthly counts and average credit are internally consistent')
@@ -50,6 +55,10 @@ async def main():
    await page.get_by_role('option',name='2025',exact=True).click()
   past=await (await response.value).json()
   assert past['ano']==2025 and len(past['propostas_mensais'])==12
+  await page.get_by_role('link',name='Quente').first.click()
+  await page.wait_for_url('**/historico**')
+  assert 'qualification=hot' in page.url, page.url
+  print('qualification card opens the filtered history')
   print('year selector verified; page errors:',errors)
   await browser.close()
 asyncio.run(main())
