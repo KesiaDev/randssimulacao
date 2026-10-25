@@ -42,11 +42,15 @@ async def main():
   await page.get_by_text('Total proposto no mês',exact=False).first.wait_for()
   assert await page.get_by_text('Crédito total proposto',exact=True).count()==0
   print('current-month proposed credit matches the month row and is shown on screen')
-  quals={q['qualification']:q['total'] for q in data['qualificacoes']}
-  assert set(quals)=={'unqualified','hot','warm','cold','won','lost'}
-  assert sum(quals.values())>=data['propostas_ano']
-  await page.get_by_text('Qualificação comercial',exact=False).first.wait_for()
-  print('qualification cards:',quals)
+   quals={q['qualification']:q['total'] for q in data['qualificacoes']}
+   assert set(quals)=={'unqualified','hot','warm','cold','won','lost'}
+   assert sum(quals.values())>=data['propostas_ano']
+   creditos={q['qualification']:float(q['credito']) for q in data['qualificacoes']}
+   assert all(c>=0 for c in creditos.values())
+   assert sum(creditos.values())>=data['credito_proposto']-0.01
+   await page.get_by_text('Qualificação comercial',exact=False).first.wait_for()
+   print('qualification cards:',quals)
+   print('qualification credit totals:',creditos)
   await page.get_by_text('Ticket médio · crédito por proposta',exact=True).wait_for()
   await page.screenshot(path='/tmp/browser/history-admin/admin.png')
   print('admin proposal totals, monthly counts and average credit are internally consistent')
