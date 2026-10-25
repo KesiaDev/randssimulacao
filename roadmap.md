@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Exibir o total em R$ de cada qualificação comercial nos cartões da Administração — RPC devolve credito por situação (crédito × quantidade das propostas + crédito das simulações avulsas); conferido contra o banco (Venda fechada: 7 propostas, R$ 62.284.603,82) e teste de integração passou; compilação OK, falta publicar.
 - [x] Substituir "Crédito total proposto" por "Total proposto no mês" no painel da Administração — RPC devolve o crédito somado das propostas do mês civil de São Paulo; cartão conferido contra o banco (R$ 422.941.191,67 em outubro) e teste de integração atualizado.
 - [x] Acrescentar na Administração a visão por qualificação comercial (Sem qualificação, Quente, Morno, Frio, Venda fechada, Perdida) com clique abrindo o histórico filtrado do ano — 6 cartões conferidos na prévia e no banco; link valida qualification=hot.
 - [x] Adicionar qualificação comercial com seis opções e filtro paginado no histórico — 14 testes passaram; seleção das seis opções, persistência após recarregar e filtros combinados conferidos com proposta autenticada temporária, removida ao concluir; compilação OK, falta publicar.
