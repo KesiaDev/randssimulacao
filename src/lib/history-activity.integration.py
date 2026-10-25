@@ -35,7 +35,7 @@ async def main():
   assert sum(m['total'] for m in data['propostas_mensais'])==data['propostas_ano']
   assert [m['mes'] for m in data['propostas_mensais']]==list(range(1,13))
   assert len(data['volume_vendedores'])<=20
-  mes_atual=int(page.evaluate("() => new Intl.DateTimeFormat('en',{timeZone:'America/Sao_Paulo',month:'numeric'}).format(new Date())"))
+  mes_atual=int(await page.evaluate("() => new Intl.DateTimeFormat('en',{timeZone:'America/Sao_Paulo',month:'numeric'}).format(new Date())"))
   mes=[m for m in data['propostas_mensais'] if m['mes']==mes_atual][0]
   assert data['credito_proposto_mes'] is not None
   assert abs((mes['ticket_medio'] or 0)*mes['total']-data['credito_proposto_mes'])<0.01, (mes, data['credito_proposto_mes'])
