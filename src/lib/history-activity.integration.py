@@ -13,10 +13,10 @@ async def main():
   await page.evaluate('([k,v])=>localStorage.setItem(k,v)',[minted['storage_key'],json.dumps(minted['session'])])
   await page.goto('http://localhost:8080/historico',wait_until='networkidle')
   await page.get_by_label('De',exact=True).wait_for()
-  async with page.expect_response(lambda r:'get_history_range' in r.url) as response:
+  async with page.expect_response(lambda r:'get_qualified_history' in r.url) as response:
    await page.get_by_label('De',exact=True).fill('2026-10-23')
   assert (await response.value).status==200
-  async with page.expect_response(lambda r:'get_history_range' in r.url) as response:
+  async with page.expect_response(lambda r:'get_qualified_history' in r.url) as response:
    await page.get_by_label('Até',exact=True).fill('2026-10-23')
   result=await (await response.value).json()
   assert len(result['entries'])<=10
