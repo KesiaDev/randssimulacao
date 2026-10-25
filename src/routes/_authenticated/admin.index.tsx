@@ -136,9 +136,9 @@ function AdminHome() {
               search={{ page: 1, seller: "", client: "", from: `${year}-01-01`, to: `${year}-12-31`, qualification: option.value }}
               className="surface min-w-0 p-4 transition-colors hover:border-primary/50"
             >
-              <div className="flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              <div className="flex items-start gap-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">
                 <span aria-hidden>{option.symbol}</span>
-                <span className="truncate">{option.label}</span>
+                <span className="leading-tight">{option.label}</span>
               </div>
               <div className="mt-2 text-xl font-semibold tabular sm:text-2xl">
                 {data ? Number(data.qualificacoes.find((q) => q.qualification === option.value)?.total ?? 0) : "—"}
