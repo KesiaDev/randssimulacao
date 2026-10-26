@@ -16,4 +16,11 @@ describe("gerência restrita da Multieixo", () => {
   it("vendedores sem gerência continuam sem acesso comercial", () => {
     expect(canOpenCommercialPage("/mauricio", false, false)).toBe(false);
   });
+  it("consultores podem abrir as quatro áreas comerciais sem administração global", () => {
+    for (const path of ["/mauricio", "/mauricio/metas", "/mauricio/calendario", "/mauricio/reservas"]) {
+      expect(canOpenCommercialPage(path, false, false, true)).toBe(true);
+      expect(canOpenCommercialPage(path, false, false, false)).toBe(false);
+    }
+    expect(canEditProposal("patricia", "outro-vendedor", false)).toBe(false);
+  });
 });

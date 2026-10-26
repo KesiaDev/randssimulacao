@@ -9,10 +9,10 @@ export const Route = createFileRoute("/_authenticated/mauricio")({
 });
 
 function MauricioLayout() {
-  const { loading, user, isDealerManager } = useAuth();
+  const { loading, user, isDealerManager, isCommercialConsultant } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: s => s.location.pathname });
-  const autorizado = canOpenCommercialPage(pathname, user?.id === MAURICIO_USER_ID, isDealerManager);
+  const autorizado = canOpenCommercialPage(pathname, user?.id === MAURICIO_USER_ID, isDealerManager, isCommercialConsultant);
 
   useEffect(() => {
     if (!loading && !autorizado) void navigate({ to: "/dashboard", replace: true });

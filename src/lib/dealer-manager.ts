@@ -2,7 +2,7 @@ export function canEditProposal(actorId: string | undefined, sellerId: string, i
   return isAdmin || actorId === sellerId;
 }
 
-export function canOpenCommercialPage(pathname: string, isMauricio: boolean, isManager: boolean) {
-  if (isMauricio) return true;
+export function canOpenCommercialPage(pathname: string, isMauricio: boolean, isManager: boolean, isConsultant = false) {
+  if (isMauricio || isConsultant) return true;
   return isManager && (pathname === "/mauricio" || pathname === "/mauricio/" || pathname.startsWith("/mauricio/revenda/"));
 }
