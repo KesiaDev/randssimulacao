@@ -6,7 +6,7 @@ from playwright.async_api import async_playwright
 
 SCOPES = {
     'de900447-92aa-4522-a39a-b7c7c6fb4c08': {'Rodan': 18784221, 'Rodocap': 41149898.578545205, 'Rodorib RP': 31270384.7984417, 'Rodorib SJRP': 29828593.759460147},
-    '7737cc54-3c99-49ba-9c5e-7e937250727e': {'Compasi': 72139649.35656379, 'Redemil': 94907104.3038247},
+    'ba07793f-6645-4f5c-a917-b249bc5a60b3': {'Compasi': 72139649.35656379, 'Redemil': 94907104.3038247},
 }
 
 async def main():
