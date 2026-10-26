@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE, MESES } from "@/lib/mauricio";
 import { ArrowLeft, Pencil, CalendarDays, AlertTriangle, Target, TrendingUp } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useCommercialAccess } from "@/hooks/useCommercialAccess";
 import { annualRealized } from "@/lib/commercial-insights";
 
 export const Route = createFileRoute("/_authenticated/mauricio/revenda/$nome")({
@@ -27,7 +27,7 @@ const ANO = 2026;
 
 function RevendaDetalhe() {
   const { nome } = Route.useParams();
-  const { user, isDealerManager } = useAuth();
+  const { user, isCommercialConsultant, canManageCommercial, dealers } = useCommercialAccess();
   const qc = useQueryClient();
   const [editando, setEditando] = useState<number | null>(null);
   const [valorEdicao, setValorEdicao] = useState("");
@@ -64,7 +64,7 @@ function RevendaDetalhe() {
   }
 
   async function salvarMensal(mes: number) {
-    if (isDealerManager) return;
+    if (!canManageCommercial || !dealers.includes(nome)) return;
     const num = valorEdicao.trim() === "" ? null : Number(valorEdicao.replace(",", "."));
     if (num !== null && Number.isNaN(num)) {
       toast.error("Valor inválido");
@@ -174,18 +174,18 @@ function RevendaDetalhe() {
                     </Button>
                   </div>
                 ) : (
-                  <button
-                    className="group inline-flex items-center gap-1"
-                    disabled={isDealerManager}
+                  <Button variant="ghost"
+                    className="group h-auto px-0 inline-flex items-center gap-1"
+                    disabled={!canManageCommercial}
                     onClick={() => {
                       setEditando(mes);
                       setValorEdicao(v !== null ? String(v) : "");
                     }}
-                    title={isDealerManager ? "Resultado registrado" : "Editar valor do mês"}
+                    title={!canManageCommercial ? "Resultado registrado" : "Editar valor do mês"}
                   >
                     <span className="w-28 text-right text-xs font-medium">{v !== null ? formatBRL(v) : "—"}</span>
-                    {!isDealerManager && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
-                  </button>
+                    {canManageCommercial && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
+                  </Button>
                 )}
               </div>
             );
@@ -196,7 +196,7 @@ function RevendaDetalhe() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Histórico anual</CardTitle>
+            <CardTitle className="text-base">{isCommercialConsultant ? `Metas e resultados — ${ANO}` : "Histórico anual"}</CardTitle>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             <table className="w-full min-w-[380px] text-sm">
@@ -209,7 +209,7 @@ function RevendaDetalhe() {
                 </tr>
               </thead>
               <tbody>
-                {(anuais ?? []).map((m) => (
+                {(anuais ?? []).filter(m => !isCommercialConsultant || m.ano === ANO).map((m) => (
                   <tr key={m.id} className="border-b">
                     <td className="py-2 pr-4 font-medium">{m.ano}</td>
                     <td className="px-2 py-2 text-right">{formatBRL(Number(m.meta))}</td>
@@ -281,7 +281,7 @@ function RevendaDetalhe() {
               <span className="text-xs font-medium">{e.data.split("-").reverse().join("/")}</span>
             </div>
           ))}
-          {!isDealerManager && <Link to="/mauricio/calendario" className="block text-sm font-medium text-primary hover:underline">
+          {canManageCommercial && <Link to="/mauricio/calendario" className="block text-sm font-medium text-primary hover:underline">
             Abrir calendário completo →
           </Link>}
         </CardContent>

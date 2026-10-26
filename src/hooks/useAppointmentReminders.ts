@@ -5,11 +5,11 @@ import { MAURICIO_USER_ID } from "@/lib/mauricio";
 import { appointmentReminder, businessDate, nextDate } from "@/lib/commercial-calendar";
 
 export function useAppointmentReminders() {
-  const { user } = useAuth();
+  const { user, isCommercialConsultant } = useAuth();
   const today = businessDate();
-  const enabled = user?.id === MAURICIO_USER_ID;
+  const enabled = user?.id === MAURICIO_USER_ID || isCommercialConsultant;
   const events = useQuery({
-    queryKey: ["m-compromissos-avisos", today], enabled, refetchInterval: 60000,
+    queryKey: ["m-compromissos-avisos", today, user?.id], enabled, refetchInterval: 60000,
     queryFn: async () => {
       const { data, error } = await supabase.from("mauricio_eventos").select("*").lte("data", nextDate(today)).or(`data_fim.gte.${today},data.gte.${today}`).not("status", "in", "(cancelado,concluido)").order("data");
       if (error) throw error;
@@ -17,7 +17,7 @@ export function useAppointmentReminders() {
     },
   });
   const reads = useQuery({
-    queryKey: ["m-compromissos-leituras", today], enabled, refetchInterval: 60000,
+    queryKey: ["m-compromissos-leituras", today, user?.id], enabled, refetchInterval: 60000,
     queryFn: async () => {
       const { data, error } = await supabase.from("mauricio_evento_leituras").select("evento_id,data_evento,tipo").gte("data_evento", today).lte("data_evento", nextDate(today));
       if (error) throw error;

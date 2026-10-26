@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 const percent = (value: number | null) => value === null ? "Sem base comparável" : `${value > 0 ? "+" : ""}${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 export function CommercialInsights({ currentYear }: { currentYear: number }) {
-  const { user, isDealerManager } = useAuth();
+  const { user, isDealerManager, isCommercialConsultant } = useAuth();
   const [year, setYear] = useState(currentYear);
   const [cutoff, setCutoff] = useState(9);
   const [dealer, setDealer] = useState("all");
@@ -34,7 +34,7 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
   });
   const annual = annualQuery.data ?? [];
   const monthly = monthlyQuery.data ?? [];
-  const years = [...new Set([currentYear, ...annual.map(r => r.ano)])].sort((a, b) => b - a);
+  const years = [...new Set([currentYear, ...annual.filter(r => !isCommercialConsultant || r.ano === currentYear).map(r => r.ano)])].sort((a, b) => b - a);
   const dealers = [...new Set(annual.map(r => r.revenda))].sort();
   const selected = annual.filter(r => r.ano === year && (dealer === "all" || r.revenda === dealer));
   const history = annual.filter(r => dealer === "all" || r.revenda === dealer)
@@ -64,7 +64,7 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
             <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">{a.revenda}</h3><Badge variant="secondary">{insight.recorded}/{cutoff} meses</Badge></div>
             <dl className="space-y-3 text-sm">
               <div><dt className="text-muted-foreground">{MESES[cutoff - 1]} vs. {cutoff > 1 ? MESES[cutoff - 2] : "mês anterior indisponível"}</dt><dd className="font-semibold">{percent(insight.monthChange)}</dd><dd className="text-xs text-muted-foreground">{formatBRL(insight.monthCurrent)} / {formatBRL(insight.monthPrevious)}</dd></div>
-              <div><dt className="text-muted-foreground">Mesmos meses de {year - 1}</dt><dd className="font-semibold">{percent(insight.yearChange)}</dd><dd className="text-xs text-muted-foreground">{insight.pairedMonths} de {cutoff} meses comparáveis{insight.pairedMonths < cutoff && insight.pairedMonths > 0 ? " · comparação parcial" : ""}</dd></div>
+              {!isCommercialConsultant && <div><dt className="text-muted-foreground">Mesmos meses de {year - 1}</dt><dd className="font-semibold">{percent(insight.yearChange)}</dd><dd className="text-xs text-muted-foreground">{insight.pairedMonths} de {cutoff} meses comparáveis{insight.pairedMonths < cutoff && insight.pairedMonths > 0 ? " · comparação parcial" : ""}</dd></div>}
               <div className="border-t pt-3"><dt className="text-muted-foreground">Projeção de fechamento · {year}</dt><dd className="break-words text-xl font-bold text-primary">{formatBRL(projection)}</dd><dd className="text-xs text-muted-foreground">{projection === null ? "Dados mensais incompletos; sem estimativa." : `Cumprimento projetado: ${formatPct(a.meta, projection)}`}</dd></div>
               <div><dt className="text-muted-foreground">Ritmo recente por mês</dt><dd className="font-semibold">{formatBRL(insight.pace)}</dd></div>
               <div><dt className="text-muted-foreground">Necessário por mês para atingir a meta</dt><dd className="font-semibold">{formatBRL(insight.required)}</dd><dd className="text-xs text-muted-foreground">{insight.remaining > 0 ? `${insight.remaining} meses restantes após ${MESES[cutoff - 1]}` : "Ano encerrado no período selecionado"}</dd></div>
@@ -76,11 +76,11 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
           </article>;
         })}
       </div>
-      <div className="space-y-3">
+      {!isCommercialConsultant && <div className="space-y-3">
         <h3 className="font-semibold">Comparação de anos · histórico preservado</h3>
         <p className="text-xs text-muted-foreground">Valores anuais conforme registrados na planilha. {currentYear} pode estar parcial; não representa comparação de anos completos. Totais anuais não substituem os dados mensais das projeções.</p>
         <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-sm"><thead className="border-b text-left text-xs text-muted-foreground"><tr><th className="py-2">Revenda / ano</th><th className="px-3 text-right">Meta anual</th><th className="px-3 text-right">Realizado registrado</th><th className="text-right">Cumprimento</th></tr></thead><tbody>{history.map(a => <tr key={`${a.revenda}-${a.ano}`} className="border-b"><td className="py-3 font-medium">{a.revenda} · {a.ano}{a.ano === currentYear && <span className="ml-2 text-xs text-muted-foreground">parcial / a conferir</span>}</td><td className="px-3 text-right">{formatBRL(a.meta)}</td><td className="px-3 text-right">{formatBRL(a.realizado)}</td><td className="text-right">{formatPct(a.meta, a.realizado)}</td></tr>)}</tbody></table></div>
-      </div>
+      </div>}
     </>}
   </section>;
 }

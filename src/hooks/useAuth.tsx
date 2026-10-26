@@ -29,6 +29,8 @@ interface AuthContextValue {
   isAdmin: boolean;
   managedDealers: Array<{ id: string; name: string }>;
   isDealerManager: boolean;
+  consultantDealers: Array<{ id: string; name: string }>;
+  isCommercialConsultant: boolean;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -41,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [managedDealers, setManagedDealers] = useState<Array<{ id: string; name: string }>>([]);
+  const [consultantDealers, setConsultantDealers] = useState<Array<{ id: string; name: string }>>([]);
   const checkSessionFn = useServerFn(checkSession);
 
   async function loadContext(current: Session | null) {
@@ -48,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       setRole(null);
       setManagedDealers([]);
+      setConsultantDealers([]);
       return;
     }
     await supabase.rpc("ensure_profile", {
@@ -67,6 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(list.includes("admin") ? "admin" : (list[0] ?? "seller"));
     const { data: dealerships, error: managerError } = await supabase.rpc("get_dealer_manager_context");
     setManagedDealers(managerError ? [] : (dealerships as Array<{ id: string; name: string }>) ?? []);
+    const { data: consultants, error: consultantError } = await supabase.rpc("get_commercial_consultant_context");
+    setConsultantDealers(consultantError ? [] : (consultants as Array<{ id: string; name: string }>) ?? []);
   }
 
   useEffect(() => {
@@ -123,6 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: role === "admin",
       managedDealers,
       isDealerManager: managedDealers.length > 0,
+      consultantDealers,
+      isCommercialConsultant: consultantDealers.length > 0,
       refresh: async () => {
         const { data } = await supabase.auth.getSession();
         await loadContext(data.session);
@@ -133,9 +141,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
         setRole(null);
         setManagedDealers([]);
+        setConsultantDealers([]);
       },
     }),
-    [loading, session, profile, role, managedDealers],
+    [loading, session, profile, role, managedDealers, consultantDealers],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

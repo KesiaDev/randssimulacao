@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { formatBRL, formatPct, MESES, REVENDAS } from "@/lib/mauricio";
+import { formatBRL, formatPct, MESES } from "@/lib/mauricio";
+import { useCommercialAccess } from "@/hooks/useCommercialAccess";
 import { Pencil } from "lucide-react";
 import { annualRealized } from "@/lib/commercial-insights";
 
@@ -27,16 +28,17 @@ const ANO = 2026;
 
 function MetasPage() {
   const qc = useQueryClient();
+  const { user, dealers, isCommercialConsultant } = useCommercialAccess();
   const [editando, setEditando] = useState<string | null>(null);
   const [valorEdicao, setValorEdicao] = useState("");
 
   const { data: mensais } = useQuery({
-    queryKey: ["m-mensais", ANO],
+    queryKey: ["m-mensais", ANO, user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_resultados_mensais").select("*").eq("ano", ANO)).data ?? [],
   });
   const { data: anuais } = useQuery({
-    queryKey: ["m-metas-hist"],
+    queryKey: ["m-metas-hist", user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_metas_anuais").select("*").order("revenda").order("ano")).data ?? [],
   });
@@ -47,11 +49,12 @@ function MetasPage() {
   }
 
   function totalMes(mes: number): number | null {
-    const vals = REVENDAS.map((r) => valorMes(r, mes)).filter((v): v is number => v !== null);
+    const vals = dealers.map((r) => valorMes(r, mes)).filter((v): v is number => v !== null);
     return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) : null;
   }
 
   async function salvarMensal(revenda: string, mes: number) {
+    if (!dealers.includes(revenda)) return;
     const num = valorEdicao.trim() === "" ? null : Number(valorEdicao.replace(",", "."));
     if (num !== null && Number.isNaN(num)) {
       toast.error("Valor inválido");
@@ -94,7 +97,7 @@ function MetasPage() {
               </tr>
             </thead>
             <tbody>
-              {REVENDAS.map((rev) => (
+              {dealers.map((rev) => (
                 <tr key={rev} className="border-b">
                   <td className="py-2 pr-4 font-medium">{rev}</td>
                   {MESES.map((_, i) => {
@@ -116,8 +119,8 @@ function MetasPage() {
                             </Button>
                           </div>
                         ) : (
-                          <button
-                            className="group inline-flex items-center gap-1"
+                          <Button variant="ghost"
+                            className="group h-auto px-0 inline-flex items-center gap-1"
                             onClick={() => {
                               setEditando(key);
                               setValorEdicao(v !== null ? String(v) : "");
@@ -126,7 +129,7 @@ function MetasPage() {
                           >
                             <span>{v !== null ? formatBRL(v) : "—"}</span>
                             <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                          </button>
+                          </Button>
                         )}
                       </td>
                     );
@@ -154,7 +157,7 @@ function MetasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Histórico anual por revenda</CardTitle>
+          <CardTitle className="text-base">{isCommercialConsultant ? `Metas e resultados — ${ANO}` : "Histórico anual por revenda"}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
@@ -168,7 +171,7 @@ function MetasPage() {
               </tr>
             </thead>
             <tbody>
-              {(anuais ?? []).map((m) => (
+              {(anuais ?? []).filter(m => !isCommercialConsultant || m.ano === ANO).map((m) => (
                 <tr key={m.id} className="border-b">
                   <td className="py-2 pr-4 font-medium">{m.revenda}</td>
                   <td className="px-2 py-2">{m.ano}</td>
