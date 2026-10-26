@@ -76,6 +76,39 @@ export type Database = {
           },
         ]
       }
+      commercial_consultants: {
+        Row: {
+          created_at: string
+          dealer_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dealer_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dealer_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_consultants_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_consultants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_ranges: {
         Row: {
           active: boolean
@@ -1083,6 +1116,10 @@ export type Database = {
         Args: { _rate_id: string; _user_id: string }
         Returns: boolean
       }
+      consultant_can_access_revenda: {
+        Args: { _revenda: string }
+        Returns: boolean
+      }
       delete_legacy_simulation: {
         Args: { _simulation_id: string }
         Returns: undefined
@@ -1097,6 +1134,7 @@ export type Database = {
         Returns: Json
       }
       get_admin_overview: { Args: { _top_sellers?: number }; Returns: Json }
+      get_commercial_consultant_context: { Args: never; Returns: Json }
       get_dealer_manager_context: { Args: never; Returns: Json }
       get_dealer_manager_history: {
         Args: {
