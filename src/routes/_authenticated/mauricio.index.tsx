@@ -7,7 +7,7 @@ import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE 
 import { CalendarDays, Target, TrendingUp, AlertTriangle } from "lucide-react";
 import { CommercialInsights } from "@/components/CommercialInsights";
 import { businessDate } from "@/lib/commercial-calendar";
-import { useAuth } from "@/hooks/useAuth";
+import { useCommercialAccess } from "@/hooks/useCommercialAccess";
 import { annualRealized } from "@/lib/commercial-insights";
 
 export const Route = createFileRoute("/_authenticated/mauricio/")({
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/mauricio/")({
 const ANO = 2026;
 
 function MauricioDashboard() {
-  const { isDealerManager, user, managedDealers } = useAuth();
+  const { isDealerManager, user, managedDealers, isCommercialConsultant, canManageCommercial } = useCommercialAccess();
   const { data: metas } = useQuery({
     queryKey: ["m-metas", ANO, user?.id],
     queryFn: async () =>
@@ -77,7 +77,7 @@ function MauricioDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{isDealerManager ? `Resultados · ${managedDealers.map(d => d.name).join(" · ")}` : "Gestão Comercial"}</h1>
+        <h1 className="text-2xl font-bold">{isDealerManager && !isCommercialConsultant ? `Resultados · ${managedDealers.map(d => d.name).join(" · ")}` : "Gestão Comercial"}</h1>
         <p className="text-sm text-muted-foreground">Visão geral de metas, resultados, visitas e reservas — {ANO}</p>
       </div>
 
@@ -186,7 +186,7 @@ function MauricioDashboard() {
                 </span>
               </div>
             ))}
-            {!isDealerManager && <Link to="/mauricio/calendario" className="block text-sm font-medium text-primary hover:underline">
+            {canManageCommercial && <Link to="/mauricio/calendario" className="block text-sm font-medium text-primary hover:underline">
               Abrir calendário completo →
             </Link>}
           </CardContent>
@@ -217,7 +217,7 @@ function MauricioDashboard() {
                 </span>
               </div>
             ))}
-            {!isDealerManager && <Link to="/mauricio/reservas" className="block text-sm font-medium text-primary hover:underline">
+            {canManageCommercial && <Link to="/mauricio/reservas" className="block text-sm font-medium text-primary hover:underline">
               Ver todas as reservas →
             </Link>}
           </CardContent>

@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE, REVENDAS, type ReservaStatus } from "@/lib/mauricio";
+import { reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE, type ReservaStatus } from "@/lib/mauricio";
 import { syncReservaNotifications } from "@/lib/mauricio.functions";
+import { useCommercialAccess } from "@/hooks/useCommercialAccess";
 import { Plus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mauricio/reservas")({
@@ -39,6 +40,7 @@ interface Reserva {
 
 function ReservasPage() {
   const qc = useQueryClient();
+  const { dealers, user, isMauricio } = useCommercialAccess();
   const syncFn = useServerFn(syncReservaNotifications);
   const [busca, setBusca] = useState("");
   const [filtroGrupo, setFiltroGrupo] = useState("todos");
@@ -49,7 +51,7 @@ function ReservasPage() {
   const [form, setForm] = useState({ grupo: "", cota: "", vendedor: "", revenda: "Multieixo", validade: "", obs: "" });
 
   const { data: reservas } = useQuery({
-    queryKey: ["m-reservas-todas"],
+    queryKey: ["m-reservas-todas", user?.id],
     queryFn: async () =>
       (await supabase.from("mauricio_reservas").select("*").order("validade")).data ?? [],
   });
@@ -87,7 +89,7 @@ function ReservasPage() {
       validade: form.validade,
       obs: form.obs.trim() || null,
     };
-    if (!payload.grupo || !payload.cota || !payload.validade) {
+    if (!payload.grupo || !payload.cota || !payload.validade || !dealers.includes(payload.revenda)) {
       toast.error("Preencha grupo, cota e validade");
       return;
     }
@@ -101,7 +103,9 @@ function ReservasPage() {
       setEditando(null);
       setForm({ grupo: "", cota: "", vendedor: "", revenda: "Multieixo", validade: "", obs: "" });
       void qc.invalidateQueries({ queryKey: ["m-reservas"] });
-      void syncFn();
+      void qc.invalidateQueries({ queryKey: ["m-reservas-todas"] });
+      void qc.invalidateQueries({ queryKey: ["m-rev-reservas"] });
+      if (isMauricio) void syncFn();
     }
   }
 
@@ -112,6 +116,8 @@ function ReservasPage() {
       toast.success("Status atualizado");
       setEditando(null);
       void qc.invalidateQueries({ queryKey: ["m-reservas"] });
+      void qc.invalidateQueries({ queryKey: ["m-reservas-todas"] });
+      void qc.invalidateQueries({ queryKey: ["m-rev-reservas"] });
     }
   }
 
@@ -125,6 +131,8 @@ function ReservasPage() {
     toast.success("Reserva excluída");
     setEditando(null);
     void qc.invalidateQueries({ queryKey: ["m-reservas"] });
+      void qc.invalidateQueries({ queryKey: ["m-reservas-todas"] });
+      void qc.invalidateQueries({ queryKey: ["m-rev-reservas"] });
     void qc.invalidateQueries({ queryKey: ["m-reservas-todas"] });
     void qc.invalidateQueries({ queryKey: ["m-rev-reservas"] });
     void qc.invalidateQueries({ queryKey: ["mauricio-notificacoes"] });
@@ -137,7 +145,7 @@ function ReservasPage() {
           <h1 className="text-2xl font-bold">Reservas de Cotas</h1>
           <p className="text-sm text-muted-foreground">Alertas automáticos na véspera e no dia do vencimento.</p>
         </div>
-        <Button onClick={() => setCriando(true)}>
+        <Button onClick={() => { setEditando(null); setForm({ grupo: "", cota: "", vendedor: "", revenda: dealers[0] ?? "", validade: "", obs: "" }); setCriando(true); }}>
           <Plus className="h-4 w-4" /> Nova reserva
         </Button>
       </div>
@@ -175,7 +183,7 @@ function ReservasPage() {
               <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas as revendas</SelectItem>
-                {REVENDAS.map((r) => (
+                {dealers.map((r) => (
                   <SelectItem key={r} value={r}>{r}</SelectItem>
                 ))}
               </SelectContent>
@@ -261,7 +269,7 @@ function ReservasPage() {
               <Select value={form.revenda} onValueChange={(v) => setForm({ ...form, revenda: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {REVENDAS.map((r) => (
+                  {dealers.map((r) => (
                     <SelectItem key={r} value={r}>{r}</SelectItem>
                   ))}
                 </SelectContent>
