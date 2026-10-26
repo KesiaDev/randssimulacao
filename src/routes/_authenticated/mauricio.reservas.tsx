@@ -105,6 +105,7 @@ function ReservasPage() {
       void qc.invalidateQueries({ queryKey: ["m-reservas"] });
       void qc.invalidateQueries({ queryKey: ["m-reservas-todas"] });
       void qc.invalidateQueries({ queryKey: ["m-rev-reservas"] });
+      void qc.invalidateQueries({ queryKey: ["m-consultant-reservation-reminders"] });
       if (isMauricio) void syncFn();
     }
   }
@@ -118,6 +119,7 @@ function ReservasPage() {
       void qc.invalidateQueries({ queryKey: ["m-reservas"] });
       void qc.invalidateQueries({ queryKey: ["m-reservas-todas"] });
       void qc.invalidateQueries({ queryKey: ["m-rev-reservas"] });
+      void qc.invalidateQueries({ queryKey: ["m-consultant-reservation-reminders"] });
     }
   }
 
@@ -136,6 +138,7 @@ function ReservasPage() {
     void qc.invalidateQueries({ queryKey: ["m-reservas-todas"] });
     void qc.invalidateQueries({ queryKey: ["m-rev-reservas"] });
     void qc.invalidateQueries({ queryKey: ["mauricio-notificacoes"] });
+    void qc.invalidateQueries({ queryKey: ["m-consultant-reservation-reminders"] });
   }
 
   return (

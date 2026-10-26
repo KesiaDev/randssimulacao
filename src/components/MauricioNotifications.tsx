@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { MAURICIO_USER_ID } from "@/lib/mauricio";
 import { syncReservaNotifications } from "@/lib/mauricio.functions";
 import { useAppointmentReminders } from "@/hooks/useAppointmentReminders";
+import { useReservationReminders } from "@/hooks/useReservationReminders";
+import { businessDate } from "@/lib/commercial-calendar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
@@ -24,6 +26,7 @@ export function MauricioNotifications({ tone = "header" }: { tone?: "header" | "
   const isMauricio = user?.id === MAURICIO_USER_ID;
   const autorizado = isMauricio || isCommercialConsultant;
   const { reminders, error: reminderError } = useAppointmentReminders();
+  const reservationReminders = useReservationReminders();
   const { data: notificacoes } = useQuery({
     queryKey: ["m-notificacoes", user?.id], enabled: isMauricio, refetchInterval: 60000,
     queryFn: async () => (await supabase.from("mauricio_notificacoes").select("*").order("created_at", { ascending: false }).limit(30)).data ?? [],
@@ -35,7 +38,7 @@ export function MauricioNotifications({ tone = "header" }: { tone?: "header" | "
   }, [isMauricio]);
 
   if (!autorizado) return null;
-  const naoLidas = (notificacoes ?? []).filter(n => !n.lida).length + reminders.filter(r => !r.read).length;
+  const naoLidas = (notificacoes ?? []).filter(n => !n.lida).length + reminders.filter(r => !r.read).length + (reservationReminders.data?.length ?? 0);
   async function readAppointments(items = reminders) {
     const rows = items.map(r => ({ evento_id: r.event.id, user_id: user?.id ?? "", data_evento: r.date, tipo: r.type }));
     if (rows.length) {
@@ -84,11 +87,13 @@ export function MauricioNotifications({ tone = "header" }: { tone?: "header" | "
       </div>
       <div className="max-h-[70vh] overflow-y-auto">
         {reminderError && <p className="p-4 text-sm text-destructive">Não foi possível carregar os avisos da agenda.</p>}
+        {reservationReminders.isError && <p className="p-4 text-sm text-destructive">Não foi possível carregar os avisos de reservas.</p>}
+        {(reservationReminders.data ?? []).map(r => <Button key={r.id} variant="ghost" asChild className="h-auto w-full justify-start whitespace-normal rounded-none border-b px-4 py-3 text-left"><Link to="/mauricio/reservas"><Bell className="shrink-0 text-primary" /><span>Grupo {r.grupo} · Cota {r.cota} — {r.revenda}<span className="block text-xs text-muted-foreground">Vence {r.validade === businessDate() ? "hoje" : "amanhã"}</span></span></Link></Button>)}
         {reminders.length > 0 && <p className="bg-muted/50 px-4 py-2 text-xs font-semibold text-primary">Compromissos · hoje e amanhã</p>}
         {reminders.map(r => <div key={r.event.id} className={`border-b px-4 py-3 ${r.read ? "opacity-60" : ""}`}><Button variant="ghost" onClick={() => void markAppointment(r.event.id)} className="h-auto w-full justify-start whitespace-normal px-0 text-left"><CalendarDays className="shrink-0 text-primary" /><span className="min-w-0"><span className="block text-xs font-semibold text-primary">{r.type === "hoje" ? "Hoje" : "Amanhã"} · {r.date.split("-").reverse().join("/")}</span><span className="block break-words">{r.event.titulo}{r.event.revenda ? ` — ${r.event.revenda}` : ""}.</span>{r.event.logistica && <span className="mt-1 block text-xs text-muted-foreground">{r.event.logistica}</span>}<span className="block text-xs text-muted-foreground">{r.read ? "Lida" : "Não lida"}</span></span></Button><Button variant="link" size="sm" asChild className="mt-1 px-0"><Link to="/mauricio/calendario">Abrir calendário →</Link></Button></div>)}
         {(notificacoes ?? []).length > 0 && <p className="bg-muted/50 px-4 py-2 text-xs font-semibold">Reservas de cotas</p>}
         {(notificacoes ?? []).map(n => <Button key={n.id} variant="ghost" onClick={() => void marcarLida(n.id)} className={`block h-auto w-full whitespace-normal rounded-none border-b px-4 py-3 text-left text-sm ${n.lida ? "opacity-60" : ""}`}><span className="block">{n.mensagem}</span><span className="mt-1 block text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString("pt-BR")}{!n.lida && " · não lida"}</span></Button>)}
-        {reminders.length === 0 && (notificacoes ?? []).length === 0 && <p className="p-4 text-sm text-muted-foreground">Nenhuma notificação.</p>}
+        {reminders.length === 0 && (notificacoes ?? []).length === 0 && !reservationReminders.data?.length && <p className="p-4 text-sm text-muted-foreground">Nenhuma notificação.</p>}
       </div>
     </PopoverContent>
   </Popover>;
