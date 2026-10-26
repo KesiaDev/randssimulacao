@@ -239,6 +239,13 @@
       "when": 1793019524408,
       "tag": "0033_scoped_commercial_consultants",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793019998107,
+      "tag": "0034_preserve_mauricio_commercial_scope",
+      "breakpoints": true
     }
   ]
 }
