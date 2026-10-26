@@ -119,8 +119,8 @@ function MetasPage() {
                             </Button>
                           </div>
                         ) : (
-                          <button
-                            className="group inline-flex items-center gap-1"
+                          <Button variant="ghost"
+                            className="group h-auto px-0 inline-flex items-center gap-1"
                             onClick={() => {
                               setEditando(key);
                               setValorEdicao(v !== null ? String(v) : "");
