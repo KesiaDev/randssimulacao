@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MAURICIO_USER_ID } from "@/lib/mauricio";
+import { businessDate, nextDate } from "@/lib/commercial-calendar";
 
 // Gera as notificações de reserva (véspera e dia do vencimento) para o
 // Maurício. Roda quando ele entra na plataforma e após criar/editar reservas.
@@ -11,15 +12,14 @@ export const syncReservaNotifications = createServerFn({ method: "POST" })
     if (context.userId !== MAURICIO_USER_ID) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const hoje = new Date();
-    const iso = (d: Date) => d.toISOString().slice(0, 10);
-    const hojeIso = iso(hoje);
-    const amanhaIso = iso(new Date(hoje.getTime() + 86400000));
+    const hojeIso = businessDate();
+    const amanhaIso = nextDate(hojeIso);
 
     const { data: reservas, error } = await supabaseAdmin
       .from("mauricio_reservas")
       .select("id, grupo, cota, vendedor, revenda, validade, status")
       .in("status", ["ativa"])
+      .in("revenda", ["Compasi", "Rodoeste", "Multieixo"])
       .in("validade", [hojeIso, amanhaIso]);
     if (error) throw new Error(error.message);
 
