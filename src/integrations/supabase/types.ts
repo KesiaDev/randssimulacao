@@ -733,6 +733,35 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_access_days: {
+        Row: {
+          access_count: number
+          access_date: string
+          last_access_at: string
+          user_id: string
+        }
+        Insert: {
+          access_count?: number
+          access_date: string
+          last_access_at?: string
+          user_id: string
+        }
+        Update: {
+          access_count?: number
+          access_date?: string
+          last_access_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_access_days_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active: boolean
@@ -1220,6 +1249,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_seller_usage: { Args: { _from: string; _to: string }; Returns: Json }
       group_visible_to_user: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
@@ -1231,6 +1261,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_platform_access: { Args: never; Returns: undefined }
       managed_dealer_ids: { Args: never; Returns: string[] }
       manager_can_read_revenda: { Args: { _revenda: string }; Returns: boolean }
       manager_can_read_seller: {
