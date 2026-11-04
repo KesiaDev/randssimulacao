@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MESES } from "@/lib/mauricio";
+import { SellerUsage } from "@/components/SellerUsage";
 import { QUALIFICATIONS } from "@/lib/proposal-qualification";
 import {
   Bar,
@@ -153,6 +154,8 @@ function AdminHome() {
           })}
         </div>
       </section>
+
+      <SellerUsage />
 
       <Chart title="Simulações por faixa de crédito · mês atual" data={byCredit} />
 
