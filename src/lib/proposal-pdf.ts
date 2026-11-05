@@ -1,5 +1,5 @@
 import type { Database } from "@/integrations/supabase/types";
-import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/lib/format";
+import { formatBRL, formatPercent, formatInstallmentType } from "@/lib/format";
 import { LANCE_MODALITIES, lanceInputFromItem, parseSavedLanceModality, resolveLanceModality, simulateLance } from "@/lib/lance-calc";
 import { formatContractModality } from "@/lib/calc";
 import randonLogo from "@/assets/randon-logo.png.asset.json";
