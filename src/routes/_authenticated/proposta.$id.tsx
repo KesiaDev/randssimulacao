@@ -27,11 +27,14 @@ import fenatran2 from "@/assets/fenatran-2.jpg.asset.json";
 import fenatran3 from "@/assets/fenatran-3.jpg.asset.json";
 import type { Database } from "@/integrations/supabase/types";
 
-// Fotos padrão Randon — arquivadas durante a campanha Fenatran. Ao encerrar, volte FENATRAN_CAMPAIGN para false.
+// Campanha Fenatran: fotos da campanha até 15/11/2026; a partir de 16/11/2026 (data de São Paulo) voltam as fotos padrão Randon.
 const defaultProposalImages = [graneleiro, florestal, basculante, tanque];
 const fenatranProposalImages = [fenatran1, fenatran2, fenatran3];
-const FENATRAN_CAMPAIGN = true;
-const proposalImages = FENATRAN_CAMPAIGN ? fenatranProposalImages : defaultProposalImages;
+const FENATRAN_END = "2026-11-16";
+function isFenatranCampaign() {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+  return today < FENATRAN_END;
+}
 type ItemRow = Database["public"]["Tables"]["proposal_items"]["Row"];
 type ProposalRow = Database["public"]["Tables"]["proposals"]["Row"];
 type SimulationRow = Database["public"]["Tables"]["simulations"]["Row"];
@@ -104,8 +107,9 @@ function Proposta() {
   if (!data) return <p className="text-sm text-muted-foreground">Proposta não encontrada.</p>;
   const { proposal, items, seller, legacy } = data;
   const editable = canEditProposal(user?.id, proposal.seller_id, isAdmin);
+  const proposalImages = isFenatranCampaign() ? fenatranProposalImages : defaultProposalImages;
   const imageIndex = [...proposal.id].reduce((total, char) => total + char.charCodeAt(0), 0) % proposalImages.length;
-  const proposalImage = proposalImages[imageIndex] ?? fenatran1;
+  const proposalImage = proposalImages[imageIndex] ?? graneleiro;
   const totals = calculateProposalTotals(items.map((item) => ({ quantity: item.quantity, credit: Number(item.credit_value), result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / savedContractTerm(item), installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } })));
 
   async function makePdf() {
