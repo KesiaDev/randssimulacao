@@ -30,10 +30,12 @@ import type { Database } from "@/integrations/supabase/types";
 // Campanha Fenatran: fotos da campanha até 15/11/2026; a partir de 16/11/2026 (data de São Paulo) voltam as fotos padrão Randon.
 const defaultProposalImages = [graneleiro, florestal, basculante, tanque];
 const fenatranProposalImages = [fenatran1, fenatran2, fenatran3];
+const FENATRAN_START = "2026-11-05";
 const FENATRAN_END = "2026-11-16";
-function isFenatranCampaign() {
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
-  return today < FENATRAN_END;
+// Só propostas criadas durante a campanha usam as fotos Fenatran; as anteriores mantêm as fotos padrão.
+function isFenatranCampaign(createdAt: string) {
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date(createdAt));
+  return day >= FENATRAN_START && day < FENATRAN_END;
 }
 type ItemRow = Database["public"]["Tables"]["proposal_items"]["Row"];
 type ProposalRow = Database["public"]["Tables"]["proposals"]["Row"];
@@ -107,7 +109,7 @@ function Proposta() {
   if (!data) return <p className="text-sm text-muted-foreground">Proposta não encontrada.</p>;
   const { proposal, items, seller, legacy } = data;
   const editable = canEditProposal(user?.id, proposal.seller_id, isAdmin);
-  const proposalImages = isFenatranCampaign() ? fenatranProposalImages : defaultProposalImages;
+  const proposalImages = isFenatranCampaign(proposal.created_at) ? fenatranProposalImages : defaultProposalImages;
   const imageIndex = [...proposal.id].reduce((total, char) => total + char.charCodeAt(0), 0) % proposalImages.length;
   const proposalImage = proposalImages[imageIndex] ?? graneleiro;
   const totals = calculateProposalTotals(items.map((item) => ({ quantity: item.quantity, credit: Number(item.credit_value), result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / savedContractTerm(item), installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } })));
