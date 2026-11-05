@@ -1,5 +1,5 @@
 import type { Database } from "@/integrations/supabase/types";
-import { formatBRL, formatDate, formatPercent, formatInstallmentType } from "@/lib/format";
+import { formatBRL, formatPercent, formatInstallmentType } from "@/lib/format";
 import { LANCE_MODALITIES, lanceInputFromItem, parseSavedLanceModality, resolveLanceModality, simulateLance } from "@/lib/lance-calc";
 import { formatContractModality } from "@/lib/calc";
 import randonLogo from "@/assets/randon-logo.png.asset.json";
@@ -126,12 +126,6 @@ export async function createProposalPdf(input: Input) {
     pdf.setFillColor(...navy);
     pdf.rect(0, photoHeight, pageWidth, firstPage ? 29 : 18, "F");
     if (firstPage) {
-      pdf.setFillColor(255, 255, 255);
-      pdf.roundedRect(pageWidth - margin - 27, 8, 30, 10, 2, 2, "F");
-      pdf.setTextColor(...gray);
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(7.5);
-      pdf.text(formatDate(input.createdAt), pageWidth - margin - 12, 14.5, { align: "center" });
       // Logo branca na faixa azul-marinho, igual às demais páginas — não
       // mais numa caixa branca sobre a foto (ficava mal com certas fotos).
       const logoScale = logo ? Math.min(48 / logo.width, 8.5 / logo.height) : 0;
