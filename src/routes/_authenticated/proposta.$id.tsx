@@ -22,9 +22,16 @@ import graneleiro from "@/assets/graneleiro-kv.jpg.asset.json";
 import florestal from "@/assets/florestal.jpg.asset.json";
 import basculante from "@/assets/basculante-4-eixos.jpg.asset.json";
 import tanque from "@/assets/tanque-4e-preto.jpg.asset.json";
+import fenatran1 from "@/assets/fenatran-1.jpg.asset.json";
+import fenatran2 from "@/assets/fenatran-2.jpg.asset.json";
+import fenatran3 from "@/assets/fenatran-3.jpg.asset.json";
 import type { Database } from "@/integrations/supabase/types";
 
-const proposalImages = [graneleiro, florestal, basculante, tanque];
+// Fotos padrão Randon — arquivadas durante a campanha Fenatran. Ao encerrar, volte FENATRAN_CAMPAIGN para false.
+const defaultProposalImages = [graneleiro, florestal, basculante, tanque];
+const fenatranProposalImages = [fenatran1, fenatran2, fenatran3];
+const FENATRAN_CAMPAIGN = true;
+const proposalImages = FENATRAN_CAMPAIGN ? fenatranProposalImages : defaultProposalImages;
 type ItemRow = Database["public"]["Tables"]["proposal_items"]["Row"];
 type ProposalRow = Database["public"]["Tables"]["proposals"]["Row"];
 type SimulationRow = Database["public"]["Tables"]["simulations"]["Row"];
@@ -98,7 +105,7 @@ function Proposta() {
   const { proposal, items, seller, legacy } = data;
   const editable = canEditProposal(user?.id, proposal.seller_id, isAdmin);
   const imageIndex = [...proposal.id].reduce((total, char) => total + char.charCodeAt(0), 0) % proposalImages.length;
-  const proposalImage = proposalImages[imageIndex] ?? graneleiro;
+  const proposalImage = proposalImages[imageIndex] ?? proposalImages[0];
   const totals = calculateProposalTotals(items.map((item) => ({ quantity: item.quantity, credit: Number(item.credit_value), result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / savedContractTerm(item), installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } })));
 
   async function makePdf() {
