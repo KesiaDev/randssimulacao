@@ -105,7 +105,7 @@ function Proposta() {
   const { proposal, items, seller, legacy } = data;
   const editable = canEditProposal(user?.id, proposal.seller_id, isAdmin);
   const imageIndex = [...proposal.id].reduce((total, char) => total + char.charCodeAt(0), 0) % proposalImages.length;
-  const proposalImage = proposalImages[imageIndex] ?? proposalImages[0];
+  const proposalImage = proposalImages[imageIndex] ?? fenatran1;
   const totals = calculateProposalTotals(items.map((item) => ({ quantity: item.quantity, credit: Number(item.credit_value), result: { totalBase: Number(item.base_amount), baseInstallment: Number(item.base_amount) / savedContractTerm(item), installment: Number(item.installment_amount), insurance: Number(item.insurance_amount), finalAmount: Number(item.final_amount) } })));
 
   async function makePdf() {
