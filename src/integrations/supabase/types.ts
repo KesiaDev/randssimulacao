@@ -1145,6 +1145,7 @@ export type Database = {
         Args: { _rate_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_user_access: { Args: never; Returns: boolean }
       consultant_can_access_revenda: {
         Args: { _revenda: string }
         Returns: boolean

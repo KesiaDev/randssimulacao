@@ -20,6 +20,8 @@ import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/lib/format";
 import { useDealers } from "@/hooks/useConfig";
 import { DealerAccessPicker } from "@/components/DealerAccessPicker";
+import { useAuth } from "@/hooks/useAuth";
+import { canManageUserAccess } from "@/lib/team-permissions";
 import {
   Select,
   SelectContent,
@@ -67,12 +69,16 @@ export const Route = createFileRoute("/_authenticated/admin/equipe")({
       { name: "description", content: "Gerencie os vendedores com acesso ao simulador." },
       { property: "og:title", content: "Minha equipe — Randon Consórcios" },
       { property: "og:description", content: "Gerencie os vendedores com acesso ao simulador." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AdminEquipe,
 });
 
 function AdminEquipe() {
+  const { user, isAdmin, profile } = useAuth();
+  const manageAccess = canManageUserAccess(user?.id ?? "", isAdmin, profile?.active === true);
   const qc = useQueryClient();
   const create = useServerFn(createSeller);
   const update = useServerFn(updateSeller);
@@ -355,7 +361,8 @@ function AdminEquipe() {
                 <td data-label="Ativo" className="px-5 py-3">
                   <Switch
                     checked={p.active}
-                    disabled={p.role === "admin"}
+                    disabled={!manageAccess || p.role === "admin"}
+                    aria-label={`Acesso de ${p.name}`}
                     onCheckedChange={async (v) => {
                       try {
                         await toggle({ data: { userId: p.id, active: v } });
@@ -367,7 +374,7 @@ function AdminEquipe() {
                   />
                 </td>
                 <td data-label="Ação" className="px-5 py-3">
-                  <div className="flex flex-wrap justify-end gap-1">
+                  {manageAccess && <div className="flex flex-wrap justify-end gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -426,7 +433,7 @@ function AdminEquipe() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                  </div>
+                  </div>}
                 </td>
               </tr>
             ))}
