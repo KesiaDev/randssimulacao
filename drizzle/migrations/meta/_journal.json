@@ -253,6 +253,13 @@
       "when": 1793811624514,
       "tag": "0035_platform_access_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794581061889,
+      "tag": "0036_exclusive_user_access_management",
+      "breakpoints": true
     }
   ]
 }
