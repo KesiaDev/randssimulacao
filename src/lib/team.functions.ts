@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isValidCpf } from "@/lib/cpf";
+import { assertUserAccessOwner } from "@/lib/team-permissions";
 
 const ANNUAL_LICENSE_VALUE = 500;
 const INSTALLMENT_COUNT = 12;
@@ -70,7 +71,7 @@ export const resetSellerPassword = createServerFn({ method: "POST" })
     z.object({ userId: z.string().uuid(), password: z.string().trim().min(8) }).parse(data),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as any);
+    await assertUserAccessOwner(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
       password: data.password,
@@ -98,7 +99,7 @@ export const updateSeller = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as any);
+    await assertUserAccessOwner(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: current, error: fetchErr } = await supabaseAdmin
@@ -136,7 +137,7 @@ export const chargeSellerLicense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ userId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as any);
+    await assertUserAccessOwner(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { findOrCreateAsaasCustomer, createCardInstallmentCharge } = await import(
       "@/integrations/asaas/client.server"
@@ -190,7 +191,7 @@ export const deleteSeller = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ userId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as any);
+    await assertUserAccessOwner(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [{ count: proposalsCount, error: propErr }, { count: simsCount, error: simErr }] = await Promise.all([
@@ -226,7 +227,7 @@ export const setSellerActive = createServerFn({ method: "POST" })
     z.object({ userId: z.string().uuid(), active: z.boolean() }).parse(data),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context as any);
+    await assertUserAccessOwner(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("profiles")
@@ -234,8 +235,9 @@ export const setSellerActive = createServerFn({ method: "POST" })
       .eq("id", data.userId);
     if (error) throw new Error(error.message);
     // Bloqueia o acesso sem apagar o histórico do vendedor
-    await supabaseAdmin.auth.admin.updateUserById(data.userId, {
+    const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
       ban_duration: data.active ? "none" : "876000h",
     });
+    if (authError) throw new Error(authError.message);
     return { ok: true };
   });
