@@ -260,6 +260,13 @@
       "when": 1794581061889,
       "tag": "0036_exclusive_user_access_management",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794595641676,
+      "tag": "0037_allow_mauricio_user_reactivation",
+      "breakpoints": true
     }
   ]
 }
