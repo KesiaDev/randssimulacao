@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [{ data: p }, { data: roles }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, name, email, phone, active, self_registered, dealers(name)")
+        .select("id, name, email, phone, active, self_registered, dealers!profiles_dealer_id_fkey(name)")
         .eq("id", current.user.id)
         .maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", current.user.id),
