@@ -21,7 +21,7 @@ import { formatDate } from "@/lib/format";
 import { useDealers } from "@/hooks/useConfig";
 import { DealerAccessPicker } from "@/components/DealerAccessPicker";
 import { useAuth } from "@/hooks/useAuth";
-import { canManageUserAccess } from "@/lib/team-permissions";
+import { canManageUserAccess, canReactivateUser } from "@/lib/team-permissions";
 import {
   Select,
   SelectContent,
@@ -79,6 +79,7 @@ export const Route = createFileRoute("/_authenticated/admin/equipe")({
 function AdminEquipe() {
   const { user, isAdmin, profile } = useAuth();
   const manageAccess = canManageUserAccess(user?.id ?? "", isAdmin, profile?.active === true);
+  const reactivateAccess = canReactivateUser(user?.id ?? "", isAdmin, profile?.active === true);
   const qc = useQueryClient();
   const create = useServerFn(createSeller);
   const update = useServerFn(updateSeller);
@@ -361,7 +362,7 @@ function AdminEquipe() {
                 <td data-label="Ativo" className="px-5 py-3">
                   <Switch
                     checked={p.active}
-                    disabled={!manageAccess || p.role === "admin"}
+                    disabled={p.role === "admin" || !(manageAccess || (!p.active && reactivateAccess))}
                     aria-label={`Acesso de ${p.name}`}
                     onCheckedChange={async (v) => {
                       try {

@@ -227,7 +227,7 @@ export const setSellerActive = createServerFn({ method: "POST" })
     z.object({ userId: z.string().uuid(), active: z.boolean() }).parse(data),
   )
   .handler(async ({ data, context }) => {
-    await assertUserAccessOwner(context);
+    await assertUserAccessOwner(context, data.active);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("profiles")
