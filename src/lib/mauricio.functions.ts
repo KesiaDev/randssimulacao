@@ -19,7 +19,7 @@ export const syncReservaNotifications = createServerFn({ method: "POST" })
       .from("mauricio_reservas")
       .select("id, grupo, cota, vendedor, revenda, validade, status")
       .in("status", ["ativa"])
-      .in("revenda", ["Compasi", "Rodoeste", "Multieixo"])
+      .in("revenda", ["Rodoeste", "Multieixo"])
       .in("validade", [hojeIso, amanhaIso]);
     if (error) throw new Error(error.message);
 

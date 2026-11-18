@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { formatBRL, formatPct, MESES } from "@/lib/mauricio";
+import { formatBRL, formatPct, MESES, scopeMauricio } from "@/lib/mauricio";
 import { useCommercialAccess } from "@/hooks/useCommercialAccess";
 import { Pencil } from "lucide-react";
 import { annualRealized } from "@/lib/commercial-insights";
@@ -28,19 +28,19 @@ const ANO = 2026;
 
 function MetasPage() {
   const qc = useQueryClient();
-  const { user, dealers, isCommercialConsultant } = useCommercialAccess();
+  const { user, dealers, isCommercialConsultant, isMauricio } = useCommercialAccess();
   const [editando, setEditando] = useState<string | null>(null);
   const [valorEdicao, setValorEdicao] = useState("");
 
   const { data: mensais } = useQuery({
     queryKey: ["m-mensais", ANO, user?.id],
     queryFn: async () =>
-      (await supabase.from("mauricio_resultados_mensais").select("*").eq("ano", ANO)).data ?? [],
+      (await scopeMauricio(supabase.from("mauricio_resultados_mensais").select("*").eq("ano", ANO), isMauricio)).data ?? [],
   });
   const { data: anuais } = useQuery({
     queryKey: ["m-metas-hist", user?.id],
     queryFn: async () =>
-      (await supabase.from("mauricio_metas_anuais").select("*").order("revenda").order("ano")).data ?? [],
+      (await scopeMauricio(supabase.from("mauricio_metas_anuais").select("*"), isMauricio).order("revenda").order("ano")).data ?? [],
   });
 
   function valorMes(revenda: string, mes: number): number | null {

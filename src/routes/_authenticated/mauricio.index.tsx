@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE } from "@/lib/mauricio";
+import { formatBRL, formatPct, reservaStatusEfetivo, STATUS_LABEL, STATUS_BADGE, scopeMauricio } from "@/lib/mauricio";
 import { CalendarDays, Target, TrendingUp, AlertTriangle } from "lucide-react";
 import { CommercialInsights } from "@/components/CommercialInsights";
 import { businessDate } from "@/lib/commercial-calendar";
@@ -25,16 +25,16 @@ export const Route = createFileRoute("/_authenticated/mauricio/")({
 const ANO = 2026;
 
 function MauricioDashboard() {
-  const { isDealerManager, user, managedDealers, isCommercialConsultant, canManageCommercial } = useCommercialAccess();
+  const { isMauricio, isDealerManager, user, managedDealers, isCommercialConsultant, canManageCommercial } = useCommercialAccess();
   const { data: metas } = useQuery({
     queryKey: ["m-metas", ANO, user?.id],
     queryFn: async () =>
-      (await supabase.from("mauricio_metas_anuais").select("*").eq("ano", ANO)).data ?? [],
+      (await scopeMauricio(supabase.from("mauricio_metas_anuais").select("*").eq("ano", ANO), isMauricio)).data ?? [],
   });
   const { data: mensais } = useQuery({
     queryKey: ["m-mensais", ANO, user?.id],
     queryFn: async () =>
-      (await supabase.from("mauricio_resultados_mensais").select("*").eq("ano", ANO)).data ?? [],
+      (await scopeMauricio(supabase.from("mauricio_resultados_mensais").select("*").eq("ano", ANO), isMauricio)).data ?? [],
   });
   const { data: eventos } = useQuery({
     queryKey: ["m-eventos-proximos", user?.id],

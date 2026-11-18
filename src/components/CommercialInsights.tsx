@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { annualRealized, commercialInsight } from "@/lib/commercial-insights";
-import { formatBRL, formatPct, MESES } from "@/lib/mauricio";
+import { formatBRL, formatPct, MESES, scopeMauricio, MAURICIO_USER_ID } from "@/lib/mauricio";
 import { ChartNoAxesCombined, TrendingUp } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -12,6 +12,7 @@ const percent = (value: number | null) => value === null ? "Sem base comparável
 
 export function CommercialInsights({ currentYear }: { currentYear: number }) {
   const { user, isDealerManager, isCommercialConsultant } = useAuth();
+  const isMauricio = user?.id === MAURICIO_USER_ID;
   const [year, setYear] = useState(currentYear);
   const [cutoff, setCutoff] = useState(9);
   const [dealer, setDealer] = useState("all");
@@ -19,7 +20,7 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
   const annualQuery = useQuery({
     queryKey: ["m-strategy-annual", currentYear, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mauricio_metas_anuais").select("ano,revenda,meta,realizado").gte("ano", currentYear - 3).lte("ano", currentYear).order("ano");
+      const { data, error } = await scopeMauricio(supabase.from("mauricio_metas_anuais").select("ano,revenda,meta,realizado"), isMauricio).gte("ano", currentYear - 3).lte("ano", currentYear).order("ano");
       if (error) throw error;
       return data;
     },
@@ -27,7 +28,7 @@ export function CommercialInsights({ currentYear }: { currentYear: number }) {
   const monthlyQuery = useQuery({
     queryKey: ["m-strategy-monthly", currentYear, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mauricio_resultados_mensais").select("ano,mes,revenda,valor").gte("ano", currentYear - 4).lte("ano", currentYear);
+      const { data, error } = await scopeMauricio(supabase.from("mauricio_resultados_mensais").select("ano,mes,revenda,valor"), isMauricio).gte("ano", currentYear - 4).lte("ano", currentYear);
       if (error) throw error;
       return data;
     },

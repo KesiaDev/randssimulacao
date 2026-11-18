@@ -1,7 +1,9 @@
 // Módulo de gestão comercial exclusivo do Maurício Palma.
 export const MAURICIO_USER_ID = "a6df6d4c-87c9-4349-b1af-0f55e2dc4bfd";
 
-export const REVENDAS = ["Compasi", "Rodoeste", "Multieixo"] as const;
+/** Mauricio only sees these dealers; others keep their data for consultants. */
+export const scopeMauricio = <T extends { in: (c: "revenda", v: string[]) => T }>(q: T, isMauricio: boolean): T => (isMauricio ? q.in("revenda", [...REVENDAS]) : q);
+export const REVENDAS = ["Rodoeste", "Multieixo"] as const;
 
 export const MESES = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
