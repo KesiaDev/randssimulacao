@@ -8,15 +8,14 @@ describe("gestão de acesso exclusiva da Kesia", () => {
   it("permite Kesia ativa e administradora", () => {
     expect(canManageUserAccess(kesia, true, true)).toBe(true);
   });
-  it("nega Maurício mesmo administrador", () => {
-    expect(canManageUserAccess(mauricio, true, true)).toBe(false);
+  it("permite Maurício com as mesmas permissões da Kesia", () => {
+    expect(canManageUserAccess(mauricio, true, true)).toBe(true);
   });
   it("nega outros administradores", () => {
     expect(canManageUserAccess("another-admin", true, true)).toBe(false);
   });
-  it("Maurício pode reativar sem poder bloquear", () => {
+  it("Maurício pode reativar", () => {
     expect(canReactivateUser(mauricio, true, true)).toBe(true);
-    expect(canManageUserAccess(mauricio, true, true)).toBe(false);
     expect(canReactivateUser(mauricio, false, true)).toBe(false);
     expect(canReactivateUser(mauricio, true, false)).toBe(false);
     expect(canReactivateUser("another-admin", true, true)).toBe(false);
@@ -30,7 +29,8 @@ describe("gestão de acesso exclusiva da Kesia", () => {
       rpc: async () => ({ data: true }),
       from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { active: true } }) }) }) }),
     };
-    await expect(assertUserAccessOwner({ userId: mauricio, supabase })).rejects.toThrow("Somente Kesia");
+    await expect(assertUserAccessOwner({ userId: mauricio, supabase })).resolves.toBeUndefined();
+    await expect(assertUserAccessOwner({ userId: "another-admin", supabase })).rejects.toThrow("Somente Kesia");
     await expect(assertUserAccessOwner({ userId: mauricio, supabase }, true)).resolves.toBeUndefined();
     await expect(assertUserAccessOwner({ userId: kesia, supabase })).resolves.toBeUndefined();
   });
